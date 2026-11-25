@@ -61,6 +61,8 @@
   .muted { color:var(--grey); font-size:13px; }
   button.share { font:inherit; font-size:14px; padding:6px 12px; border:1px solid var(--copper); color:var(--copper); background:transparent; cursor:pointer; margin-top:8px; }
   .legend { display:flex; gap:16px; flex-wrap:wrap; font-size:13px; margin:10px 0 0; }
+  .mapnote { font-size:15px; line-height:1.45; color:var(--ink); margin:10px 0 0; }
+  .mapnote .muted { font-size:14px; }
   .heatlegend b { display:inline-block; width:22px; height:6px; background:var(--copper); vertical-align:middle; margin-right:5px; }
   .legend i { display:inline-block; width:22px; height:0; border-top:3px solid; vertical-align:middle; margin-right:6px; }
   footer.bi-foot { font-size:13px; color:var(--grey); margin-top:24px; max-width: 80ch; line-height:1.5; }
@@ -75,7 +77,7 @@
   <div class="riders seg" role="group" aria-label="Who's riding?">
     <button data-tier="strict" aria-pressed="true"><strong>Kids and cautious riders</strong><span>Paths and quiet streets only. Never on busy streets, never across El Camino.</span></button>
     <button data-tier="standard" aria-pressed="false"><strong>Most adults</strong><span>Also painted bike lanes and busier 2-lane streets. Any traffic light makes a crossing OK.</span></button>
-    <button class="quizcard" id="openquiz"><strong>Not sure? Answer 7 questions</strong><span>About a minute, with photos of local streets. Your answers pick the map for you.</span></button>
+    <button class="quizcard" id="openquiz"><strong>Which map fits you? 7 quick questions</strong><span>With photos of local streets. Your answers pick the map.</span></button>
   </div>
   <dialog id="quiz" aria-label="Which rider are you?"><div class="qwrap" id="qbody" tabindex="-1" style="outline:none"></div></dialog>
   <div class="wrap">
@@ -85,9 +87,10 @@
         <div class="zoom"><button id="zin" aria-label="Zoom in">+</button><button id="zout" aria-label="Zoom out">&minus;</button></div>
         <div class="hint" id="hint">Click near where you live</div>
       </div>
+      <div class="mapnote" id="mapnote" aria-live="polite"></div>
       <div class="legend">
-        <span><i style="border-color:var(--copper)"></i>Your island</span>
-        <span><i style="border-color:var(--grey)"></i>Other low-stress streets</span>
+        <span id="lg-island"><i style="border-color:var(--copper)"></i>Your island</span>
+        <span id="lg-other"><i style="border-color:var(--grey)"></i>Other low-stress streets</span>
         <span><i style="border-color:var(--ink); border-top-width:2px"></i>Stressful streets</span>
         <span>&#9312; Fix that would connect your island (numbered as in the list)</span>
       </div>
@@ -216,6 +219,30 @@ function computeHeat() {
 }
 const band = mins => { let b = 0; while (b < BANDS.length && mins >= BANDS[b]) b++; return b; };
 
+// Before a click, each larger island gets its own muted color so the islands themselves are visible.
+// Neighboring islands are kept apart: greedy coloring by distance between island centers.
+const ISLAND_HUES = ["#5f87b5", "#6e9f68", "#a27aa8", "#b8913f", "#4f9d97", "#b86f5a", "#8484c4", "#7f9c45"];
+const MIN_HOMES_COLORED = 150;
+function islandColors(T) {
+  if (T._col) return T._col;
+  const box = {};                       // bounding box of each island, padded ~300 m
+  for (const L of T.lines) if (L.i !== undefined) for (const p of L.pts) {
+    const b = box[L.i] || (box[L.i] = [p[0], p[1], p[0], p[1]]);
+    b[0] = Math.min(b[0], p[0]); b[1] = Math.min(b[1], p[1]); b[2] = Math.max(b[2], p[0]); b[3] = Math.max(b[3], p[1]);
+  }
+  const pad = 0.003, touch = (a, b) => a[0] - pad < b[2] && b[0] - pad < a[2] && a[1] - pad < b[3] && b[1] - pad < a[3];
+  const ids = Object.keys(box).map(Number)
+    .filter(i => ((T.islands[i] || {}).homes || 0) >= MIN_HOMES_COLORED)
+    .sort((a, b) => T.islands[b].homes - T.islands[a].homes);
+  const col = new Map();
+  for (const i of ids) {
+    const used = new Set(ids.filter(j => col.has(j) && touch(box[i], box[j])).map(j => col.get(j)));
+    let k = 0; while (used.has(k) && k < ISLAND_HUES.length) k++;
+    col.set(i, k % ISLAND_HUES.length);
+  }
+  return (T._col = col);
+}
+
 let tier = "strict", sel = null;
 const cv = document.getElementById("map"), ctx = cv.getContext("2d");
 const box = document.getElementById("mapbox");
@@ -255,7 +282,12 @@ function draw() {
   ctx.lineCap = "round"; ctx.lineJoin = "round";
   const z = Math.max(1, Math.sqrt(scale));
   for (const L of T.lines) if (L.i === undefined) stroke(L.pts, INK, 1.1 * z);
-  for (const L of T.lines) if (L.i !== undefined && L.i !== sel) stroke(L.pts, sel ? FAINT : LOWC, 1.1 * z);
+  if (sel) { for (const L of T.lines) if (L.i !== undefined && L.i !== sel) stroke(L.pts, FAINT, 1.1 * z); }
+  else {
+    const col = islandColors(T);
+    for (const L of T.lines) if (L.i !== undefined && !col.has(L.i)) stroke(L.pts, LOWC, 1.1 * z);
+    for (const L of T.lines) if (col.has(L.i)) stroke(L.pts, ISLAND_HUES[col.get(L.i)], 1.7 * z);
+  }
   if (sel) for (const L of T.lines) if (L.i === sel) {
     if (!heat || !L.nodes) { stroke(L.pts, COPPER, 2.6 * z); continue; }
     for (let k = 1; k < L.pts.length; k++) {
@@ -359,7 +391,11 @@ function panel() {
     let mins = "";
     if (heat && heatFrom === "where you clicked") {
       const sn = stationNode(T, sel, st);
-      if (sn && heat.has(sn.n)) mins = `<div style="margin:2px 0 4px"><strong>About ${Math.max(1, Math.round((heat.get(sn.n) + sn.d) / M_PER_MIN))} minutes</strong> by low-stress streets from where you clicked.</div>`;
+      if (sn && heat.has(sn.n)) {
+        const m = Math.max(1, Math.round((heat.get(sn.n) + sn.d) / M_PER_MIN));
+        mins = m > 25 ? `<div style="margin:2px 0 4px">Only by a long detour: <strong>about ${m} minutes</strong> by low-stress streets from where you clicked.</div>`
+                      : `<div style="margin:2px 0 4px"><strong>About ${m} minutes</strong> by low-stress streets from where you clicked.</div>`;
+      }
     }
     h += `<div class="stat">${mins}<div class="lbl">To ${st} Caltrain: <strong>${fmt(o)} of ${fmt(n)}</strong> homes (${pct(o, n)}) have a low-stress route no more than 25% longer than the direct ride.${more}</div><div class="bar"><i style="width:${100 * o / n}%"></i></div></div>`;
   }
@@ -414,11 +450,52 @@ function render() {
       labels.map((t, i) => `<span><b style="opacity:${ALPHA[i]}"></b>${t}</span>`).join("") +
       `<span class="muted">No hills or waits at lights counted.</span>`;
   }
+  mapnote();
   headline(); panel(); draw();
 }
 
-function pick(cx, cy) {
-  const T = DATA[tier];
+function otherStandardAt() {
+  // the island at the same spot under the other standard, if its data is loaded
+  const other = tier === "strict" ? "standard" : "strict", T2 = DATA[other];
+  if (!T2 || !sel) return null;
+  const T = DATA[tier], L0 = T.lines.find(L => L.i === sel);
+  const p = clickPt || L0.pts[Math.floor(L0.pts.length / 2)], [x, y] = px(p[0], p[1]);
+  const id = pick(x, y, T2);
+  return id ? {other, homes: (T2.islands[id] || {}).homes || 0} : null;
+}
+function mapnote() {
+  const el = document.getElementById("mapnote"), T = DATA[tier];
+  document.getElementById("lg-island").innerHTML = sel ? '<i style="border-color:var(--copper)"></i>Your island' :
+    '<i style="border-color:#5f87b5"></i><i style="border-color:#6e9f68;margin-left:-4px"></i><i style="border-color:#a27aa8;margin-left:-4px"></i>Each color is one island';
+  document.getElementById("lg-other").innerHTML = sel ? '<i style="border-color:var(--grey)"></i>Other low-stress streets' :
+    '<i style="border-color:var(--grey)"></i>Small islands';
+  if (!sel) {
+    el.innerHTML = `Each color is an island: quiet streets you can ride between without riding on, or crossing, a stressful street. ` +
+      `The dark lines between them are the stressful streets and crossings. <strong>Click near home to see yours.</strong>`;
+    return;
+  }
+  const I = T.islands[sel] || {};
+  const parts = [];
+  for (const st of Object.keys(T.stations)) {
+    if (!((I.near || {})[st])) continue;                 // more than a 2-mile ride: leave it out
+    const sn = stationNode(T, sel, st);
+    if (sn && heat && heat.has(sn.n) && heatFrom === "where you clicked")
+    {
+      const m = Math.max(1, Math.round((heat.get(sn.n) + sn.d) / M_PER_MIN));
+      parts.push(m > 25 ? `${st} Caltrain only by a long detour (about ${m} min)` : `${st} Caltrain about ${m} min`);
+    }
+    else if (!sn) parts.push(`${st} Caltrain not reachable`);
+  }
+  let h = `<strong>Colored streets are the ones you can reach from ${heatFrom === "where you clicked" ? "where you clicked" : "this island"}</strong> without riding on, or crossing, a stressful street` +
+          ` (${fmt(I.homes || 0)} homes). ` + (parts.length ? parts.join(" · ") + "." : "");
+  const o = otherStandardAt();
+  if (o && tier === "standard") h += ` <span class="muted">For kids and cautious riders, this spot's island shrinks to ${fmt(o.homes)} homes.</span>`;
+  if (o && tier === "strict" && o.homes > (I.homes || 0)) h += ` <span class="muted">For most adults, it grows to ${fmt(o.homes)} homes.</span>`;
+  el.innerHTML = h;
+}
+
+function pick(cx, cy, T) {
+  T = T || DATA[tier];
   let best = null, bd = 30;
   for (const L of T.lines) {
     if (L.i === undefined) continue;
