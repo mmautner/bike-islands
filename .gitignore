@@ -1,0 +1,10 @@
+data/raw/
+dist/
+.deploy/
+.deploy-changed/
+.deploy-remote.json
+__pycache__/
+.DS_Store
+# Quiz photos are cropped Google Street View screenshots; kept out of git until Google's terms
+# for publishing them are checked. build_site.py still copies them into dist/.
+site/img/

@@ -1,0 +1,12 @@
+street_a,street_b,control,source
+North Delaware Street,Tilton Avenue,all_way_stop,"Field check by Max Mautner, 2026-11-24"
+Peninsula Avenue,North Claremont Street,side_street_stop,"Field check by Max Mautner, 2026-11-24 (side-street stops and one pedestrian RRFB)"
+Peninsula Avenue,Clarendon Road,side_street_stop,"Field check by Max Mautner, 2026-11-24 (side-street stops and one pedestrian RRFB)"
+Peninsula Avenue,Arundel Road,side_street_stop,"Field check by Max Mautner, 2026-11-24"
+Peninsula Avenue,Woodside Way,side_street_stop,"Field check by Max Mautner, 2026-11-24"
+East Poplar Avenue,North Ellsworth Avenue,side_street_stop,"Field check by Max Mautner, 2026-11-24 (pedestrian RRFB)"
+East Poplar Avenue,Highland Avenue,side_street_stop,"Field check by Max Mautner, 2026-11-24 (pedestrian RRFB)"
+East Poplar Avenue,North Claremont Street,side_street_stop,"Field check by Max Mautner, 2026-11-24 (pedestrian RRFB)"
+Peninsula Avenue,Lorton Avenue,side_street_stop,"Field check by Max Mautner, 2026-11-24 (pedestrian RRFBs)"
+Peninsula Avenue,Prospect Row,side_street_stop,"Field check by Max Mautner, 2026-11-24 (pedestrian RRFBs)"
+Alameda de las Pulgas,Parrott Drive,signal,"Google Street View screenshot by Max Mautner, 2026-11-25 (image captured May 2026)"

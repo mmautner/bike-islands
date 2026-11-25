@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Find your bike island: San Mateo and Burlingame</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#f9f7f2; --ink:#1c1c1c; --body:#333; --grey:#8a8680; --light:#dedad0; --copper:#b5763c; --dot:#d9d5cb; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--body); font-family:'IBM Plex Sans', system-ui, sans-serif; }
+  html, body { overflow-x: hidden; }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px 20px 40px; }
+  h1 { font-family:'Newsreader', Georgia, serif; font-weight:600; color:var(--ink); font-size: clamp(26px, 4vw, 38px); line-height:1.15; margin:0 0 8px; }
+  .sub { font-size:16px; margin:0 0 18px; max-width: 60ch; }
+  .riders { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; max-width: 900px; margin: 0 0 18px; }
+  @media (max-width: 720px) { .riders { grid-template-columns: 1fr; } }
+  .riders button.quizcard { border-style: dashed; border-color: var(--copper); background: transparent; }
+  .riders button.quizcard strong { color: var(--copper); }
+  .riders button.quizcard:hover { background:#fff; }
+  .askquiz { font:inherit; font-size:14px; background:none; border:none; color:var(--copper); text-decoration:underline; cursor:pointer; padding:0; }
+  .riders button { font:inherit; text-align:left; padding:10px 14px; border:1px solid var(--light); background:#fff; color:var(--body); cursor:pointer; line-height:1.35; }
+  .riders button strong { display:block; font-size:16px; color:var(--ink); margin-bottom:2px; }
+  .riders button span { font-size:13px; }
+  .riders button[aria-pressed="true"] { border:2px solid var(--copper); padding:9px 13px; }
+  .riders button[aria-pressed="true"] strong::before { content:"\2713  "; color:var(--copper); }
+  dialog#quiz { border:none; padding:0; width:min(640px, 94vw); max-height: 94vh; background:var(--bg); color:var(--body); box-shadow: 0 10px 40px rgba(0,0,0,.25); }
+  dialog#quiz::backdrop { background: rgba(28,28,28,.55); }
+  .qwrap { padding: 18px 20px 20px; }
+  .qtop { display:flex; justify-content:space-between; align-items:center; font-size:13px; color:var(--grey); margin-bottom:10px; }
+  .qtop button { font:inherit; font-size:20px; line-height:1; background:none; border:none; cursor:pointer; color:var(--grey); padding:0 2px; }
+  .qprog { height:4px; background:var(--light); margin-bottom:14px; }
+  .qprog i { display:block; height:100%; background:var(--copper); transition: width .2s; }
+  .qstem { font-size:13px; color:var(--grey); margin:0 0 6px; }
+  .qtext { font-family:'Newsreader', Georgia, serif; font-size:22px; line-height:1.25; color:var(--ink); margin:0 0 12px; }
+  .qwrap img { display:block; width:100%; aspect-ratio: 1200 / 499; object-fit: cover; background: var(--light); }
+  .qwrap figcaption { font-size:12px; color:var(--grey); margin:4px 0 12px; }
+  .answers { display:grid; grid-template-columns: 1fr 1fr; gap:8px; }
+  @media (max-width: 480px) { .answers { grid-template-columns: 1fr; } }
+  .answers button { font:inherit; font-size:15px; padding:12px; border:1px solid var(--ink); background:#fff; color:var(--ink); cursor:pointer; }
+  .answers button:hover { background:var(--ink); color:var(--bg); }
+  .answers button:focus-visible, .go:focus-visible { outline: 3px solid var(--copper); outline-offset: 2px; }
+  .answers button:focus:not(:focus-visible) { outline: none; }
+  .answers button.on { background:var(--ink); color:var(--bg); }
+  .qnav { display:flex; justify-content:space-between; margin-top:12px; font-size:14px; }
+  .qnav button { font:inherit; font-size:14px; background:none; border:none; color:var(--grey); cursor:pointer; padding:0; text-decoration:underline; }
+  .qresult p { font-size:16px; line-height:1.5; margin: 0 0 10px; }
+  .qresult strong { color:var(--copper); }
+  .go { font:inherit; font-size:16px; padding:10px 18px; border:none; background:var(--copper); color:#fff; cursor:pointer; margin-top:6px; }
+  .wrap { display:grid; grid-template-columns: minmax(0, 1fr) 320px; gap:20px; }
+  @media (max-width: 820px) { .wrap { grid-template-columns: 1fr; } }
+  #mapbox { position:relative; border:1px solid var(--light); background:#fff; height: min(72vh, 680px); touch-action:none; }
+  canvas { display:block; width:100%; height:100%; cursor:crosshair; }
+  .zoom { position:absolute; right:10px; top:10px; display:flex; flex-direction:column; }
+  .zoom button { font:inherit; width:32px; height:32px; border:1px solid var(--grey); background:var(--bg); cursor:pointer; font-size:18px; }
+  .zoom button + button { border-top:none; }
+  .hint { position:absolute; left:10px; bottom:10px; font-size:13px; background:rgba(249,247,242,.92); padding:4px 8px; }
+  aside { font-size:15px; line-height:1.45; }
+  aside h2 { font-family:'Newsreader', Georgia, serif; font-weight:600; color:var(--ink); font-size:22px; margin:0 0 6px; }
+  .big { font-family:'Newsreader', Georgia, serif; font-size:44px; color:var(--copper); line-height:1; }
+  .stat { margin: 12px 0; }
+  .stat .lbl { font-size:14px; }
+  .bar { height:8px; background:var(--light); margin-top:4px; }
+  .bar i { display:block; height:100%; background:var(--copper); }
+  ol.br { padding-left: 20px; margin: 6px 0; }
+  ol.br li { margin: 6px 0; }
+  .muted { color:var(--grey); font-size:13px; }
+  button.share { font:inherit; font-size:14px; padding:6px 12px; border:1px solid var(--copper); color:var(--copper); background:transparent; cursor:pointer; margin-top:8px; }
+  .legend { display:flex; gap:16px; flex-wrap:wrap; font-size:13px; margin:10px 0 0; }
+  .legend i { display:inline-block; width:22px; height:0; border-top:3px solid; vertical-align:middle; margin-right:6px; }
+  footer { font-size:13px; color:var(--grey); margin-top:20px; max-width: 80ch; line-height:1.5; }
+  footer a { color:inherit; }
+</style>
+</head>
+<body>
+<main>
+  <h1 id="title"></h1>
+  <p class="sub" id="subtitle"></p>
+  <div class="riders seg" role="group" aria-label="Who's riding?">
+    <button data-tier="strict" aria-pressed="true"><strong>Kids and cautious riders</strong><span>Paths and quiet streets only. Never on busy streets, never across El Camino.</span></button>
+    <button data-tier="standard" aria-pressed="false"><strong>Most adults</strong><span>Also painted bike lanes and busier 2-lane streets. Any traffic light makes a crossing OK.</span></button>
+    <button class="quizcard" id="openquiz"><strong>Not sure? Answer 7 questions</strong><span>About a minute, with photos of local streets. Your answers pick the map for you.</span></button>
+  </div>
+  <dialog id="quiz" aria-label="Which rider are you?"><div class="qwrap" id="qbody" tabindex="-1" style="outline:none"></div></dialog>
+  <div class="wrap">
+    <div>
+      <div id="mapbox">
+        <canvas id="map" aria-label="Map of San Mateo and Burlingame streets. Click a street to see its bike island."></canvas>
+        <div class="zoom"><button id="zin" aria-label="Zoom in">+</button><button id="zout" aria-label="Zoom out">&minus;</button></div>
+        <div class="hint" id="hint">Click near where you live</div>
+      </div>
+      <div class="legend">
+        <span><i style="border-color:var(--copper)"></i>Your island</span>
+        <span><i style="border-color:#b9b4a9"></i>Other low-stress streets</span>
+        <span><i style="border-color:var(--ink); border-top-width:2px"></i>Stressful streets</span>
+        <span>&#9312; Fix that would connect your island (numbered as in the list)</span>
+      </div>
+    </div>
+    <aside id="panel"></aside>
+  </div>
+  <footer>
+    <p><strong>What counts as low-stress.</strong> Streets are rated with the Level of Traffic Stress method from the Mineta Transportation Institute (Mekuria, Furth &amp; Nixon, 2012). "Kids and cautious riders" counts only paths, protected bike lanes, and quiet streets posted 25 mph or less with no more than 2 lanes; crossing a street posted 30 mph or more, or with 3 or more lanes, is stressful unless there is a signal or an all-way stop, and crossing a street posted 35 mph or more or with 4 or more lanes (such as El Camino Real) is stressful even at a signal. "Most adults" also counts painted bike lanes on streets up to 30 mph, quiet streets up to 30 mph, and busier 2-lane streets up to 25 mph, and treats crossings as stressful only at 35 mph or 4 lanes.</p>
+    <p><strong>The questions.</strong> In the quiz, questions 1 to 3, their 4-point answer scale, and the cyclist types come from Jennifer Dill and Nathan McNeil, "Revisiting the Four Types of Cyclists: Findings from a National Survey," <em>Transportation Research Record</em> 2587 (2016), building on Roger Geller's "Four Types of Cyclists" (Portland, 2006); their lead-in ("For each of the following places you could ride a bike, please indicate whether you would be comfortable or uncomfortable biking there") is shortened here, and numbers are written as digits ("20–25 mph" for "twenty to twenty-five miles per hour," "4 lanes" for "four lanes"). Their full method also asks about interest in riding and physical ability, which this quiz leaves out, so it can't place anyone in their fourth type, "no way, no how." Questions 4 to 7 are written for this map, and haven't been tested in a survey. The map's standard is "most adults" only if you'd be comfortable (very or somewhat) with questions 1 and 4 to 7.</p>
+    <p><strong>Connected.</strong> A home counts as having a low-stress route to a station when one exists that is no more than 25% longer than the shortest ride on any street, for homes within a 2-mile ride of the station. Homes are 2020 Census housing units by block. Fixes are tested one at a time.</p>
+    <p><strong>Sources.</strong> Streets from <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors (fetched <span id="fetched"></span>); posted speed limits from the City of San Mateo's 2026 speed survey; housing units from the 2020 Census; a few speed limits and intersection controls checked in person. Where neither OpenStreetMap nor the survey gives a speed limit, residential streets are assumed to be 25 mph and major streets 30 to 40 mph. Code and data: <a href="https://github.com/mmautner/charts/tree/main/2026-11-24-bike-islands">github.com/mmautner/charts</a>.</p>
+  </footer>
+</main>
+<script>
+const DATA = /*DATA*/;
+const FETCHED = /*FETCHED*/;
+const COPPER = "#b5763c", INK = "#1c1c1c", LOWC = "#b9b4a9", FAINT = "#e4e0d6";
+const fmt = n => Math.round(n).toLocaleString("en-US");
+const pct = (a, b) => b ? Math.round(100 * a / b) + "%" : "n/a";
+document.getElementById("fetched").textContent = FETCHED;
+
+// decode delta-encoded lines once per tier
+for (const t of Object.values(DATA)) {
+  for (const L of t.lines) {
+    const p = L.p, out = [];
+    let a = 0, b = 0;
+    for (let k = 0; k < p.length; k += 2) { a += p[k]; b += p[k + 1]; out.push([a / 1e5, b / 1e5]); }
+    L.pts = out;
+  }
+  for (const B of t.bridges) {
+    const p = B.p, out = [];
+    let a = 0, b = 0;
+    for (let k = 0; k < p.length; k += 2) { a += p[k]; b += p[k + 1]; out.push([a / 1e5, b / 1e5]); }
+    B.pts = out;
+  }
+}
+
+let tier = "strict", sel = null;
+const cv = document.getElementById("map"), ctx = cv.getContext("2d");
+const box = document.getElementById("mapbox");
+const V = DATA.strict.view; // [s, w, n, e]
+const K = Math.cos((V[0] + V[2]) / 2 * Math.PI / 180);
+let scale = 1, ox = 0, oy = 0, W = 0, H = 0, base = 1;
+
+function fit() {
+  const r = box.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  W = r.width; H = r.height;
+  cv.width = W * dpr; cv.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const gw = (V[3] - V[1]) * K, gh = V[2] - V[0];
+  base = Math.min(W / gw, H / gh);
+  draw();
+}
+function px(la, lo) {
+  const gw = (V[3] - V[1]) * K, gh = V[2] - V[0];
+  const x = ((lo - V[1]) * K - gw / 2) * base * scale + W / 2 + ox;
+  const y = (gh / 2 - (la - V[0])) * base * scale + H / 2 + oy;
+  return [x, y];
+}
+function stroke(pts, color, width) {
+  ctx.strokeStyle = color; ctx.lineWidth = width; ctx.beginPath();
+  pts.forEach((p, k) => { const [x, y] = px(p[0], p[1]); k ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+  ctx.stroke();
+}
+function draw() {
+  const T = DATA[tier];
+  ctx.clearRect(0, 0, W, H);
+  ctx.lineCap = "round"; ctx.lineJoin = "round";
+  const z = Math.max(1, Math.sqrt(scale));
+  for (const L of T.lines) if (L.i === undefined) stroke(L.pts, INK, 1.1 * z);
+  for (const L of T.lines) if (L.i !== undefined && L.i !== sel) stroke(L.pts, sel ? FAINT : LOWC, 1.1 * z);
+  if (sel) for (const L of T.lines) if (L.i === sel) stroke(L.pts, COPPER, 2.6 * z);
+  // bridges for the selected island
+  // stations
+  ctx.font = "600 13px 'IBM Plex Sans', sans-serif";
+  for (const [name, [la, lo]] of Object.entries(T.stations)) {
+    const [x, y] = px(la, lo);
+    ctx.fillStyle = INK; ctx.fillRect(x - 6, y - 6, 12, 12);
+    ctx.fillStyle = "#fff"; ctx.fillRect(x - 3, y - 3, 6, 6);
+    const label = name + " Caltrain";
+    ctx.lineWidth = 4; ctx.strokeStyle = "rgba(255,255,255,.9)";
+    const w = ctx.measureText(label).width;
+    // try right, left, below, above; take the first spot clear of the fix markers
+    const marks = sel && T.islands[sel] ? topBridges(T, sel).map(e => { const B = T.bridges[e.bid], m = B.pts[Math.floor(B.pts.length / 2)]; return px(m[0], m[1]); }) : [];
+    const spots = name === "Burlingame" ? [[x - 10 - w, y - 8], [x + 10, y + 4], [x - w / 2, y + 22], [x - w / 2, y - 14]]
+                                        : [[x + 10, y + 4], [x - 10 - w, y + 4], [x - w / 2, y + 22], [x - w / 2, y - 14]];
+    const clear = ([sx, sy]) => marks.every(([mx, my]) => mx < sx - 12 || mx > sx + w + 12 || my < sy - 24 || my > sy + 14);
+    const [lx, ly] = spots.find(clear) || spots[0];
+    ctx.strokeText(label, lx, ly); ctx.fillStyle = INK; ctx.fillText(label, lx, ly);
+  }
+  // fixes for the selected island, drawn last so labels never cover them
+  if (sel && T.islands[sel]) {
+    topBridges(T, sel).forEach((e, k) => {
+      const B = T.bridges[e.bid];
+      if (B.pts.length > 1) stroke(B.pts, INK, 3 * z);
+      const m = B.pts[Math.floor(B.pts.length / 2)], [x, y] = px(m[0], m[1]);
+      ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.fillStyle = "#fff";
+      ctx.beginPath(); ctx.arc(x, y, 10, 0, 7); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = INK; ctx.font = "600 12px 'IBM Plex Sans', sans-serif"; ctx.textAlign = "center";
+      ctx.fillText(String(k + 1), x, y + 4); ctx.textAlign = "start";
+    });
+  }
+}
+
+function topBridges(T, id) {
+  // one entry per fix, with homes gained for each station it helps
+  const by = {};
+  (T.islands[id] || {bridges: []}).bridges.forEach(([bid, hu]) => {
+    const B = T.bridges[bid], k = B.id;
+    by[k] = by[k] || {bid, per: {}};
+    by[k].per[B.st] = (by[k].per[B.st] || 0) + hu;
+  });
+  return Object.values(by)
+    .map(e => ({...e, max: Math.max(...Object.values(e.per))}))
+    .sort((a, b) => b.max - a.max).slice(0, 5);
+}
+
+function share(T, st) {
+  let near = 0, ok = 0;
+  for (const v of Object.values(T.islands)) { near += (v.near || {})[st] || 0; ok += (v.ok || {})[st] || 0; }
+  return [ok, near];
+}
+function headline() {
+  // fixed headline: the cautious-rider finding, whichever standard is showing
+  const [ok, near] = share(DATA.strict, "San Mateo");
+  const n = Math.round(near / ok);
+  document.getElementById("title").textContent =
+    `Only 1 in ${n} homes within 2 miles of San Mateo's Caltrain station has a bike route there that feels safe for kids and cautious riders`;
+  document.getElementById("subtitle").textContent =
+    "Quiet streets form islands, cut off from each other by busy streets and crossings. Pick who's riding, then click near home to see your island and the fixes that would connect it to Caltrain.";
+}
+
+function panel() {
+  const T = DATA[tier], el = document.getElementById("panel");
+  if (!sel) {
+    const who = tier === "strict" ? "kids and cautious riders" : "most adults";
+    const rows = Object.keys(T.stations).map(st => {
+      const [o, n] = share(T, st);
+      return `<div class="stat"><div class="lbl">${st} Caltrain: <strong>${pct(o, n)}</strong> of ${fmt(n)} homes within 2 miles have a low-stress route</div><div class="bar"><i style="width:${100 * o / n}%"></i></div></div>`;
+    }).join("");
+    el.innerHTML = `<h2>Your island</h2><p>Click a street near home. The map lights up every street you can reach from there without riding on, or crossing, a stressful one.</p><p class="muted" style="margin-bottom:4px">For ${who}, across San Mateo and Burlingame:</p>${rows}<p class="muted">The link you share names your island, not the spot you clicked.</p>`;
+    return;
+  }
+  const I = T.islands[sel] || {homes: 0, ok: {}, near: {}, bridges: []};
+  let km = 0;
+  for (const L of T.lines) if (L.i === sel) for (let k = 1; k < L.pts.length; k++) {
+    const a = L.pts[k - 1], b = L.pts[k];
+    km += Math.hypot((b[0] - a[0]) * 111, (b[1] - a[1]) * 111 * K);
+  }
+  let h = `<h2>This island</h2><div><span class="big">${fmt(I.homes)}</span> homes</div><div class="muted">${km.toFixed(1)} km of low-stress streets and paths</div>`;
+  for (const st of Object.keys(T.stations)) {
+    const n = (I.near || {})[st] || 0, o = (I.ok || {})[st] || 0;
+    if (!n) { h += `<div class="stat"><div class="lbl">To ${st} Caltrain: more than a 2-mile ride</div></div>`; continue; }
+    const det = (I.det || {})[st], none = (I.none || {})[st] || 0;
+    let more = "";
+    if (det && det[0]) more += ` For ${fmt(det[0])} more, a low-stress route exists but is too roundabout: typically ${Math.round((det[1] - 1) * 100)}% longer than the direct ride.`;
+    if (none) more += ` ${fmt(none)} have no low-stress route at all.`;
+    h += `<div class="stat"><div class="lbl">To ${st} Caltrain: <strong>${fmt(o)} of ${fmt(n)}</strong> homes (${pct(o, n)}) have a low-stress route no more than 25% longer than the direct ride.${more}</div><div class="bar"><i style="width:${100 * o / n}%"></i></div></div>`;
+  }
+  const list = topBridges(T, sel);
+  if (list.length) {
+    h += `<h2 style="margin-top:16px">Fixes that would help</h2><ol class="br">`;
+    for (const e of list) {
+      const B = T.bridges[e.bid];
+      const sts = Object.entries(e.per).sort((a, b) => b[1] - a[1]);
+      const gains = sts.map(([st, hu], k) => k === 0 ? `${fmt(hu)} more homes here to ${st} Caltrain` : `${fmt(hu)} to ${st} Caltrain`).join(" and ");
+      const what = B.kind === "x" ? `Make the crossing at ${B.name} safe` : `Make ${B.name} low-stress (${B.label.split(": ")[1].replace(/ segment.*$/, "")})`;
+      h += `<li>${what}: connects ${gains}</li>`;
+    }
+    h += `</ol>`;
+  } else {
+    h += `<p class="muted" style="margin-top:12px">None of the single fixes tested would connect more homes on this island.</p>`;
+  }
+  h += `<p style="margin:14px 0 4px">Is this the right map for you? <button class="askquiz">Take the 7-question quiz</button></p>`;
+  h += `<button class="share" id="share">Copy link to this island</button> <span class="muted" id="copied"></span>`;
+  el.innerHTML = h;
+  document.getElementById("share").onclick = () => {
+    navigator.clipboard.writeText(location.href).then(() => document.getElementById("copied").textContent = "Copied");
+  };
+}
+
+function setHash() {
+  history.replaceState(null, "", sel ? `#t=${tier}&i=${sel}` : `#t=${tier}`);
+}
+function readHash() {
+  const q = new URLSearchParams(location.hash.slice(1));
+  if (q.get("t") in DATA) tier = q.get("t");
+  sel = q.get("i") ? Number(q.get("i")) : null;
+  if (sel && !DATA[tier].lines.some(L => L.i === sel)) sel = null;
+  document.querySelectorAll(".seg button[data-tier]").forEach(b => b.setAttribute("aria-pressed", b.dataset.tier === tier));
+}
+function render() { document.getElementById("hint").style.display = sel ? "none" : ""; headline(); panel(); draw(); }
+
+function pick(cx, cy) {
+  const T = DATA[tier];
+  let best = null, bd = 30;
+  for (const L of T.lines) {
+    if (L.i === undefined) continue;
+    for (let k = 1; k < L.pts.length; k++) {
+      const [x1, y1] = px(...L.pts[k - 1]), [x2, y2] = px(...L.pts[k]);
+      const dx = x2 - x1, dy = y2 - y1, l2 = dx * dx + dy * dy;
+      const t = l2 ? Math.max(0, Math.min(1, ((cx - x1) * dx + (cy - y1) * dy) / l2)) : 0;
+      const d = Math.hypot(cx - x1 - t * dx, cy - y1 - t * dy);
+      if (d < bd) { bd = d; best = L.i; }
+    }
+  }
+  return best;
+}
+
+// interaction: drag to pan, wheel or buttons to zoom, click to pick
+let drag = null, moved = false;
+cv.addEventListener("pointerdown", e => { drag = [e.clientX, e.clientY, ox, oy]; moved = false; cv.setPointerCapture(e.pointerId); });
+cv.addEventListener("pointermove", e => {
+  if (!drag) return;
+  const dx = e.clientX - drag[0], dy = e.clientY - drag[1];
+  if (Math.abs(dx) + Math.abs(dy) > 4) moved = true;
+  ox = drag[2] + dx; oy = drag[3] + dy; draw();
+});
+cv.addEventListener("pointerup", e => {
+  if (drag && !moved) {
+    const r = cv.getBoundingClientRect();
+    sel = pick(e.clientX - r.left, e.clientY - r.top);
+    document.getElementById("hint").style.display = sel ? "none" : "";
+    setHash(); render();
+  }
+  drag = null;
+});
+function zoomAt(f, cx, cy) {
+  const ns = Math.max(1, Math.min(12, scale * f)); f = ns / scale;
+  ox = cx - W / 2 - (cx - W / 2 - ox) * f; oy = cy - H / 2 - (cy - H / 2 - oy) * f;
+  scale = ns; draw();
+}
+cv.addEventListener("wheel", e => { e.preventDefault(); const r = cv.getBoundingClientRect(); zoomAt(e.deltaY < 0 ? 1.25 : 0.8, e.clientX - r.left, e.clientY - r.top); }, {passive: false});
+document.getElementById("zin").onclick = () => zoomAt(1.5, W / 2, H / 2);
+document.getElementById("zout").onclick = () => zoomAt(1 / 1.5, W / 2, H / 2);
+document.querySelectorAll(".seg button[data-tier]").forEach(b => b.onclick = () => {
+  // island ids differ between standards; keep the selection by re-picking at the same spot
+  const prev = sel && DATA[tier].lines.find(L => L.i === sel);
+  tier = b.dataset.tier;
+  document.querySelectorAll(".seg button[data-tier]").forEach(x => x.setAttribute("aria-pressed", x === b));
+  if (prev) { const m = prev.pts[Math.floor(prev.pts.length / 2)], [x, y] = px(m[0], m[1]); sel = pick(x, y); }
+  setHash(); render();
+});
+
+// --- quiz ---
+// Part A: verbatim items from Dill & McNeil's national survey (TRR 2587, 2016), used to give
+// the reader's national cyclist type. Part B: this map's own items, each testing one rule
+// that differs between the two standards. The map standard uses A1 plus all of part B.
+const STEM = "For each of the following places you could ride a bike, please indicate whether you would be comfortable or uncomfortable biking there.";
+const MAJOR = "A major urban or suburban street with 4 lanes, on-street parking, traffic speeds of 30–35 mph and ";
+const QS = [
+  {id: "a1", part: "A", map: true, text: "A quiet residential street with traffic traveling at speeds of 20–25 mph",
+   img: "img/q1.jpg", cap: "For example, E Santa Inez Ave, San Mateo. Google Street View, June 2026"},
+  {id: "a2", part: "A", text: MAJOR + "no bike lane",
+   img: "img/a2.jpg", cap: "For example, N El Camino Real near Tilton Ave, San Mateo (posted 35 mph). Google Street View, June 2026"},
+  {id: "a3", part: "A", text: MAJOR + "a striped bike lane",
+   img: "img/a3.jpg", cap: "For example, Peninsula Ave near N Humboldt St, San Mateo (posted 35 mph; no on-street parking at this spot). Google Street View, August 2022"},
+  {id: "b1", part: "B", map: true, text: "A painted bike lane on a 2-lane street posted 30 mph, with cars passing a few feet away",
+   img: "img/q2.jpg", cap: "For example, N San Mateo Dr, San Mateo (posted 30 mph; half of drivers go faster than 27). Google Street View, June 2026"},
+  {id: "b2", part: "B", map: true, text: "Sharing the lane with cars on a busier 2-lane street posted 25 mph, with no bike lane",
+   img: "img/q3.jpg", cap: "For example, N Delaware St, San Mateo (posted 25 mph; half of drivers go faster than 29). Google Street View, June 2026"},
+  {id: "b3", part: "B", map: true, text: "Crossing a street posted 30 mph where there's no stop sign or light for the cars",
+   img: "img/q4.jpg", cap: "For example, crossing Peninsula Ave at Lorton Ave, Burlingame (posted 30 mph; half of drivers go faster than 26). Google Street View, June 2026"},
+  {id: "b4", part: "B", map: true, text: "Crossing El Camino Real at a traffic light",
+   img: "img/q5.jpg", cap: "For example, El Camino Real at Bellevue Ave, San Mateo. Google Street View, June 2026"},
+];
+const OPTS = ["Very comfortable", "Somewhat comfortable", "Somewhat uncomfortable", "Very uncomfortable"];
+const dlg = document.getElementById("quiz"), qb = document.getElementById("qbody");
+let step = 0, ans = {};
+function qrender() {
+  const top = (label) => `<div class="qtop"><span>${label}</span><button aria-label="Close" id="qclose">&times;</button></div>`;
+  if (step < QS.length) {
+    const q = QS[step];
+    qb.innerHTML = top(`Question ${step + 1} of ${QS.length}`) +
+      `<div class="qprog"><i style="width:${100 * step / QS.length}%"></i></div>` +
+      `<p class="qstem">How comfortable would you feel biking here?</p>` +
+      `<p class="qtext">${q.text}</p>` +
+      (q.img ? `<figure style="margin:0"><img src="${q.img}" alt=""><figcaption>${q.cap}</figcaption></figure>` : "") +
+      `<div class="answers">${OPTS.map((t, i) => `<button data-v="${i + 1}" class="${ans[q.id] === i + 1 ? "on" : ""}">${t}</button>`).join("")}</div>` +
+      `<div class="qnav"><span>${step ? '<button id="qback">Back</button>' : ""}</span></div>`;
+    qb.querySelectorAll(".answers button").forEach(b => b.onclick = () => { ans[q.id] = Number(b.dataset.v); step++; qrender(); });
+    if (step) document.getElementById("qback").onclick = () => { step--; qrender(); };
+  } else {
+    const adult = QS.filter(q => q.map).every(q => ans[q.id] <= 2);
+    const t = adult ? "standard" : "strict";
+    let msg = adult
+      ? "<p>Your map: <strong>most adults</strong>. You'd be comfortable on every kind of street and crossing it counts.</p>"
+      : "<p>Your map: <strong>kids and cautious riders</strong>. The other map counts at least one kind of street or crossing you'd be uncomfortable on.</p>";
+    if (ans.a1 >= 3) msg += "<p>Even quiet residential streets feel uncomfortable to you, so the map may still show more routes than you'd use.</p>";
+    const type = ans.a2 === 1 ? "strong and fearless" : ans.a3 === 1 ? "enthused and confident" : "interested but concerned";
+    msg += `<p class="muted">In Dill and McNeil's national survey, your answers to questions 2 and 3 would make you "${type}."</p>`;
+    qb.innerHTML = top("Your result") + `<div class="qprog"><i style="width:100%"></i></div><div class="qresult">${msg}</div>` +
+      `<button class="go" id="qgo">Show my map</button><div class="qnav"><button id="qback">Back</button><button id="qagain">Start over</button></div>`;
+    document.getElementById("qgo").onclick = () => {
+      const b = document.querySelector(`.seg button[data-tier="${t}"]`);
+      if (tier !== t) b.click();
+      dlg.close();
+      document.getElementById("mapbox").scrollIntoView({behavior: "smooth", block: "center"});
+    };
+    document.getElementById("qback").onclick = () => { step--; qrender(); };
+    document.getElementById("qagain").onclick = () => { step = 0; ans = {}; qrender(); };
+  }
+  document.getElementById("qclose").onclick = () => dlg.close();
+  qb.focus({preventScroll: true});  // focus the dialog, not an answer, so nothing looks preselected
+}
+function openQuiz() { step = 0; ans = {}; qrender(); dlg.showModal(); }
+document.getElementById("openquiz").onclick = openQuiz;
+document.getElementById("panel").addEventListener("click", e => { if (e.target.closest(".askquiz")) openQuiz(); });
+window.addEventListener("resize", fit);
+window.addEventListener("hashchange", () => { readHash(); render(); });
+readHash(); fit(); render();
+</script>
+</body>
+</html>

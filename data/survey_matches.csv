@@ -1,0 +1,752 @@
+way_id,osm_name,survey_id,posted_mph,median_mph,p85_mph,fit
+8934115,Peninsula Avenue,1,30,26,29,0.183
+417329851,Peninsula Avenue,1,30,26,29,0.476
+487390693,Peninsula Avenue,1,30,26,29,0.5
+23160361,Peninsula Avenue,2,35,30,37,0.26
+23160362,Peninsula Avenue,2,35,30,37,0.303
+28933206,Peninsula Avenue,2,35,30,37,0.395
+28933222,Peninsula Avenue,2,35,30,37,0.455
+28933238,Peninsula Avenue,2,35,30,37,0.302
+35972449,Peninsula Avenue,2,35,30,37,0.396
+35972455,Peninsula Avenue,2,35,30,37,0.303
+47517428,Peninsula Avenue,2,35,30,37,0.492
+52012606,Peninsula Avenue,2,35,30,37,0.421
+59031688,Peninsula Avenue,2,35,30,37,0.447
+59031701,Peninsula Avenue,2,35,30,37,0.257
+59031702,Peninsula Avenue,2,35,30,37,0.441
+69021711,Peninsula Avenue,2,35,30,37,0.254
+256400253,Peninsula Avenue,2,35,30,37,0.094
+392519835,Peninsula Avenue,2,35,30,37,0.489
+392519837,Peninsula Avenue,2,35,30,37,0.439
+392519838,Peninsula Avenue,2,35,30,37,0.474
+417329854,Peninsula Avenue,2,35,30,37,0.462
+417334005,Peninsula Avenue,2,35,30,37,0.059
+417334010,Peninsula Avenue,2,35,30,37,0.099
+417334015,Peninsula Avenue,2,35,30,37,0.025
+417334023,Peninsula Avenue,2,35,30,37,0.077
+417334030,Peninsula Avenue,2,35,30,37,0.034
+417334036,Peninsula Avenue,2,35,30,37,0.417
+417334044,Peninsula Avenue,2,35,30,37,0.42
+417937203,Peninsula Avenue,2,35,30,37,0.215
+435668947,Peninsula Avenue,2,35,30,37,0.029
+435668948,Peninsula Avenue,2,35,30,37,0.25
+435668949,Peninsula Avenue,2,35,30,37,0.323
+604472976,Peninsula Avenue,2,35,30,37,0.294
+69021721,Coyote Point Drive,3,35,19,25,0.334
+755350848,Coyote Point Drive,3,35,19,25,0.485
+8929222,West Poplar Avenue,4,25,26,30,0.45
+30831237,West Poplar Avenue,4,25,26,30,0.336
+30831239,West Poplar Avenue,4,25,26,30,0.352
+36897646,West Poplar Avenue,4,25,26,30,0.388
+36897647,West Poplar Avenue,4,25,26,30,0.282
+36897650,West Poplar Avenue,4,25,26,30,0.397
+36897706,West Poplar Avenue,4,25,26,30,0.208
+36897707,West Poplar Avenue,4,25,26,30,0.147
+36897708,West Poplar Avenue,4,25,26,30,0.153
+505630872,West Poplar Avenue,4,25,26,30,0.416
+894595657,West Poplar Avenue,4,25,26,30,0.019
+894595658,West Poplar Avenue,4,25,26,30,0.085
+894595659,West Poplar Avenue,4,25,26,30,0.092
+1239058461,East Poplar Avenue,5,25,28,31,0.486
+287425756,East Poplar Avenue,5,25,28,31,0.367
+417329801,East Poplar Avenue,5,25,28,31,0.013
+417329817,East Poplar Avenue,5,25,28,31,0.46
+417329821,East Poplar Avenue,5,25,28,31,0.122
+435671116,East Poplar Avenue,5,25,28,31,0.438
+435671117,East Poplar Avenue,5,25,28,31,0.024
+40599289,East Poplar Avenue,6,25,27,31,0.407
+417329808,East Poplar Avenue,6,25,27,31,0.353
+417329812,East Poplar Avenue,6,25,27,31,0.329
+417329826,East Poplar Avenue,6,25,27,31,0.058
+636912152,East Poplar Avenue,6,25,27,31,0.418
+800794443,East Poplar Avenue,6,25,27,31,0.403
+800794444,East Poplar Avenue,6,25,27,31,0.503
+1388077057,East Poplar Avenue,6,25,27,31,0.146
+1388077058,East Poplar Avenue,6,25,27,31,0.342
+1388964482,East Poplar Avenue,6,25,27,31,0.254
+1388964483,East Poplar Avenue,6,25,27,31,0.275
+8939710,Baldwin Avenue,7,25,24,28,0.241
+417329770,Baldwin Avenue,7,25,24,28,0.246
+573486260,Baldwin Avenue,7,25,24,28,0.001
+573486265,Baldwin Avenue,7,25,24,28,0.038
+573486269,Baldwin Avenue,7,25,24,28,0.053
+1001066857,Baldwin Avenue,7,25,24,28,0.474
+256400263,1st Avenue,8,25,20,24,0.335
+619344110,1st Avenue,8,25,20,24,0.21
+702540816,1st Avenue,8,25,20,24,0.471
+1022818695,1st Avenue,8,25,20,24,0.035
+1381682467,1st Avenue,8,25,20,24,0.173
+8931258,2nd Avenue,9,25,19,22,0.261
+573499738,2nd Avenue,9,25,19,22,0.242
+619344005,2nd Avenue,9,25,19,22,0.09
+619344109,2nd Avenue,9,25,19,22,0.104
+928366425,2nd Avenue,9,25,19,22,0.131
+928366426,2nd Avenue,9,25,19,22,0.156
+1381682462,2nd Avenue,9,25,19,22,0.448
+8930988,Crystal Springs Road,11,25,27,30,0.456
+32548555,Crystal Springs Road,11,25,27,30,0.397
+36924256,Crystal Springs Road,11,25,27,30,0.045
+262895672,Crystal Springs Road,11,25,27,30,0.361
+586429363,Crystal Springs Road,11,25,27,30,0.395
+586429367,Crystal Springs Road,11,25,27,30,0.422
+8926096,West 3rd Avenue,12,25,27,30,0.488
+32548572,West 3rd Avenue,12,25,27,30,0.346
+417317661,West 3rd Avenue,12,25,27,30,0.195
+417330276,West 3rd Avenue,12,25,27,30,0.471
+417330282,West 3rd Avenue,12,25,27,30,0.365
+427306870,West 3rd Avenue,12,25,27,30,0.497
+435671120,West 3rd Avenue,12,25,27,30,0.24
+435671121,West 3rd Avenue,12,25,27,30,0.396
+435671122,West 3rd Avenue,12,25,27,30,0.338
+1307966829,West 3rd Avenue,12,25,27,30,0.026
+40600408,East 3rd Avenue,13,25,21,24,0.241
+417329775,East 3rd Avenue,13,25,21,24,0.48
+417329781,East 3rd Avenue,13,25,21,24,0.117
+417329787,East 3rd Avenue,13,25,21,24,0.01
+927641694,East 3rd Avenue,13,25,21,24,0.206
+1387071711,East 3rd Avenue,13,25,21,24,0.437
+417301921,East 3rd Avenue,14,30,27,32,0.427
+417301929,East 3rd Avenue,14,30,27,32,0.005
+417301938,East 3rd Avenue,14,30,27,32,0.453
+417301953,East 3rd Avenue,14,30,27,32,0.292
+417301966,East 3rd Avenue,14,30,27,32,0.313
+518499270,East 3rd Avenue,14,30,27,32,0.19
+518499271,East 3rd Avenue,14,30,27,32,0.348
+518499272,East 3rd Avenue,14,30,27,32,0.089
+708649590,East 3rd Avenue,14,30,27,32,0.353
+1030362096,East 3rd Avenue,14,30,27,32,0.32
+23750961,J Hart Clinton Drive,15,35,37,42,0.415
+23947340,J Hart Clinton Drive,15,35,37,42,0.077
+30795221,J Hart Clinton Drive,15,35,37,42,0.293
+157811827,J Hart Clinton Drive,15,35,37,42,0.006
+157811828,J Hart Clinton Drive,15,35,37,42,0.187
+157811829,J Hart Clinton Drive,15,35,37,42,0.158
+417302011,J Hart Clinton Drive,15,35,37,42,0.481
+417302015,J Hart Clinton Drive,15,35,37,42,0.462
+417302019,J Hart Clinton Drive,15,35,37,42,0.473
+417302024,J Hart Clinton Drive,15,35,37,42,0.209
+417302029,J Hart Clinton Drive,15,35,37,42,0.189
+417302035,J Hart Clinton Drive,15,35,37,42,0.494
+417302042,J Hart Clinton Drive,15,35,37,42,0.501
+417302048,J Hart Clinton Drive,15,35,37,42,0.469
+417302054,J Hart Clinton Drive,15,35,37,42,0.497
+417308381,J Hart Clinton Drive,15,35,37,42,0.317
+417308384,J Hart Clinton Drive,15,35,37,42,0.05
+417308389,J Hart Clinton Drive,15,35,37,42,0.321
+417308395,J Hart Clinton Drive,15,35,37,42,0.5
+417308398,J Hart Clinton Drive,15,35,37,42,0.244
+417308403,J Hart Clinton Drive,15,35,37,42,0.078
+417308408,J Hart Clinton Drive,15,35,37,42,0.424
+417931004,J Hart Clinton Drive,15,35,37,42,0.008
+1066395677,J Hart Clinton Drive,15,35,37,42,0.498
+1511811726,J Hart Clinton Drive,15,35,37,42,0.48
+8932505,West 4th Avenue,20,30,25,29,0.265
+8933220,East 4th Avenue,19,25,20,23,0.053
+417329793,East 4th Avenue,20,30,25,29,0.254
+449672616,East 4th Avenue,19,25,20,23,0.18
+505633811,East 4th Avenue,20,30,25,29,0.027
+505633812,East 4th Avenue,20,30,25,29,0.046
+520350424,East 4th Avenue,19,25,20,23,0.01
+619344113,East 4th Avenue,19,25,20,23,0.432
+743758205,East 4th Avenue,19,25,20,23,0.038
+829532943,East 4th Avenue,19,25,20,23,0.252
+829532944,East 4th Avenue,19,25,20,23,0.255
+829532945,East 4th Avenue,19,25,20,23,0.372
+1050933862,East 4th Avenue,19,25,20,23,0.232
+1207077971,East 4th Avenue,19,25,20,23,0.091
+449665946,West 4th Avenue,20,30,25,29,0.293
+573484160,West 4th Avenue,20,30,25,29,0.402
+218663687,5th Avenue,21,25,26,29,0.477
+1462096039,5th Avenue,21,25,26,29,0.372
+172669920,East 5th Avenue,23,25,23,27,0.002
+1388079956,East 5th Avenue,23,25,23,27,0.446
+1388079957,East 5th Avenue,23,25,23,27,0.366
+8934501,9th Avenue,24,25,22,26,0.327
+44418611,9th Avenue,24,25,22,26,0.265
+417924354,9th Avenue,24,25,22,26,0.48
+417924357,9th Avenue,24,25,22,26,0.493
+518502061,9th Avenue,24,25,22,26,0.14
+256400264,9th Avenue,25,25,27,31,0.18
+1203402700,9th Avenue,25,25,27,31,0.427
+96024389,Newbridge Avenue,26,25,22,26,0.44
+262896252,Newbridge Avenue,26,25,22,26,0.318
+151663453,Kehoe Avenue,27,30,28,33,0.152
+262896251,Kehoe Avenue,28,30,25,28,0.1
+23749614,Kehoe Avenue,29,25,27,30,0.106
+23749615,Kehoe Avenue,29,25,27,30,0.186
+151663451,Kehoe Avenue,29,25,27,30,0.405
+262896253,Kehoe Avenue,29,25,27,30,0.313
+8940096,Barneson Avenue,30,25,27,31,0.517
+449673241,Barneson Avenue,30,25,27,31,0.496
+449673931,Barneson Avenue,30,25,27,31,0.459
+1307966809,Barneson Avenue,30,25,27,31,0.176
+8927933,Borel Avenue,31,30,29,33,0.229
+707129475,Borel Avenue,31,30,29,33,0.362
+8924778,South Boulevard,33,25,26,30,0.249
+8941428,Concar Drive,34,25,29,31,0.465
+35399367,Concar Drive,34,25,29,31,0.159
+138100546,Concar Drive,34,25,29,31,0.378
+394697891,Concar Drive,34,25,29,31,0.1
+409466284,Concar Drive,34,25,29,31,0.198
+417354855,Concar Drive,34,25,29,31,0.448
+417354858,Concar Drive,34,25,29,31,0.026
+417354864,Concar Drive,34,25,29,31,0.051
+417354868,Concar Drive,34,25,29,31,0.262
+417354871,Concar Drive,34,25,29,31,0.362
+417354874,Concar Drive,34,25,29,31,0.293
+417354879,Concar Drive,34,25,29,31,0.423
+706780563,Concar Drive,34,25,29,31,0.297
+35399366,19th Avenue,35,30,29,31,0.177
+96024398,19th Avenue,35,30,29,31,0.076
+394700561,19th Avenue,35,30,29,31,0.028
+406946961,19th Avenue,35,30,29,31,0.5
+518502054,19th Avenue,35,30,29,31,0.474
+573533333,19th Avenue,35,30,29,31,0.307
+43992168,Campus Drive,37,25,29,33,0.456
+706796404,Campus Drive,37,25,29,33,0.481
+96263964,CSM Drive,38,25,25,29,0.407
+169788616,CSM Drive,38,25,25,29,0.282
+392519194,De Anza Boulevard,39,30,32,35,0.5
+392519195,De Anza Boulevard,39,30,32,35,0.198
+417382174,De Anza Boulevard,39,30,32,35,0.374
+417382182,De Anza Boulevard,39,30,32,35,0.306
+417382187,De Anza Boulevard,39,30,32,35,0.403
+518505015,De Anza Boulevard,39,30,32,35,0.038
+518505019,De Anza Boulevard,39,30,32,35,0.059
+518505020,De Anza Boulevard,39,30,32,35,0.112
+619344075,De Anza Boulevard,39,30,32,35,0.129
+1353003994,De Anza Boulevard,39,30,32,35,0.007
+8938878,Glendora Drive,41,25,30,34,0.087
+574421376,Yates Way,42,25,22,25,0.021
+574421380,Yates Way,42,25,22,25,0.484
+96024377,Park Place,43,25,19,22,0.011
+96024395,Park Place,43,25,19,22,0.464
+96024401,Park Place,43,25,19,22,0.471
+96024402,Park Place,43,25,19,22,0.041
+96024407,Park Place,43,25,19,22,0.475
+449685603,Park Place,43,25,19,22,0.475
+585741649,Park Place,43,25,19,22,0.228
+134223979,West Hillsdale Boulevard,49,35,32,37,0.483
+417318820,East Hillsdale Boulevard,45,25,29,31,0.49
+417318829,East Hillsdale Boulevard,45,25,29,31,0.461
+417318834,East Hillsdale Boulevard,45,25,29,31,0.46
+417318837,East Hillsdale Boulevard,45,25,29,31,0.483
+417318849,East Hillsdale Boulevard,45,25,29,31,0.454
+417318851,East Hillsdale Boulevard,45,25,29,31,0.444
+417356493,West Hillsdale Boulevard,49,35,32,37,0.454
+506410027,East Hillsdale Boulevard,44,35,32,38,0.5
+506411148,East Hillsdale Boulevard,45,25,29,31,0.469
+506411151,East Hillsdale Boulevard,45,25,29,31,0.488
+506411154,East Hillsdale Boulevard,45,25,29,31,0.462
+619344097,East Hillsdale Boulevard,45,25,29,31,0.457
+715535747,East Hillsdale Boulevard,45,25,29,31,0.478
+770046976,East Hillsdale Boulevard,45,25,29,31,0.491
+1057214167,East Hillsdale Boulevard,45,25,29,31,0.479
+1057214168,East Hillsdale Boulevard,45,25,29,31,0.482
+97522347,East Hillsdale Boulevard,45,25,29,31,0.397
+417318827,East Hillsdale Boulevard,45,25,29,31,0.415
+506413573,East Hillsdale Boulevard,45,25,29,31,0.434
+1074229545,East Hillsdale Boulevard,45,25,29,31,0.444
+1074229546,East Hillsdale Boulevard,45,25,29,31,0.44
+1153618958,West Hillsdale Boulevard,46,25,28,31,0.5
+8928947,West Hillsdale Boulevard,48,35,33,38,0.492
+44421252,West Hillsdale Boulevard,47,25,30,32,0.23
+417327135,West Hillsdale Boulevard,48,35,33,38,0.494
+1041752918,West Hillsdale Boulevard,47,25,30,32,0.385
+1041752919,West Hillsdale Boulevard,47,25,30,32,0.118
+24221265,West Hillsdale Boulevard,48,35,33,38,0.195
+27834183,East Hillsdale Boulevard,48,35,33,38,0.186
+44421248,East Hillsdale Boulevard,48,35,33,38,0.077
+44421253,West Hillsdale Boulevard,48,35,33,38,0.211
+44421254,West Hillsdale Boulevard,48,35,33,38,0.221
+44421256,East Hillsdale Boulevard,48,35,33,38,0.178
+44421287,East Hillsdale Boulevard,48,35,33,38,0.409
+256400249,East Hillsdale Boulevard,48,35,33,38,0.42
+256750257,West Hillsdale Boulevard,48,35,33,38,0.432
+256787728,East Hillsdale Boulevard,48,35,33,38,0.068
+417319006,East Hillsdale Boulevard,48,35,33,38,0.495
+417319020,East Hillsdale Boulevard,48,35,33,38,0.155
+417319029,East Hillsdale Boulevard,48,35,33,38,0.486
+417319033,East Hillsdale Boulevard,49,35,32,37,0.502
+417319037,East Hillsdale Boulevard,49,35,32,37,0.502
+417319056,East Hillsdale Boulevard,48,35,33,38,0.461
+417319220,West Hillsdale Boulevard,48,35,33,38,0.401
+417319222,West Hillsdale Boulevard,48,35,33,38,0.401
+417319223,West Hillsdale Boulevard,48,35,33,38,0.323
+417319224,West Hillsdale Boulevard,48,35,33,38,0.322
+417319225,West Hillsdale Boulevard,48,35,33,38,0.308
+417319227,West Hillsdale Boulevard,48,35,33,38,0.427
+417319230,West Hillsdale Boulevard,48,35,33,38,0.214
+417319234,West Hillsdale Boulevard,48,35,33,38,0.231
+417319239,West Hillsdale Boulevard,48,35,33,38,0.272
+417319243,West Hillsdale Boulevard,48,35,33,38,0.247
+573802806,East Hillsdale Boulevard,48,35,33,38,0.148
+699780740,West Hillsdale Boulevard,48,35,33,38,0.446
+701476974,West Hillsdale Boulevard,48,35,33,38,0.416
+702866814,West Hillsdale Boulevard,48,35,33,38,0.466
+706796393,East Hillsdale Boulevard,48,35,33,38,0.109
+706796394,East Hillsdale Boulevard,48,35,33,38,0.153
+706796395,East Hillsdale Boulevard,48,35,33,38,0.178
+1030312848,East Hillsdale Boulevard,48,35,33,38,0.464
+1173378585,East Hillsdale Boulevard,48,35,33,38,0.19
+1194235647,East Hillsdale Boulevard,48,35,33,38,0.426
+50417516,West Hillsdale Boulevard,49,35,32,37,0.3
+75208705,West Hillsdale Boulevard,49,35,32,37,0.382
+145420851,East Hillsdale Boulevard,49,35,32,37,0.514
+256400248,East Hillsdale Boulevard,49,35,32,37,0.517
+394159621,West Hillsdale Boulevard,49,35,32,37,0.366
+394159622,West Hillsdale Boulevard,49,35,32,37,0.407
+394159623,West Hillsdale Boulevard,49,35,32,37,0.313
+394159625,West Hillsdale Boulevard,49,35,32,37,0.293
+394159626,West Hillsdale Boulevard,49,35,32,37,0.354
+394159629,West Hillsdale Boulevard,49,35,32,37,0.352
+394159630,West Hillsdale Boulevard,49,35,32,37,0.432
+417356473,West Hillsdale Boulevard,49,35,32,37,0.266
+417356483,West Hillsdale Boulevard,49,35,32,37,0.287
+417356488,West Hillsdale Boulevard,49,35,32,37,0.438
+417356491,West Hillsdale Boulevard,49,35,32,37,0.273
+417950892,West Hillsdale Boulevard,49,35,32,37,0.335
+518503675,West Hillsdale Boulevard,49,35,32,37,0.335
+534435521,West Hillsdale Boulevard,49,35,32,37,0.307
+706796390,West Hillsdale Boulevard,49,35,32,37,0.326
+945144784,West Hillsdale Boulevard,49,35,32,37,0.322
+1379240206,36th Avenue,50,25,25,29,0.209
+1379240208,36th Avenue,50,25,25,29,0.366
+619248874,37th Avenue,51,25,26,30,0.27
+619248875,37th Avenue,51,25,26,30,0.153
+702177290,37th Avenue,51,25,26,30,0.133
+1153618966,37th Avenue,51,25,26,30,0.33
+1153618967,37th Avenue,51,25,26,30,0.415
+1543131442,37th Avenue,51,25,26,30,0.471
+1543131443,37th Avenue,51,25,26,30,0.479
+8932227,42nd Avenue,53,25,27,32,0.489
+11031809,42nd Avenue,53,25,27,32,0.505
+43991917,42nd Avenue,53,25,27,32,0.001
+43991918,42nd Avenue,53,25,27,32,0.341
+43991919,42nd Avenue,53,25,27,32,0.231
+44821822,42nd Avenue,53,25,27,32,0.456
+96030065,42nd Avenue,53,25,27,32,0.41
+96030077,42nd Avenue,53,25,27,32,0.46
+98396250,42nd Avenue,53,25,27,32,0.263
+262898280,42nd Avenue,53,25,27,32,0.001
+262898283,42nd Avenue,53,25,27,32,0.274
+417320840,42nd Avenue,53,25,27,32,0.474
+417320844,42nd Avenue,53,25,27,32,0.508
+973008266,42nd Avenue,53,25,27,32,0.442
+1307614857,42nd Avenue,53,25,27,32,0.378
+1388087899,42nd Avenue,53,25,27,32,0.227
+1388087900,42nd Avenue,53,25,27,32,0.22
+47416812,North San Mateo Drive,54,30,27,30,0.293
+435671119,North San Mateo Drive,54,30,27,30,0.478
+1429402831,North San Mateo Drive,54,30,27,30,0.278
+138101232,North San Mateo Drive,55,30,27,31,0.5
+417933526,North San Mateo Drive,55,30,27,31,0.319
+417933531,North San Mateo Drive,55,30,27,31,0.441
+514270206,North San Mateo Drive,55,30,27,31,0.163
+8928075,North San Mateo Drive,56,25,23,27,0.047
+417329846,North San Mateo Drive,56,25,23,27,0.431
+417933527,North San Mateo Drive,56,25,23,27,0.172
+417933528,North San Mateo Drive,56,25,23,27,0.097
+417933529,North San Mateo Drive,56,25,23,27,0.305
+417933530,North San Mateo Drive,56,25,23,27,0.118
+417933532,North San Mateo Drive,56,25,23,27,0.266
+417933533,North San Mateo Drive,56,25,23,27,0.347
+514270204,North San Mateo Drive,56,25,23,27,0.411
+514270205,North San Mateo Drive,56,25,23,27,0.16
+573494050,North San Mateo Drive,56,25,23,27,0.323
+573494053,North San Mateo Drive,56,25,23,27,0.219
+573494057,North San Mateo Drive,56,25,23,27,0.335
+573494063,North San Mateo Drive,56,25,23,27,0.368
+1239053370,North San Mateo Drive,56,25,23,27,0.134
+8928521,South San Mateo Drive,57,25,20,24,0.331
+57872616,South San Mateo Drive,57,25,20,24,0.296
+57872617,South San Mateo Drive,57,25,20,24,0.217
+262893468,South San Mateo Drive,57,25,20,24,0.442
+417329857,South San Mateo Drive,57,25,20,24,0.206
+417329863,South San Mateo Drive,57,25,20,24,0.088
+417329868,South San Mateo Drive,57,25,20,24,0.128
+417329873,South San Mateo Drive,57,25,20,24,0.451
+417329879,South San Mateo Drive,57,25,20,24,0.213
+417329885,South San Mateo Drive,57,25,20,24,0.176
+417329890,South San Mateo Drive,57,25,20,24,0.078
+928370901,South San Mateo Drive,57,25,20,24,0.045
+1381682460,South San Mateo Drive,57,25,20,24,0.243
+8937955,North Delaware Street,58,25,29,33,0.049
+417329830,North Delaware Street,59,25,26,29,0.49
+417329835,North Delaware Street,58,25,29,33,0.486
+417333995,North Delaware Street,58,25,29,33,0.473
+417329841,North Delaware Street,59,25,26,29,0.041
+8935439,South Delaware Street,60,25,27,32,0.391
+44418614,South Delaware Street,60,25,27,32,0.081
+256400258,South Delaware Street,60,25,27,32,0.076
+417303232,South Delaware Street,60,25,27,32,0.166
+417303234,South Delaware Street,60,25,27,32,0.414
+417303235,South Delaware Street,60,25,27,32,0.421
+417303236,South Delaware Street,60,25,27,32,0.272
+417303240,South Delaware Street,60,25,27,32,0.232
+573515705,South Delaware Street,60,25,27,32,0.445
+708649568,South Delaware Street,60,25,27,32,0.227
+708649569,South Delaware Street,60,25,27,32,0.401
+44418616,South Delaware Street,61,25,30,34,0.257
+256400260,South Delaware Street,61,25,30,34,0.227
+44417446,South Delaware Street,62,25,30,35,0.058
+417348759,South Delaware Street,62,25,30,35,0.344
+417348768,South Delaware Street,62,25,30,35,0.239
+417348778,South Delaware Street,62,25,30,35,0.419
+417348788,South Delaware Street,62,25,30,35,0.449
+417348799,South Delaware Street,62,25,30,35,0.045
+417348811,South Delaware Street,62,25,30,35,0.032
+417348821,South Delaware Street,62,25,30,35,0.155
+417348829,South Delaware Street,62,25,30,35,0.006
+417348853,South Delaware Street,62,25,30,35,0.5
+417348861,South Delaware Street,62,25,30,35,0.39
+585780593,South Delaware Street,62,25,30,35,0.091
+1366549019,South Delaware Street,62,25,30,35,0.425
+138100411,South Delaware Street,63,25,33,38,0.044
+169076215,South Delaware Street,64,25,25,27,0.447
+256400259,South Delaware Street,63,25,33,38,0.003
+262895358,South Delaware Street,63,25,33,38,0.292
+394695155,South Delaware Street,63,25,33,38,0.346
+394695156,South Delaware Street,63,25,33,38,0.27
+394697893,South Delaware Street,63,25,33,38,0.467
+394697894,South Delaware Street,63,25,33,38,0.464
+394700562,South Delaware Street,63,25,33,38,0.401
+394700563,South Delaware Street,63,25,33,38,0.145
+417326171,South Delaware Street,63,25,33,38,0.511
+417326175,South Delaware Street,64,25,25,27,0.122
+1425081383,South Delaware Street,64,25,25,27,0.136
+8933479,Pacific Boulevard,65,25,26,30,0.159
+417330264,North Humboldt Street,67,25,29,31,0.417
+417330270,North Humboldt Street,67,25,29,31,0.041
+1252286352,North Humboldt Street,67,25,29,31,0.34
+1252286353,North Humboldt Street,68,25,29,32,0.495
+8933845,North Humboldt Street,68,25,29,32,0.202
+1447335772,North Humboldt Street,68,25,29,32,0.215
+8931652,South Humboldt Street,69,25,26,29,0.356
+262894697,South Humboldt Street,69,25,26,29,0.111
+417303982,South Humboldt Street,69,25,26,29,0.027
+417303987,South Humboldt Street,69,25,26,29,0.109
+1136338789,South Humboldt Street,69,25,26,29,0.083
+1136338790,South Humboldt Street,69,25,26,29,0.095
+1244505431,South Humboldt Street,69,25,26,29,0.204
+8930206,Occidental Avenue,70,25,26,30,0.069
+885500155,Occidental Avenue,70,25,26,30,0.242
+1006917455,Occidental Avenue,70,25,26,30,0.392
+1006917456,Occidental Avenue,70,25,26,30,0.385
+1006917457,Occidental Avenue,70,25,26,30,0.477
+1006917458,Occidental Avenue,70,25,26,30,0.492
+1006917459,Occidental Avenue,70,25,26,30,0.484
+1007087960,Occidental Avenue,70,25,26,30,0.344
+1007087961,Occidental Avenue,70,25,26,30,0.195
+1007087962,Occidental Avenue,70,25,26,30,0.337
+8941506,South Bayshore Boulevard,71,35,29,31,0.053
+8941507,South Bayshore Boulevard,71,35,29,31,0.379
+150556073,North Bayshore Boulevard,71,35,29,31,0.352
+427306902,North Bayshore Boulevard,71,35,29,31,0.493
+8927153,North Kingston Street,73,25,26,29,0.151
+23892373,South Norfolk Street,74,25,28,32,0.026
+57952954,South Norfolk Street,74,25,28,32,0.172
+57952955,South Norfolk Street,74,25,28,32,0.194
+57952956,South Norfolk Street,74,25,28,32,0.199
+57952961,South Norfolk Street,74,25,28,32,0.2
+57952965,South Norfolk Street,74,25,28,32,0.168
+417307282,South Norfolk Street,74,25,28,32,0.114
+417307288,South Norfolk Street,74,25,28,32,0.286
+417307294,South Norfolk Street,74,25,28,32,0.237
+417307298,South Norfolk Street,74,25,28,32,0.076
+619344114,South Norfolk Street,74,25,28,32,0.27
+831672072,South Norfolk Street,74,25,28,32,0.036
+1074116040,South Norfolk Street,74,25,28,32,0.0
+1561251423,South Norfolk Street,74,25,28,32,0.296
+1561251424,South Norfolk Street,74,25,28,32,0.327
+1561251425,South Norfolk Street,74,25,28,32,0.309
+50840676,South Norfolk Street,75,25,29,33,0.093
+38135665,South Norfolk Street,76,25,29,33,0.254
+38135666,South Norfolk Street,76,25,29,33,0.43
+44419611,South Norfolk Street,77,25,30,33,0.481
+8935280,South Norfolk Street,77,25,30,33,0.252
+44419605,South Norfolk Street,77,25,30,33,0.447
+44419609,South Norfolk Street,77,25,30,33,0.29
+392680111,South Norfolk Street,77,25,30,33,0.375
+392680113,South Norfolk Street,77,25,30,33,0.313
+392680114,South Norfolk Street,77,25,30,33,0.126
+392680116,South Norfolk Street,77,25,30,33,0.077
+409476151,South Norfolk Street,77,25,30,33,0.301
+417954807,South Norfolk Street,77,25,30,33,0.15
+427306838,South Norfolk Street,77,25,30,33,0.048
+706780541,South Norfolk Street,77,25,30,33,0.296
+706780542,South Norfolk Street,77,25,30,33,0.245
+706780546,South Norfolk Street,77,25,30,33,0.017
+950088409,South Norfolk Street,77,25,30,33,0.077
+950088410,South Norfolk Street,77,25,30,33,0.106
+8938789,South Norfolk Street,78,25,29,34,0.473
+44419589,South Norfolk Street,78,25,29,34,0.108
+158621805,South Norfolk Street,78,25,29,34,0.293
+262962770,South Norfolk Street,78,25,29,34,0.273
+262962772,South Norfolk Street,78,25,29,34,0.404
+392680112,South Norfolk Street,78,25,29,34,0.24
+409364793,South Norfolk Street,78,25,29,34,0.303
+409364795,South Norfolk Street,78,25,29,34,0.373
+417328521,South Norfolk Street,78,25,29,34,0.031
+417328525,South Norfolk Street,78,25,29,34,0.031
+417954805,South Norfolk Street,78,25,29,34,0.176
+417954806,South Norfolk Street,78,25,29,34,0.011
+505859762,South Norfolk Street,78,25,29,34,0.141
+619344118,South Norfolk Street,78,25,29,34,0.484
+706780564,South Norfolk Street,78,25,29,34,0.404
+150670062,North Ellsworth Avenue,79,25,25,29,0.13
+42164528,South Ellsworth Avenue,80,25,22,25,0.423
+154745980,South Ellsworth Avenue,80,25,22,25,0.477
+520350605,South Ellsworth Avenue,80,25,22,25,0.339
+573426872,South Ellsworth Avenue,80,25,22,25,0.36
+586685000,South Ellsworth Avenue,80,25,22,25,0.029
+586698026,South Ellsworth Avenue,80,25,22,25,0.234
+586698031,South Ellsworth Avenue,80,25,22,25,0.293
+619344006,South Ellsworth Avenue,80,25,22,25,0.244
+743758203,South Ellsworth Avenue,80,25,22,25,0.466
+743758204,South Ellsworth Avenue,80,25,22,25,0.416
+927641695,South Ellsworth Avenue,80,25,22,25,0.114
+927668144,South Ellsworth Avenue,80,25,22,25,0.076
+8926156,North B Street,81,25,18,22,0.465
+927742437,North B Street,81,25,18,22,0.003
+927742438,North B Street,81,25,18,22,0.268
+1381682466,North B Street,81,25,18,22,0.475
+417354889,South B Street,82,25,30,35,0.482
+569187754,South B Street,82,25,30,35,0.265
+717819503,South B Street,82,25,30,35,0.422
+717819953,South B Street,111,25,24,29,0.488
+59035967,South Grant Street,83,25,23,26,0.059
+59035968,South Grant Street,85,25,27,31,0.145
+59035969,South Grant Street,85,25,27,31,0.123
+96027341,South Grant Street,85,25,27,31,0.099
+96024394,South Grant Street,85,25,27,31,0.343
+96024408,South Grant Street,84,25,23,26,0.087
+417348868,South Grant Street,84,25,23,26,0.5
+8935565,South Grant Street,85,25,27,31,0.017
+8935566,South Grant Street,85,25,27,31,0.201
+8941818,North Grant Street,85,25,27,31,0.438
+8941820,North Grant Street,85,25,27,31,0.317
+417932431,South Grant Street,85,25,27,31,0.106
+417932432,South Grant Street,85,25,27,31,0.133
+417932433,South Grant Street,85,25,27,31,0.097
+706780549,South Grant Street,85,25,27,31,0.519
+829790748,South Grant Street,85,25,27,31,0.189
+1424971386,South Grant Street,85,25,27,31,0.512
+8926154,Bermuda Drive,86,25,27,30,0.496
+96024388,Bermuda Drive,86,25,27,30,0.496
+1381474094,Bermuda Drive,86,25,27,30,0.326
+30831703,Saratoga Drive,87,35,36,39,0.512
+44421274,Saratoga Drive,87,35,36,39,0.493
+44421279,Saratoga Drive,87,35,36,39,0.421
+256400254,Saratoga Drive,87,35,36,39,0.507
+417319193,Saratoga Drive,87,35,36,39,0.38
+417319203,Saratoga Drive,87,35,36,39,0.407
+417319205,Saratoga Drive,87,35,36,39,0.475
+512187695,Saratoga Drive,87,35,36,39,0.453
+517847477,Saratoga Drive,87,35,36,39,0.513
+521161685,Saratoga Drive,87,35,36,39,0.483
+574421367,Saratoga Drive,87,35,36,39,0.31
+574421369,Saratoga Drive,87,35,36,39,0.376
+619248849,Saratoga Drive,87,35,36,39,0.394
+707133440,Saratoga Drive,87,35,36,39,0.492
+1059489009,Saratoga Drive,87,35,36,39,0.389
+1059525697,Saratoga Drive,87,35,36,39,0.313
+8938337,David Street,88,25,21,25,0.238
+585741648,David Street,88,25,21,25,0.517
+8932095,Wayne Way,89,25,20,24,0.485
+515942179,Wayne Way,89,25,20,24,0.043
+515942180,Wayne Way,89,25,20,24,0.338
+8937020,Roberta Drive,90,25,26,30,0.508
+152300697,Roberta Drive,90,25,26,30,0.055
+8927758,Mariners Island Boulevard,92,35,37,41,0.371
+35394502,Mariners Island Boulevard,91,35,39,43,0.353
+35394504,Mariners Island Boulevard,91,35,39,43,0.345
+392683806,Mariners Island Boulevard,91,35,39,43,0.375
+392683821,Mariners Island Boulevard,91,35,39,43,0.426
+392683822,Mariners Island Boulevard,91,35,39,43,0.453
+417309066,Mariners Island Boulevard,92,35,37,41,0.5
+417309068,Mariners Island Boulevard,91,35,39,43,0.258
+417309071,Mariners Island Boulevard,92,35,37,41,0.138
+417309073,Mariners Island Boulevard,92,35,37,41,0.423
+417309074,Mariners Island Boulevard,92,35,37,41,0.259
+417309075,Mariners Island Boulevard,92,35,37,41,0.479
+417309076,Mariners Island Boulevard,92,35,37,41,0.111
+417309077,Mariners Island Boulevard,91,35,39,43,0.234
+417309078,Mariners Island Boulevard,92,35,37,41,0.262
+417309079,Mariners Island Boulevard,92,35,37,41,0.229
+417309082,Mariners Island Boulevard,91,35,39,43,0.229
+417309084,Mariners Island Boulevard,91,35,39,43,0.202
+417309086,Mariners Island Boulevard,92,35,37,41,0.135
+417328129,Mariners Island Boulevard,91,35,39,43,0.505
+417328130,Mariners Island Boulevard,91,35,39,43,0.495
+706523333,Mariners Island Boulevard,91,35,39,43,0.218
+706523348,Mariners Island Boulevard,92,35,37,41,0.486
+979744304,Mariners Island Boulevard,92,35,37,41,0.446
+8934971,Alameda de las Pulgas,93,30,32,36,0.291
+417317620,Alameda de las Pulgas,93,30,32,36,0.459
+573567518,Alameda de las Pulgas,93,30,32,36,0.065
+573567519,Alameda de las Pulgas,93,30,32,36,0.401
+573567520,Alameda de las Pulgas,93,30,32,36,0.057
+619344009,Alameda de las Pulgas,93,30,32,36,0.239
+619344017,Alameda de las Pulgas,93,30,32,36,0.063
+32009272,Alameda de las Pulgas,94,30,35,37,0.212
+43991909,Alameda de las Pulgas,94,30,35,37,0.19
+43991910,Alameda de las Pulgas,94,30,35,37,0.157
+43991911,Alameda de las Pulgas,94,30,35,37,0.094
+184976916,Alameda de las Pulgas,94,30,35,37,0.163
+184976917,Alameda de las Pulgas,94,30,35,37,0.119
+394688630,Alameda de las Pulgas,94,30,35,37,0.004
+394688631,Alameda de las Pulgas,94,30,35,37,0.488
+394688632,Alameda de las Pulgas,94,30,35,37,0.048
+394688633,Alameda de las Pulgas,94,30,35,37,0.312
+394688634,Alameda de las Pulgas,94,30,35,37,0.148
+394688635,Alameda de las Pulgas,94,30,35,37,0.366
+394688636,Alameda de las Pulgas,94,30,35,37,0.261
+394688637,Alameda de las Pulgas,94,30,35,37,0.255
+417354852,Alameda de las Pulgas,95,35,35,38,0.488
+510427529,Alameda de las Pulgas,94,30,35,37,0.233
+510427531,Alameda de las Pulgas,94,30,35,37,0.238
+992404745,Alameda de las Pulgas,94,30,35,37,0.286
+1125124180,Alameda de las Pulgas,94,30,35,37,0.305
+1125124181,Alameda de las Pulgas,94,30,35,37,0.363
+1381682464,Alameda de las Pulgas,94,30,35,37,0.139
+417327118,Alameda de las Pulgas,95,35,35,38,0.322
+417327121,Alameda de las Pulgas,95,35,35,38,0.088
+417327124,Alameda de las Pulgas,95,35,35,38,0.052
+417327126,Alameda de las Pulgas,95,35,35,38,0.348
+417327128,Alameda de las Pulgas,95,35,35,38,0.058
+417327130,Alameda de las Pulgas,95,35,35,38,0.323
+417327131,Alameda de las Pulgas,95,35,35,38,0.44
+417327132,Alameda de las Pulgas,95,35,35,38,0.133
+417327134,Alameda de las Pulgas,95,35,35,38,0.441
+619248887,Alameda de las Pulgas,95,35,35,38,0.124
+619248888,Alameda de las Pulgas,95,35,35,38,0.314
+1043649708,Alameda de las Pulgas,95,35,35,38,0.111
+619344122,Alameda de las Pulgas,96,30,34,37,0.084
+619344123,Alameda de las Pulgas,96,30,34,37,0.06
+1153618956,Alameda de las Pulgas,96,30,34,37,0.43
+1153618959,Alameda de las Pulgas,96,30,34,37,0.491
+1379240207,Alameda de las Pulgas,97,30,32,36,0.501
+1379240209,Alameda de las Pulgas,97,30,32,36,0.519
+8929084,Hacienda Street,98,25,22,27,0.17
+573508483,Hacienda Street,98,25,22,27,0.11
+619248885,Hacienda Street,98,25,22,27,0.49
+619248886,Hacienda Street,98,25,22,27,0.162
+1574325306,Hacienda Street,98,25,22,27,0.492
+573508482,Hacienda Street,99,25,23,29,0.095
+619248872,Hacienda Street,99,25,23,29,0.286
+1379240205,Hacienda Street,99,25,23,29,0.456
+8936305,Edison Street,100,25,24,27,0.169
+8936310,Edison Street,100,25,24,27,0.372
+619248876,Edison Street,101,25,22,26,0.48
+619344023,Edison Street,100,25,24,27,0.494
+1152836807,Edison Street,100,25,24,27,0.411
+1349533823,Edison Street,100,25,24,27,0.067
+1349533824,Edison Street,100,25,24,27,0.073
+1387073682,Edison Street,100,25,24,27,0.181
+256750240,Edison Street,101,25,22,26,0.254
+8931186,Palm Avenue,102,25,28,31,0.0
+43667456,Palm Avenue,102,25,28,31,0.493
+43667455,Palm Avenue,103,30,28,33,0.054
+150681726,Palm Avenue,103,30,28,33,0.211
+150681719,Palm Avenue,104,30,27,31,0.005
+8940657,Curtiss Street,105,25,26,30,0.329
+506686057,Curtiss Street,105,25,26,30,0.49
+515942642,Curtiss Street,105,25,26,30,0.262
+515942643,Curtiss Street,105,25,26,30,0.46
+573802805,Curtiss Street,105,25,26,30,0.067
+617001973,North Amphlett Boulevard,108,30,29,33,0.49
+636912155,North Amphlett Boulevard,108,30,29,33,0.269
+1388076639,North Amphlett Boulevard,108,30,29,33,0.404
+8928897,South Amphlett Boulevard,109,30,28,37,0.434
+8939475,North Amphlett Boulevard,109,30,28,37,0.035
+1392459112,North Amphlett Boulevard,109,30,28,37,0.451
+8928898,South Amphlett Boulevard,110,35,32,39,0.01
+8927103,South B Street,111,25,24,29,0.452
+256400256,South B Street,111,25,24,29,0.184
+449668441,South B Street,111,25,24,29,0.302
+449672439,South B Street,111,25,24,29,0.148
+573499739,South B Street,111,25,24,29,0.234
+1105534609,South B Street,111,25,24,29,0.04
+1105534610,South B Street,111,25,24,29,0.094
+158621374,28th Avenue,112,25,23,26,0.211
+619248884,28th Avenue,112,25,23,26,0.227
+619248889,28th Avenue,112,25,23,26,0.495
+1387073683,28th Avenue,112,25,23,26,0.458
+1537546665,East 28th Avenue,112,25,23,26,0.516
+8933253,Fernwood Street,113,25,24,27,0.24
+134223967,Clearview Way,114,25,29,33,0.319
+8929595,Parrott Drive,115,30,25,29,0.398
+24635888,Parrott Drive,115,30,25,29,0.488
+619344007,Parrott Drive,115,30,25,29,0.484
+8939169,Camden Avenue,116,25,20,23,0.17
+43991920,Camden Avenue,116,25,20,23,0.036
+43991921,Camden Avenue,116,25,20,23,0.307
+619344116,La Selva Street,117,25,26,31,0.277
+619344117,La Selva Street,117,25,26,31,0.488
+1447859207,La Selva Street,117,25,26,31,0.038
+8929472,West 25th Avenue,118,25,25,29,0.132
+150681727,East 25th Avenue,118,25,25,29,0.244
+417326048,East 25th Avenue,118,25,25,29,0.15
+417924359,East 25th Avenue,118,25,25,29,0.478
+449679526,West 25th Avenue,118,25,25,29,0.045
+1273999808,East 25th Avenue,118,25,25,29,0.361
+1273999809,East 25th Avenue,118,25,25,29,0.369
+1273999810,East 25th Avenue,118,25,25,29,0.5
+48268429,31st Avenue,119,25,26,29,0.149
+8925763,31st Avenue,120,25,23,28,0.413
+118189940,31st Avenue,120,25,23,28,0.414
+417327093,31st Avenue,120,25,23,28,0.433
+417327096,31st Avenue,120,25,23,28,0.509
+417327098,31st Avenue,120,25,23,28,0.48
+417327102,31st Avenue,120,25,23,28,0.292
+417327107,31st Avenue,120,25,23,28,0.491
+417327111,31st Avenue,120,25,23,28,0.428
+417327114,31st Avenue,120,25,23,28,0.288
+449679455,31st Avenue,120,25,23,28,0.478
+520647300,East 31st Avenue,120,25,23,28,0.517
+756601466,31st Avenue,120,25,23,28,0.351
+756601467,31st Avenue,120,25,23,28,0.353
+1349533825,31st Avenue,120,25,23,28,0.251
+1349533826,31st Avenue,120,25,23,28,0.251
+1388086684,31st Avenue,120,25,23,28,0.33
+1447900223,31st Avenue,120,25,23,28,0.104
+23947238,Fashion Island Boulevard,121,35,35,39,0.483
+23947240,Fashion Island Boulevard,121,35,35,39,0.433
+35394753,Fashion Island Boulevard,121,35,35,39,0.109
+392680097,Fashion Island Boulevard,121,35,35,39,0.417
+392680098,Fashion Island Boulevard,121,35,35,39,0.2
+392680099,Fashion Island Boulevard,121,35,35,39,0.012
+392680100,Fashion Island Boulevard,121,35,35,39,0.479
+392680101,Fashion Island Boulevard,121,35,35,39,0.223
+392680102,Fashion Island Boulevard,121,35,35,39,0.267
+392680107,Fashion Island Boulevard,121,35,35,39,0.36
+392680108,Fashion Island Boulevard,121,35,35,39,0.087
+392680109,Fashion Island Boulevard,121,35,35,39,0.063
+394063016,Fashion Island Boulevard,121,35,35,39,0.249
+394063018,Fashion Island Boulevard,121,35,35,39,0.238
+706739460,Fashion Island Boulevard,121,35,35,39,0.363
+706780547,Fashion Island Boulevard,121,35,35,39,0.467
+987422088,Fashion Island Boulevard,121,35,35,39,0.506
+8929065,Chess Drive,122,30,26,29,0.474
+35309395,Chess Drive,122,30,26,29,0.136
+417311085,Chess Drive,122,30,26,29,0.493
+417311090,Chess Drive,122,30,26,29,0.504
+417311092,Chess Drive,122,30,26,29,0.482
+417311094,Chess Drive,122,30,26,29,0.473
+417311099,Chess Drive,122,30,26,29,0.449
+514265775,Chess Drive,122,30,26,29,0.1
+516178437,Chess Drive,122,30,26,29,0.204
+619344101,Chess Drive,122,30,26,29,0.487
+8933171,Airport Boulevard,123,35,39,43,0.496
+23652413,Airport Boulevard,123,35,39,43,0.518
+30637047,Airport Boulevard,123,35,39,43,0.369
+59309336,Airport Boulevard,123,35,39,43,0.403
+69021728,Airport Boulevard,123,35,39,43,0.329
+392518913,Airport Boulevard,123,35,39,43,0.194
+392518914,Airport Boulevard,123,35,39,43,0.258
+392518915,Airport Boulevard,123,35,39,43,0.13
+392518916,Airport Boulevard,123,35,39,43,0.182
+392518917,Airport Boulevard,123,35,39,43,0.443
+435668941,Airport Boulevard,123,35,39,43,0.047
+534939298,Airport Boulevard,123,35,39,43,0.114

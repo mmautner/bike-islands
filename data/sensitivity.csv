@@ -1,0 +1,65 @@
+tier,station,city,detour_limit,radius_mi,homes,homes_low_stress,share
+standard,San Mateo,San Mateo,1.1,1,12143,9696.0,0.798
+standard,San Mateo,San Mateo,1.1,1.5,19381,13249.0,0.684
+standard,San Mateo,San Mateo,1.1,2,22450,14099.0,0.628
+standard,San Mateo,San Mateo,1.1,3,32694,14109.0,0.432
+standard,San Mateo,San Mateo,1.25,1,12143,9947.0,0.819
+standard,San Mateo,San Mateo,1.25,1.5,19381,14588.0,0.753
+standard,San Mateo,San Mateo,1.25,2,22450,15894.0,0.708
+standard,San Mateo,San Mateo,1.25,3,32694,16126.0,0.493
+standard,San Mateo,San Mateo,1.33,1,12143,10114.0,0.833
+standard,San Mateo,San Mateo,1.33,1.5,19381,15051.0,0.777
+standard,San Mateo,San Mateo,1.33,2,22450,16424.0,0.732
+standard,San Mateo,San Mateo,1.33,3,32694,17682.0,0.541
+standard,San Mateo,San Mateo,1.5,1,12143,10356.0,0.853
+standard,San Mateo,San Mateo,1.5,1.5,19381,16163.0,0.834
+standard,San Mateo,San Mateo,1.5,2,22450,18476.0,0.823
+standard,San Mateo,San Mateo,1.5,3,32694,20071.0,0.614
+standard,Burlingame,Burlingame,1.1,1,6569,1906.0,0.29
+standard,Burlingame,Burlingame,1.1,1.5,8435,1906.0,0.226
+standard,Burlingame,Burlingame,1.1,2,9550,1906.0,0.2
+standard,Burlingame,Burlingame,1.1,3,11784,2333.0,0.198
+standard,Burlingame,Burlingame,1.25,1,6569,2471.0,0.376
+standard,Burlingame,Burlingame,1.25,1.5,8435,3551.0,0.421
+standard,Burlingame,Burlingame,1.25,2,9550,4014.0,0.42
+standard,Burlingame,Burlingame,1.25,3,11784,5339.0,0.453
+standard,Burlingame,Burlingame,1.33,1,6569,3244.0,0.494
+standard,Burlingame,Burlingame,1.33,1.5,8435,4611.0,0.547
+standard,Burlingame,Burlingame,1.33,2,9550,5181.0,0.543
+standard,Burlingame,Burlingame,1.33,3,11784,6549.0,0.556
+standard,Burlingame,Burlingame,1.5,1,6569,3930.0,0.598
+standard,Burlingame,Burlingame,1.5,1.5,8435,5297.0,0.628
+standard,Burlingame,Burlingame,1.5,2,9550,5867.0,0.614
+standard,Burlingame,Burlingame,1.5,3,11784,7442.0,0.632
+strict,San Mateo,San Mateo,1.1,1,12143,3462.0,0.285
+strict,San Mateo,San Mateo,1.1,1.5,19381,4678.0,0.241
+strict,San Mateo,San Mateo,1.1,2,22450,4678.0,0.208
+strict,San Mateo,San Mateo,1.1,3,32694,4678.0,0.143
+strict,San Mateo,San Mateo,1.25,1,12143,3705.0,0.305
+strict,San Mateo,San Mateo,1.25,1.5,19381,5184.0,0.267
+strict,San Mateo,San Mateo,1.25,2,22450,5184.0,0.231
+strict,San Mateo,San Mateo,1.25,3,32694,5184.0,0.159
+strict,San Mateo,San Mateo,1.33,1,12143,4094.0,0.337
+strict,San Mateo,San Mateo,1.33,1.5,19381,5668.0,0.292
+strict,San Mateo,San Mateo,1.33,2,22450,5668.0,0.252
+strict,San Mateo,San Mateo,1.33,3,32694,5668.0,0.173
+strict,San Mateo,San Mateo,1.5,1,12143,4746.0,0.391
+strict,San Mateo,San Mateo,1.5,1.5,19381,6443.0,0.332
+strict,San Mateo,San Mateo,1.5,2,22450,6443.0,0.287
+strict,San Mateo,San Mateo,1.5,3,32694,6443.0,0.197
+strict,Burlingame,Burlingame,1.1,1,6569,534.0,0.081
+strict,Burlingame,Burlingame,1.1,1.5,8435,534.0,0.063
+strict,Burlingame,Burlingame,1.1,2,9496,534.0,0.056
+strict,Burlingame,Burlingame,1.1,3,11784,534.0,0.045
+strict,Burlingame,Burlingame,1.25,1,6569,867.0,0.132
+strict,Burlingame,Burlingame,1.25,1.5,8435,867.0,0.103
+strict,Burlingame,Burlingame,1.25,2,9496,867.0,0.091
+strict,Burlingame,Burlingame,1.25,3,11784,867.0,0.074
+strict,Burlingame,Burlingame,1.33,1,6569,967.0,0.147
+strict,Burlingame,Burlingame,1.33,1.5,8435,967.0,0.115
+strict,Burlingame,Burlingame,1.33,2,9496,967.0,0.102
+strict,Burlingame,Burlingame,1.33,3,11784,967.0,0.082
+strict,Burlingame,Burlingame,1.5,1,6569,1447.0,0.22
+strict,Burlingame,Burlingame,1.5,1.5,8435,1447.0,0.172
+strict,Burlingame,Burlingame,1.5,2,9496,1447.0,0.152
+strict,Burlingame,Burlingame,1.5,3,11784,1447.0,0.123

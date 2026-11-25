@@ -1,0 +1,8 @@
+{
+  "site_url": "https://maxmautner.com",
+  "base": "/bike-islands/",
+  "repo_url": "https://github.com/mmautner/bike-islands",
+  "s3_bucket": "maxmautner.com",
+  "cloudfront_distribution_id": "EXXGWO0M0CEXA",
+  "osm_fetched": "Nov. 24, 2026"
+}
