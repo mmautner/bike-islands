@@ -101,7 +101,10 @@
 // Google Analytics events, prefixed islands_ to filter them from the blog's events in the shared property.
 // Never sends click coordinates or island ids: only the standard and a rough island size.
 function track(name, params) { if (typeof gtag === "function") gtag("event", "islands_" + name, params || {}); }
+// Only the default standard ships inside the page; "most adults" loads on first use (STD_URL).
+const TIERS = ["strict", "standard"];
 const DATA = /*DATA*/;
+const STD_URL = /*STDURL*/;
 const FETCHED = /*FETCHED*/;
 let COPPER, INK, LOWC, FAINT, PAPER;
 function palette() {
@@ -115,7 +118,7 @@ const pct = (a, b) => b ? Math.round(100 * a / b) + "%" : "n/a";
 { const f = document.getElementById("fetched"); if (f) f.textContent = FETCHED; }
 
 // decode delta-encoded lines once per tier
-for (const t of Object.values(DATA)) {
+function decodeTier(t) {
   for (const L of t.lines) {
     const p = L.p, out = [];
     let a = 0, b = 0;
@@ -129,6 +132,19 @@ for (const t of Object.values(DATA)) {
     for (let k = 0; k < p.length; k += 2) { a += p[k]; b += p[k + 1]; out.push([a / 1e5, b / 1e5]); }
     B.pts = out;
   }
+}
+decodeTier(DATA.strict);
+let loadingStd = null;
+function ensureTier(t) {
+  if (DATA[t]) return Promise.resolve();
+  if (!loadingStd) loadingStd = fetch(STD_URL)
+    .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(d => { decodeTier(d); DATA.standard = d; })
+    .catch(err => { loadingStd = null; throw err; });
+  return loadingStd;
+}
+function showLoading() {
+  document.getElementById("panel").innerHTML = '<h2>Your island</h2><p class="muted">Loading the map for most adults…</p>';
 }
 
 // --- riding times: shortest low-stress route from the clicked spot to every street on the island ---
@@ -234,7 +250,7 @@ function stroke(pts, color, width) {
   ctx.stroke();
 }
 function draw() {
-  const T = DATA[tier];
+  const T = DATA[tier] || DATA.strict;
   ctx.clearRect(0, 0, W, H);
   ctx.lineCap = "round"; ctx.lineJoin = "round";
   const z = Math.max(1, Math.sqrt(scale));
@@ -373,13 +389,19 @@ function panel() {
 function setHash() {
   history.replaceState(null, "", sel ? `#t=${tier}&i=${sel}` : `#t=${tier}`);
 }
-function readHash() {
+async function applyHash() {
   const q = new URLSearchParams(location.hash.slice(1));
-  if (q.get("t") in DATA) tier = q.get("t");
+  tier = TIERS.includes(q.get("t")) ? q.get("t") : "strict";
   sel = q.get("i") ? Number(q.get("i")) : null;
   clickPt = null;
-  if (sel && !DATA[tier].lines.some(L => L.i === sel)) sel = null;
   document.querySelectorAll(".seg button[data-tier]").forEach(b => b.setAttribute("aria-pressed", b.dataset.tier === tier));
+  if (!DATA[tier]) {
+    showLoading();
+    try { await ensureTier(tier); }
+    catch (err) { tier = "strict"; sel = null; document.querySelectorAll(".seg button[data-tier]").forEach(b => b.setAttribute("aria-pressed", b.dataset.tier === tier)); }
+  }
+  if (sel && !DATA[tier].lines.some(L => L.i === sel)) sel = null;
+  render();
 }
 function render() {
   document.getElementById("hint").style.display = sel ? "none" : "";
@@ -443,12 +465,22 @@ cv.addEventListener("wheel", e => { e.preventDefault(); const r = cv.getBounding
 document.getElementById("zin").onclick = () => zoomAt(1.5, W / 2, H / 2);
 document.getElementById("zout").onclick = () => zoomAt(1 / 1.5, W / 2, H / 2);
 let riderSource = "card";  // set to "quiz" while the quiz result switches the standard
-document.querySelectorAll(".seg button[data-tier]").forEach(b => b.onclick = () => {
+document.querySelectorAll(".seg button[data-tier]").forEach(b => b.onclick = async () => {
   track("rider_chosen", {standard: b.dataset.tier, source: riderSource});
   // island ids differ between standards; keep the selection by re-picking at the same spot
   const prev = sel && DATA[tier].lines.find(L => L.i === sel);
-  tier = b.dataset.tier;
+  const want = b.dataset.tier;
   document.querySelectorAll(".seg button[data-tier]").forEach(x => x.setAttribute("aria-pressed", x === b));
+  if (!DATA[want]) {
+    showLoading();
+    try { await ensureTier(want); }
+    catch (err) {
+      document.querySelectorAll(".seg button[data-tier]").forEach(x => x.setAttribute("aria-pressed", x.dataset.tier === tier));
+      document.getElementById("panel").innerHTML = '<h2>Your island</h2><p>The map for most adults didn\'t load. Check your connection and try again.</p>';
+      return;
+    }
+  }
+  tier = want;
   if (prev) {
     const m = clickPt || prev.pts[Math.floor(prev.pts.length / 2)], [x, y] = px(m[0], m[1]);
     sel = pick(x, y);
@@ -540,8 +572,8 @@ document.addEventListener("click", e => {
 });
 window.addEventListener("resize", fit);
 new MutationObserver(() => { palette(); draw(); }).observe(document.documentElement, {attributes: true, attributeFilter: ["data-theme"]});
-window.addEventListener("hashchange", () => { readHash(); render(); });
-readHash(); fit(); render();
+window.addEventListener("hashchange", applyHash);
+fit(); applyHash();
 </script>
 </body>
 </html>

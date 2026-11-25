@@ -10,6 +10,7 @@ Head tags, the maxmautner.com header and the footer are shared, as in ../san-mat
 The 1200x630 preview image (og/index.png) is drawn by site/og/make_og.py, which deploy.sh runs.
 """
 import datetime
+import hashlib
 import html
 import json
 import os
@@ -126,11 +127,17 @@ def main():
     if os.path.exists(OUT):
         shutil.rmtree(OUT)
     os.makedirs(os.path.join(OUT, "methodology"))
+    # the default standard is inlined; "most adults" is a separate file the page fetches on first use
+    std = json.dumps(DATA["standard"], separators=(",", ":"))
+    os.makedirs(os.path.join(OUT, "data"))
+    open(os.path.join(OUT, "data", "standard.json"), "w").write(std)
+    std_url = f"{BASE}data/standard.json?v={hashlib.sha1(std.encode()).hexdigest()[:10]}"
     page = open(os.path.join(HERE, "site", "template.html")).read()
     page = (page.replace("/*HEAD*/", head(TITLE, DESCRIPTION, BASE))
                 .replace("/*HEADER*/", HEADER)
                 .replace("/*FOOTER*/", footer())
-                .replace("/*DATA*/", json.dumps(DATA, separators=(",", ":")))
+                .replace("/*STDURL*/", json.dumps(std_url))
+                .replace("/*DATA*/", json.dumps({"strict": DATA["strict"]}, separators=(",", ":")))
                 .replace("/*FETCHED*/", json.dumps(CFG["osm_fetched"])))
     open(os.path.join(OUT, "index.html"), "w").write(page)
 
