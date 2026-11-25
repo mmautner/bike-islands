@@ -37,6 +37,9 @@ DEST="s3://$BUCKET/$PREFIX/"
 
 echo "==> Building site"
 "$PY" build_site.py
+echo "==> Rendering preview image"
+# Pillow lives in the speeds repo's venv; set PYOG to use another Python with Pillow
+"${PYOG:-../san-mateo-speeds/pipeline/.venv/bin/python}" site/og/make_og.py
 
 echo "==> Staging (gzip text files, as the blog does; CloudFront does not compress)"
 STAGE=.deploy

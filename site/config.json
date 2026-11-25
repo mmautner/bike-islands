@@ -5,5 +5,8 @@
   "s3_bucket": "maxmautner.com",
   "cloudfront_distribution_id": "EXXGWO0M0CEXA",
   "osm_fetched": "Nov. 24, 2026",
-  "google_analytics_key": "G-P740XBJCNP"
+  "google_analytics_key": "G-P740XBJCNP",
+  "site_css": "/assets/css/site.css",
+  "contact_email": "movesanmateo@gmail.com",
+  "updated": "2026-11-25"
 }
