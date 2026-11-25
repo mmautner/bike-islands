@@ -137,6 +137,7 @@ def main():
                 .replace("/*HEADER*/", HEADER)
                 .replace("/*FOOTER*/", footer())
                 .replace("/*STDURL*/", json.dumps(std_url))
+                .replace("/*STREETS*/", open(os.path.join(HERE, "data", "streets.json")).read())
                 .replace("/*DATA*/", json.dumps({"strict": DATA["strict"]}, separators=(",", ":")))
                 .replace("/*FETCHED*/", json.dumps(CFG["osm_fetched"])))
     open(os.path.join(OUT, "index.html"), "w").write(page)

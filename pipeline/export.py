@@ -15,6 +15,8 @@ from multiprocessing import Pool
 
 from connectivity import bridges, setup, base, CITIES, STATIONS
 from islands import islands as mk_islands
+from homes import inside
+import json as _json
 
 HERE = os.path.dirname(__file__)
 DATA = os.path.join(HERE, "..", "data")
@@ -41,6 +43,31 @@ def enc(pts):
 def inview(c):
     # generous margin so a tall or wide map box still fills with streets past the frame
     return VIEW[0] - 0.03 <= c[0] <= VIEW[2] + 0.03 and VIEW[1] - 0.02 <= c[1] <= VIEW[3] + 0.02
+
+
+def write_streets(ws):
+    """data/streets.json: every named street in the map frame, by city, with its extent, for the
+    page's street search. Same-named streets in different cities stay separate."""
+    places = _json.load(open(os.path.join(DATA, "raw", "places_2020.json")))["features"]
+    shapes = [(p["attributes"]["BASENAME"], p["geometry"]["rings"]) for p in places]
+    box = {}
+    for w, r, kind, low in ws:
+        name = w["tags"].get("name")
+        if not name or w["tags"].get("highway") in ("footway", "path", "cycleway", "service"):
+            continue
+        g = w["geometry"]
+        if not inview((g[len(g) // 2]["lat"], g[len(g) // 2]["lon"])):
+            continue
+        m = g[len(g) // 2]
+        city = next((c for c, rings in shapes if inside((m["lon"], m["lat"]), rings)), None)
+        if city not in ("San Mateo", "Burlingame", "Hillsborough", "Foster City", "Belmont", "Millbrae"):
+            continue
+        b = box.setdefault((name, city), [90, 180, -90, -180])
+        for p in g:
+            b[0] = min(b[0], p["lat"]); b[1] = min(b[1], p["lon"]); b[2] = max(b[2], p["lat"]); b[3] = max(b[3], p["lon"])
+    out = sorted([n, c, [round(x, 5) for x in b]] for (n, c), b in box.items())
+    _json.dump(out, open(os.path.join(DATA, "streets.json"), "w"), separators=(",", ":"))
+    print(len(out), "streets in the search index")
 
 
 def main():
@@ -162,6 +189,8 @@ def main():
                "bridges": brs,
                "stations": {s: stations[s] for s in STATIONS}}
         json.dump(out, open(os.path.join(DATA, f"map_{tier}.json"), "w"), separators=(",", ":"))
+        if tier == "strict":
+            write_streets(ws)
         print(tier, len(lines), "lines", len(out["islands"]), "islands with homes")
     for name, rows in (("access.csv", acc_rows), ("bridges.csv", br_rows)):
         with open(os.path.join(DATA, name), "w", newline="") as fh:
