@@ -4,5 +4,6 @@
   "repo_url": "https://github.com/mmautner/bike-islands",
   "s3_bucket": "maxmautner.com",
   "cloudfront_distribution_id": "EXXGWO0M0CEXA",
-  "osm_fetched": "Nov. 24, 2026"
+  "osm_fetched": "Nov. 24, 2026",
+  "google_analytics_key": "G-P740XBJCNP"
 }

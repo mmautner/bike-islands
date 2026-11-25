@@ -73,6 +73,7 @@
   footer { font-size:13px; color:var(--grey); margin-top:20px; max-width: 80ch; line-height:1.5; }
   footer a { color:inherit; }
 </style>
+/*GA*/
 </head>
 <body>
 <main>
@@ -108,6 +109,9 @@
   </footer>
 </main>
 <script>
+// Google Analytics events, prefixed islands_ to filter them from the blog's events in the shared property.
+// Never sends click coordinates or island ids: only the standard and a rough island size.
+function track(name, params) { if (typeof gtag === "function") gtag("event", "islands_" + name, params || {}); }
 const DATA = /*DATA*/;
 const FETCHED = /*FETCHED*/;
 const COPPER = "#b5763c", INK = "#1c1c1c", LOWC = "#b9b4a9", FAINT = "#e4e0d6";
@@ -272,6 +276,7 @@ function panel() {
   el.innerHTML = h;
   document.getElementById("share").onclick = () => {
     navigator.clipboard.writeText(location.href).then(() => document.getElementById("copied").textContent = "Copied");
+    track("share_copied", {standard: tier});
   };
 }
 
@@ -317,6 +322,10 @@ cv.addEventListener("pointerup", e => {
     const r = cv.getBoundingClientRect();
     sel = pick(e.clientX - r.left, e.clientY - r.top);
     document.getElementById("hint").style.display = sel ? "none" : "";
+    if (sel) {
+      const h = (DATA[tier].islands[sel] || {}).homes || 0;
+      track("island_selected", {standard: tier, island_homes: h < 500 ? "under 500" : h <= 5000 ? "500-5000" : "over 5000"});
+    }
     setHash(); render();
   }
   drag = null;
@@ -329,7 +338,9 @@ function zoomAt(f, cx, cy) {
 cv.addEventListener("wheel", e => { e.preventDefault(); const r = cv.getBoundingClientRect(); zoomAt(e.deltaY < 0 ? 1.25 : 0.8, e.clientX - r.left, e.clientY - r.top); }, {passive: false});
 document.getElementById("zin").onclick = () => zoomAt(1.5, W / 2, H / 2);
 document.getElementById("zout").onclick = () => zoomAt(1 / 1.5, W / 2, H / 2);
+let riderSource = "card";  // set to "quiz" while the quiz result switches the standard
 document.querySelectorAll(".seg button[data-tier]").forEach(b => b.onclick = () => {
+  track("rider_chosen", {standard: b.dataset.tier, source: riderSource});
   // island ids differ between standards; keep the selection by re-picking at the same spot
   const prev = sel && DATA[tier].lines.find(L => L.i === sel);
   tier = b.dataset.tier;
@@ -378,6 +389,8 @@ function qrender() {
     if (step) document.getElementById("qback").onclick = () => { step--; qrender(); };
   } else {
     const adult = QS.filter(q => q.map).every(q => ans[q.id] <= 2);
+    const typeName = ans.a2 === 1 ? "strong and fearless" : ans.a3 === 1 ? "enthused and confident" : "interested but concerned";
+    if (!quizDone) { quizDone = true; track("quiz_completed", {standard: adult ? "standard" : "strict", cyclist_type: typeName}); }
     const t = adult ? "standard" : "strict";
     let msg = adult
       ? "<p>Your map: <strong>most adults</strong>. You'd be comfortable on every kind of street and crossing it counts.</p>"
@@ -388,20 +401,36 @@ function qrender() {
     qb.innerHTML = top("Your result") + `<div class="qprog"><i style="width:100%"></i></div><div class="qresult">${msg}</div>` +
       `<button class="go" id="qgo">Show my map</button><div class="qnav"><button id="qback">Back</button><button id="qagain">Start over</button></div>`;
     document.getElementById("qgo").onclick = () => {
+      riderSource = "quiz";
       const b = document.querySelector(`.seg button[data-tier="${t}"]`);
       if (tier !== t) b.click();
       dlg.close();
       document.getElementById("mapbox").scrollIntoView({behavior: "smooth", block: "center"});
     };
     document.getElementById("qback").onclick = () => { step--; qrender(); };
-    document.getElementById("qagain").onclick = () => { step = 0; ans = {}; qrender(); };
+    document.getElementById("qagain").onclick = () => { step = 0; ans = {}; quizDone = false; qrender(); };
   }
   document.getElementById("qclose").onclick = () => dlg.close();
   qb.focus({preventScroll: true});  // focus the dialog, not an answer, so nothing looks preselected
 }
-function openQuiz() { step = 0; ans = {}; qrender(); dlg.showModal(); }
-document.getElementById("openquiz").onclick = openQuiz;
-document.getElementById("panel").addEventListener("click", e => { if (e.target.closest(".askquiz")) openQuiz(); });
+let quizDone = false;
+function openQuiz(source) { step = 0; ans = {}; quizDone = false; qrender(); dlg.showModal(); track("quiz_opened", {source}); }
+document.getElementById("openquiz").onclick = () => openQuiz("card");
+document.getElementById("panel").addEventListener("click", e => { if (e.target.closest(".askquiz")) openQuiz("panel"); });
+dlg.addEventListener("close", () => {
+  if (!quizDone) track("quiz_abandoned", {last_question: step + 1});
+  riderSource = "card";
+});
+// links that leave maxmautner.com
+document.addEventListener("click", e => {
+  const a = e.target.closest("a[href]");
+  if (!a) return;
+  try {
+    const u = new URL(a.getAttribute("href"), location.href);
+    if (u.protocol.startsWith("http") && u.hostname !== location.hostname)
+      track("outbound_clicked", {link_url: u.href, link_text: a.textContent.trim().slice(0, 100)});
+  } catch (err) { /* not a URL */ }
+});
 window.addEventListener("resize", fit);
 window.addEventListener("hashchange", () => { readHash(); render(); });
 readHash(); fit(); render();
