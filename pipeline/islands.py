@@ -131,6 +131,26 @@ OVERRIDES = os.path.join(os.path.dirname(__file__), "..", "data", "field_checks"
 
 SURVEY = os.path.join(os.path.dirname(__file__), "..", "data", "survey_matches.csv")
 CROSSINGS = os.path.join(os.path.dirname(__file__), "..", "data", "field_checks", "crossings.csv")
+CONNECTIONS = os.path.join(os.path.dirname(__file__), "..", "data", "field_checks", "connections.csv")
+
+
+def add_connections(els):
+    """Short path links that exist on the ground but not in OpenStreetMap
+    (data/field_checks/connections.csv), added as low-stress cycleway ways."""
+    if not os.path.exists(CONNECTIONS):
+        return
+    xy = {}
+    for e in els:
+        if e["type"] == "way":
+            for n, g in zip(e.get("nodes", []), e.get("geometry", [])):
+                xy[n] = g
+    for i, r in enumerate(csv.DictReader(open(CONNECTIONS))):
+        a, b = int(r["node_a"]), int(r["node_b"])
+        if a not in xy or b not in xy:
+            print("connection node not found:", a, b, file=sys.stderr)
+            continue
+        els.append({"type": "way", "id": -(i + 1), "nodes": [a, b], "geometry": [xy[a], xy[b]],
+                    "tags": {"highway": "cycleway", "note": "field_checks/connections.csv"}})
 
 
 def in_bounds(g, r):
@@ -173,6 +193,7 @@ def controlled_crossings(ways):
 
 def build(path, tier):
     els = json.load(open(path))["elements"]
+    add_connections(els)
     apply_overrides([e for e in els if e["type"] == "way" and "tags" in e])
     fixed_on, fixed_off = controlled_crossings([e for e in els if e["type"] == "way" and "highway" in e.get("tags", {})])
     ways = [e for e in els if e["type"] == "way" and "highway" in e.get("tags", {})]

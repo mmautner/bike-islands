@@ -35,6 +35,11 @@ def norm(name):
     return " ".join(t).lower()
 
 
+def prefix(name):
+    t = expand(name).split()
+    return t[0] if t and t[0] in ("North", "South", "East", "West") else ""
+
+
 def xy(lat, lon):
     return lon * 111_000 * math.cos(math.radians(37.55)), lat * 111_000
 
@@ -84,6 +89,10 @@ def main():
         bx, by = b
         L2 = (bx - ax) ** 2 + (by - ay) ** 2 or 1
         for w in by_name[street]:
+            # "28th Ave" in the survey (west of El Camino) is not "East 28th Avenue" in OpenStreetMap; the reverse
+            # ("W 5th Ave" in the survey, "5th Avenue" in OpenStreetMap) is the same street
+            if prefix(r["street"]) == "" and prefix(w["tags"]["name"]) != "":
+                continue
             ps = [xy(g["lat"], g["lon"]) for g in w["geometry"]]
             mx, my = ps[len(ps) // 2]
             t = ((mx - ax) * (bx - ax) + (my - ay) * (by - ay)) / L2

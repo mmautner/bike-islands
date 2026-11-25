@@ -16,7 +16,7 @@ from homes import blocks, snap
 
 DETOUR = 1.25
 RADIUS_M = 2 * 1609  # homes within this ride of the station
-STATIONS = ["San Mateo", "Burlingame"]
+STATIONS = ["Burlingame", "San Mateo", "Hayward Park", "Hillsdale"]
 CITIES = ["San Mateo", "Burlingame"]
 
 

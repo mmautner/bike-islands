@@ -18,7 +18,7 @@ from islands import islands as mk_islands
 
 HERE = os.path.dirname(__file__)
 DATA = os.path.join(HERE, "..", "data")
-VIEW = (37.535, -122.40, 37.60, -122.28)  # San Mateo + Burlingame
+VIEW = (37.522, -122.40, 37.60, -122.27)  # San Mateo + Burlingame, down to Hillsdale station
 TIERS = ["standard", "strict"]
 
 
