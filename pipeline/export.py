@@ -39,7 +39,8 @@ def enc(pts):
 
 
 def inview(c):
-    return VIEW[0] - 0.01 <= c[0] <= VIEW[2] + 0.01 and VIEW[1] - 0.01 <= c[1] <= VIEW[3] + 0.01
+    # generous margin so a tall or wide map box still fills with streets past the frame
+    return VIEW[0] - 0.03 <= c[0] <= VIEW[2] + 0.03 and VIEW[1] - 0.02 <= c[1] <= VIEW[3] + 0.02
 
 
 def main():
@@ -64,6 +65,7 @@ def main():
         iid = lambda k: rep[f(k)]
 
         lines = []
+        node_ix = {}
         for w, r, kind, low in ws:
             ns, g = w["nodes"], w["geometry"]
             pts = [(p["lat"], p["lon"]) for p in g]
@@ -72,14 +74,34 @@ def main():
             if not low:
                 lines.append({"l": r, "p": enc(pts)})
                 continue
-            cur, cur_i = [pts[0]], iid(key(ns[0], w["id"], 0, "out"))
+            # Low-stress lines carry node numbers ("n", delta-encoded) so the page can route along them for
+            # riding times. A line is split wherever the island changes or a barrier crossing sits mid-way,
+            # so every point has exactly one node and routes never pass through a stressful crossing.
+            def nid(k):
+                if k not in node_ix:
+                    node_ix[k] = len(node_ix)
+                return node_ix[k]
+
+            def flush(pp, nn, ii):
+                d, prev = [], 0
+                for x in nn:
+                    d.append(x - prev)
+                    prev = x
+                lines.append({"l": r, "i": ii, "p": enc(pp), "n": d})
+
+            k0 = key(ns[0], w["id"], 0, "out")
+            cur, curn, cur_i = [pts[0]], [nid(k0)], iid(k0)
             for i in range(len(ns) - 1):
-                isl = iid(key(ns[i], w["id"], i, "out"))
-                if isl != cur_i:
-                    lines.append({"l": r, "i": cur_i, "p": enc(cur)})
-                    cur, cur_i = [pts[i]], isl
+                ka, kb = key(ns[i], w["id"], i, "out"), key(ns[i + 1], w["id"], i + 1, "in")
+                isl_i = iid(ka)
+                if isl_i != cur_i or nid(ka) != curn[-1]:
+                    if len(cur) > 1:
+                        flush(cur, curn, cur_i)
+                    cur, curn, cur_i = [pts[i]], [nid(ka)], isl_i
                 cur.append(pts[i + 1])
-            lines.append({"l": r, "i": cur_i, "p": enc(cur)})
+                curn.append(nid(kb))
+            if len(cur) > 1:
+                flush(cur, curn, cur_i)
 
         isl = collections.defaultdict(lambda: {"homes": 0, "ok": {}, "bridges": []})
         for (o, city), hu in origins.items():

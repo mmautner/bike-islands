@@ -61,6 +61,7 @@
   .muted { color:var(--grey); font-size:13px; }
   button.share { font:inherit; font-size:14px; padding:6px 12px; border:1px solid var(--copper); color:var(--copper); background:transparent; cursor:pointer; margin-top:8px; }
   .legend { display:flex; gap:16px; flex-wrap:wrap; font-size:13px; margin:10px 0 0; }
+  .heatlegend b { display:inline-block; width:22px; height:6px; background:var(--copper); vertical-align:middle; margin-right:5px; }
   .legend i { display:inline-block; width:22px; height:0; border-top:3px solid; vertical-align:middle; margin-right:6px; }
   footer.bi-foot { font-size:13px; color:var(--grey); margin-top:24px; max-width: 80ch; line-height:1.5; }
   footer.bi-foot a { color:inherit; }
@@ -90,6 +91,7 @@
         <span><i style="border-color:var(--ink); border-top-width:2px"></i>Stressful streets</span>
         <span>&#9312; Fix that would connect your island (numbered as in the list)</span>
       </div>
+      <div class="legend heatlegend" id="heatlegend" hidden></div>
     </div>
     <aside id="panel"></aside>
   </div>
@@ -119,6 +121,7 @@ for (const t of Object.values(DATA)) {
     let a = 0, b = 0;
     for (let k = 0; k < p.length; k += 2) { a += p[k]; b += p[k + 1]; out.push([a / 1e5, b / 1e5]); }
     L.pts = out;
+    if (L.n) { let c = 0; L.nodes = L.n.map(d => (c += d)); }
   }
   for (const B of t.bridges) {
     const p = B.p, out = [];
@@ -127,6 +130,75 @@ for (const t of Object.values(DATA)) {
     B.pts = out;
   }
 }
+
+// --- riding times: shortest low-stress route from the clicked spot to every street on the island ---
+const MPH = 10, M_PER_MIN = MPH * 1609.34 / 60;      // an easy pace; no hills, no waits at signals
+const BANDS = [5, 10, 15, 20];                        // minutes
+const ALPHA = [1, 0.78, 0.58, 0.42, 0.28];            // nearer = stronger
+const metres = (a, b) => Math.hypot((b[0] - a[0]) * 111320, (b[1] - a[1]) * 111320 * Math.cos(37.55 * Math.PI / 180));
+function graph(T) {
+  if (T._adj) return T._adj;
+  const adj = new Map();
+  const add = (a, b, m) => { if (!adj.has(a)) adj.set(a, []); adj.get(a).push([b, m]); };
+  for (const L of T.lines) if (L.nodes) for (let k = 1; k < L.pts.length; k++) {
+    const m = metres(L.pts[k - 1], L.pts[k]);
+    add(L.nodes[k - 1], L.nodes[k], m); add(L.nodes[k], L.nodes[k - 1], m);
+  }
+  return (T._adj = adj);
+}
+function dijkstra(adj, seeds) {              // seeds: [[node, metres]]
+  const dist = new Map(), heap = [];
+  const push = (d, n) => { heap.push([d, n]); let i = heap.length - 1;
+    while (i) { const p = (i - 1) >> 1; if (heap[p][0] <= heap[i][0]) break; [heap[p], heap[i]] = [heap[i], heap[p]]; i = p; } };
+  const pop = () => { const top = heap[0], last = heap.pop();
+    if (heap.length) { heap[0] = last; let i = 0;
+      for (;;) { const l = 2 * i + 1, r = l + 1; let m = i;
+        if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r;
+        if (m === i) break; [heap[m], heap[i]] = [heap[i], heap[m]]; i = m; } }
+    return top; };
+  for (const [n, d] of seeds) if (!(dist.get(n) <= d)) { dist.set(n, d); push(d, n); }
+  while (heap.length) {
+    const [d, u] = pop();
+    if (d > dist.get(u)) continue;
+    for (const [v, m] of adj.get(u) || []) if (!(dist.get(v) <= d + m)) { dist.set(v, d + m); push(d + m, v); }
+  }
+  return dist;
+}
+let clickPt = null;           // [lat, lon] of the last click; kept in memory only, never in the link
+let heat = null, heatFrom = "";
+function nearestOnIsland(T, id, pt) {
+  let best = null;
+  for (const L of T.lines) if (L.i === id && L.nodes) for (let k = 1; k < L.pts.length; k++) {
+    const a = L.pts[k - 1], b = L.pts[k], ab = metres(a, b);
+    const ax = metres(a, [a[0], pt[1]]) * Math.sign(pt[1] - a[1]), ay = metres(a, [pt[0], a[1]]) * Math.sign(pt[0] - a[0]);
+    const bx = metres(a, [a[0], b[1]]) * Math.sign(b[1] - a[1]), by = metres(a, [b[0], a[1]]) * Math.sign(b[0] - a[0]);
+    const t = ab ? Math.max(0, Math.min(1, (ax * bx + ay * by) / (ab * ab))) : 0;
+    const d = Math.hypot(ax - t * bx, ay - t * by);
+    if (!best || d < best.d) best = {d, seeds: [[L.nodes[k - 1], t * ab], [L.nodes[k], (1 - t) * ab]]};
+  }
+  return best;
+}
+function stationNode(T, id, st) {            // the island's node nearest a station, within 250 m
+  const sp = T.stations[st];
+  let best = null;
+  for (const L of T.lines) if (L.i === id && L.nodes) L.pts.forEach((p, k) => {
+    const d = metres(p, sp); if (d < 250 && (!best || d < best.d)) best = {d, n: L.nodes[k]};
+  });
+  return best;
+}
+function computeHeat() {
+  heat = null; heatFrom = "";
+  if (!sel) return;
+  const T = DATA[tier], adj = graph(T);
+  const near = clickPt && nearestOnIsland(T, sel, clickPt);
+  if (near) { heat = dijkstra(adj, near.seeds); heatFrom = "where you clicked"; return; }
+  // a shared link carries no click: color from the island's station, if it reaches one
+  for (const st of Object.keys(T.stations)) {
+    const sn = stationNode(T, sel, st);
+    if (sn) { heat = dijkstra(adj, [[sn.n, sn.d]]); heatFrom = `${st} Caltrain`; return; }
+  }
+}
+const band = mins => { let b = 0; while (b < BANDS.length && mins >= BANDS[b]) b++; return b; };
 
 let tier = "strict", sel = null;
 const cv = document.getElementById("map"), ctx = cv.getContext("2d");
@@ -143,6 +215,12 @@ function fit() {
   const gw = (V[3] - V[1]) * K, gh = V[2] - V[0];
   base = Math.min(W / gw, H / gh);
   draw();
+}
+function unpx(x, y) {
+  const gw = (V[3] - V[1]) * K, gh = V[2] - V[0];
+  const lo = ((x - W / 2 - ox) / (base * scale) + gw / 2) / K + V[1];
+  const la = gh / 2 - (y - H / 2 - oy) / (base * scale) + V[0];
+  return [la, lo];
 }
 function px(la, lo) {
   const gw = (V[3] - V[1]) * K, gh = V[2] - V[0];
@@ -162,7 +240,21 @@ function draw() {
   const z = Math.max(1, Math.sqrt(scale));
   for (const L of T.lines) if (L.i === undefined) stroke(L.pts, INK, 1.1 * z);
   for (const L of T.lines) if (L.i !== undefined && L.i !== sel) stroke(L.pts, sel ? FAINT : LOWC, 1.1 * z);
-  if (sel) for (const L of T.lines) if (L.i === sel) stroke(L.pts, COPPER, 2.6 * z);
+  if (sel) for (const L of T.lines) if (L.i === sel) {
+    if (!heat || !L.nodes) { stroke(L.pts, COPPER, 2.6 * z); continue; }
+    for (let k = 1; k < L.pts.length; k++) {
+      const da = heat.get(L.nodes[k - 1]), db = heat.get(L.nodes[k]);
+      const mins = ((da ?? db ?? 1e9) + (db ?? da ?? 1e9)) / 2 / M_PER_MIN;
+      ctx.globalAlpha = ALPHA[band(mins)];
+      stroke([L.pts[k - 1], L.pts[k]], COPPER, 2.8 * z);
+    }
+    ctx.globalAlpha = 1;
+  }
+  if (heat && clickPt && heatFrom === "where you clicked") {   // mark the start
+    const [x, y] = px(clickPt[0], clickPt[1]);
+    ctx.fillStyle = COPPER; ctx.strokeStyle = PAPER; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(x, y, 6, 0, 7); ctx.fill(); ctx.stroke();
+  }
   // bridges for the selected island
   // stations
   ctx.font = "600 13px 'IBM Plex Sans', sans-serif";
@@ -248,7 +340,12 @@ function panel() {
     let more = "";
     if (det && det[0]) more += ` For ${fmt(det[0])} more, a low-stress route exists but is too roundabout: typically ${Math.round((det[1] - 1) * 100)}% longer than the direct ride.`;
     if (none) more += ` ${fmt(none)} have no low-stress route at all.`;
-    h += `<div class="stat"><div class="lbl">To ${st} Caltrain: <strong>${fmt(o)} of ${fmt(n)}</strong> homes (${pct(o, n)}) have a low-stress route no more than 25% longer than the direct ride.${more}</div><div class="bar"><i style="width:${100 * o / n}%"></i></div></div>`;
+    let mins = "";
+    if (heat && heatFrom === "where you clicked") {
+      const sn = stationNode(T, sel, st);
+      if (sn && heat.has(sn.n)) mins = `<div style="margin:2px 0 4px"><strong>About ${Math.max(1, Math.round((heat.get(sn.n) + sn.d) / M_PER_MIN))} minutes</strong> by low-stress streets from where you clicked.</div>`;
+    }
+    h += `<div class="stat">${mins}<div class="lbl">To ${st} Caltrain: <strong>${fmt(o)} of ${fmt(n)}</strong> homes (${pct(o, n)}) have a low-stress route no more than 25% longer than the direct ride.${more}</div><div class="bar"><i style="width:${100 * o / n}%"></i></div></div>`;
   }
   const list = topBridges(T, sel);
   if (list.length) {
@@ -280,10 +377,23 @@ function readHash() {
   const q = new URLSearchParams(location.hash.slice(1));
   if (q.get("t") in DATA) tier = q.get("t");
   sel = q.get("i") ? Number(q.get("i")) : null;
+  clickPt = null;
   if (sel && !DATA[tier].lines.some(L => L.i === sel)) sel = null;
   document.querySelectorAll(".seg button[data-tier]").forEach(b => b.setAttribute("aria-pressed", b.dataset.tier === tier));
 }
-function render() { document.getElementById("hint").style.display = sel ? "none" : ""; headline(); panel(); draw(); }
+function render() {
+  document.getElementById("hint").style.display = sel ? "none" : "";
+  computeHeat();
+  const hl = document.getElementById("heatlegend");
+  hl.hidden = !heat;
+  if (heat) {
+    const labels = [`under ${BANDS[0]}`, ...BANDS.slice(1).map((b, i) => `${BANDS[i]}–${b}`), `${BANDS[BANDS.length - 1]}+`];
+    hl.innerHTML = `<span>Minutes by bike from ${heatFrom}, at an easy ${MPH} mph:</span>` +
+      labels.map((t, i) => `<span><b style="opacity:${ALPHA[i]}"></b>${t}</span>`).join("") +
+      `<span class="muted">No hills or waits at lights counted.</span>`;
+  }
+  headline(); panel(); draw();
+}
 
 function pick(cx, cy) {
   const T = DATA[tier];
@@ -314,6 +424,7 @@ cv.addEventListener("pointerup", e => {
   if (drag && !moved) {
     const r = cv.getBoundingClientRect();
     sel = pick(e.clientX - r.left, e.clientY - r.top);
+    clickPt = sel ? unpx(e.clientX - r.left, e.clientY - r.top) : null;
     document.getElementById("hint").style.display = sel ? "none" : "";
     if (sel) {
       const h = (DATA[tier].islands[sel] || {}).homes || 0;
@@ -338,7 +449,10 @@ document.querySelectorAll(".seg button[data-tier]").forEach(b => b.onclick = () 
   const prev = sel && DATA[tier].lines.find(L => L.i === sel);
   tier = b.dataset.tier;
   document.querySelectorAll(".seg button[data-tier]").forEach(x => x.setAttribute("aria-pressed", x === b));
-  if (prev) { const m = prev.pts[Math.floor(prev.pts.length / 2)], [x, y] = px(m[0], m[1]); sel = pick(x, y); }
+  if (prev) {
+    const m = clickPt || prev.pts[Math.floor(prev.pts.length / 2)], [x, y] = px(m[0], m[1]);
+    sel = pick(x, y);
+  }
   setHash(); render();
 });
 
