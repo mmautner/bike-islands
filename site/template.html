@@ -18,7 +18,8 @@
   .riders button span { font-size:13px; }
   .riders button[aria-pressed="true"] { border:2px solid var(--copper); padding:9px 13px; }
   .riders button[aria-pressed="true"] strong::before { content:"\2713  "; color:var(--copper); }
-  dialog#quiz { border:none; padding:0; width:min(640px, 94vw); max-height: 94vh; background:var(--bg); color:var(--body); box-shadow: 0 10px 40px rgba(0,0,0,.25); }
+  /* site.css resets every margin to 0; a modal dialog needs margin:auto to center */
+  dialog#quiz { margin:auto; overflow:auto; border:none; padding:0; width:min(640px, 94vw); max-height: 94vh; background:var(--bg); color:var(--body); box-shadow: 0 10px 40px rgba(0,0,0,.25); }
   dialog#quiz::backdrop { background: rgba(28,28,28,.55); }
   .qwrap { padding: 18px 20px 20px; }
   .qtop { display:flex; justify-content:space-between; align-items:center; font-size:13px; color:var(--grey); margin-bottom:10px; }
