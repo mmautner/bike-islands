@@ -77,6 +77,8 @@ def lts(t):
         return None
     if t.get("bicycle") in ("no", "dismount"):
         return None
+    if any(k.startswith("golf") for k in t):  # golf cart paths (golf=cartpath, golf=path) aren't public routes
+        return None
     if hw == "cycleway" or (hw == "path" and t.get("bicycle") != "no"):
         return 1, "path"
     if hw in ("footway", "pedestrian") and t.get("bicycle") in ("yes", "designated"):
@@ -132,6 +134,40 @@ OVERRIDES = os.path.join(os.path.dirname(__file__), "..", "data", "field_checks"
 SURVEY = os.path.join(os.path.dirname(__file__), "..", "data", "survey_matches.csv")
 CROSSINGS = os.path.join(os.path.dirname(__file__), "..", "data", "field_checks", "crossings.csv")
 CONNECTIONS = os.path.join(os.path.dirname(__file__), "..", "data", "field_checks", "connections.csv")
+
+
+def golf_courses(path):
+    """Golf course outlines from data/raw/osm_golf_*.json as lists of (lat, lon) rings."""
+    import glob
+    pf = sorted(glob.glob(os.path.join(os.path.dirname(path), "osm_golf_*.json")))
+    rings = []
+    if not pf:
+        return rings
+    for e in json.load(open(pf[-1]))["elements"]:
+        if e["type"] == "way" and e.get("geometry"):
+            rings.append([(g["lat"], g["lon"]) for g in e["geometry"]])
+        elif e["type"] == "relation":
+            for m in e.get("members", []):
+                if m.get("role") == "outer" and m.get("geometry"):
+                    rings.append([(g["lat"], g["lon"]) for g in m["geometry"]])
+    return rings
+
+
+def in_rings(pt, rings):
+    la, lo = pt
+    for r in rings:
+        if not (min(p[0] for p in r) <= la <= max(p[0] for p in r) and min(p[1] for p in r) <= lo <= max(p[1] for p in r)):
+            continue
+        inside = False
+        for (a1, o1), (a2, o2) in zip(r, r[1:] + r[:1]):
+            if (a1 > la) != (a2 > la) and lo < (o2 - o1) * (la - a1) / (a2 - a1) + o1:
+                inside = not inside
+        if inside:
+            return True
+    return False
+
+
+GOLF_SKIP = {"path", "footway", "cycleway", "track", "service", "pedestrian", "bridleway"}
 
 
 def add_connections(els):
@@ -209,9 +245,15 @@ def build(path, tier):
     coord, ws = {}, []
     barrier_nodes = set()
     big_crossing = set()  # nodes on a street a signal can't tame (>=35 mph or >=4 lanes)
+    golf = golf_courses(path)
     for w in ways:
         t = w["tags"]
         g = w["geometry"]
+        # unnamed paths and service roads inside a golf course are cart paths, not public routes
+        if golf and t.get("highway") in GOLF_SKIP and "name" not in t:
+            mid = g[len(g) // 2]
+            if in_rings((mid["lat"], mid["lon"]), golf):
+                continue
         if (t.get("highway") in LOCAL_ROADS and lanes(t, t["highway"]) > 2
                 and sum(dist((a["lat"], a["lon"]), (b["lat"], b["lon"])) for a, b in zip(g, g[1:])) < TURN_POCKET_M):
             t["lanes"] = "2"  # a turn pocket at an intersection, not a multi-lane street
