@@ -94,12 +94,14 @@
   #streetlist li[aria-selected="true"], #streetlist li:hover { background:var(--card); }
   #locate { font:inherit; font-size:14px; padding:8px 12px; border:1px solid var(--ink); background:transparent; color:var(--ink); cursor:pointer; }
   #findmsg { font-size:13px; }
-  .act { margin-top: 22px; }
+  /* "What you can do" sits under the map and the panel, full width, so the panel stays about as tall as the map */
+  .act { margin: 28px 0 0; padding: 0; }      /* site.css pads <section>; line up with the map */
+  .act h2 { font-family:'Newsreader', Georgia, serif; font-weight:600; color:var(--ink); font-size:22px; margin:0 0 10px; }
+  .act-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:12px; align-items:start; }
   ol.br li.focus { background: var(--card); box-shadow: inset 3px 0 0 var(--copper); }
   a.sharefix { font-size: 13px; color: var(--copper); margin-left: 4px; }
   input.linkbox { font:inherit; font-size:13px; width:100%; max-width:320px; margin-top:4px; padding:4px 6px; border:1px solid var(--light); background:var(--bg); color:var(--ink); }
-  .act h2 { margin-bottom: 10px; }
-  .act-item { background: var(--card); border-radius: 14px; padding: 14px 16px; margin: 0 0 12px; }
+  .act-item { background: var(--card); border-radius: 14px; padding: 14px 16px; margin: 0; }
   .act-item h3 { font-size: 16px; font-weight: 600; color: var(--ink); margin: 0 0 4px; font-family: var(--font-sans); }
   .act-item p { margin: 0 0 10px; font-size: 14.5px; }
   .act-item p:last-child { margin-bottom: 0; }
@@ -155,6 +157,7 @@
     </div>
     <aside id="panel"></aside>
   </div>
+  <section class="act" id="actions" hidden></section>
 /*FOOTER*/
 </main>
 <script>
@@ -597,6 +600,7 @@ function headline() {
 function panel() {
   const T = DATA[tier], el = document.getElementById("panel");
   if (!sel) {
+    const act = document.getElementById("actions"); act.hidden = true; act.innerHTML = "";
     const who = tier === "strict" ? "kids and cautious riders" : "most adults";
     const rows = Object.keys(T.stations).map(st => {
       const [o, n] = share(T, st);
@@ -647,8 +651,9 @@ function panel() {
     h += `<p class="muted" style="margin-top:12px">None of the single fixes tested would connect more homes on this island.</p>`;
   }
   h += `<p style="margin:14px 0 4px">Is this the right map for you? <button class="askquiz">Take the 7-question quiz</button></p>`;
-  h += actionCards(T, I, list, fixText);
   el.innerHTML = h;
+  const act = document.getElementById("actions");
+  act.innerHTML = actionCards(T, I, list, fixText); act.hidden = false;
   document.getElementById("share").onclick = async () => {
     const how = await shareOrCopy(shareURL(), document.title, document.getElementById("copied"));
     track("share_copied", {standard: tier, method: how});
@@ -660,7 +665,7 @@ function panel() {
     if (how === "copied") { a.textContent = "Link copied"; out.remove(); }
     track("fix_share_copied", {standard: tier, method: how});
   }));
-  el.querySelectorAll("[data-act]").forEach(a => a.addEventListener("click", () => track(a.dataset.act, {standard: tier, city: a.dataset.city || ""})));
+  act.querySelectorAll("[data-act]").forEach(a => a.addEventListener("click", () => track(a.dataset.act, {standard: tier, city: a.dataset.city || ""})));
 }
 
 // Share a link: the phone's share sheet where there is one, else copy it. If copying isn't allowed,
@@ -706,7 +711,7 @@ function actionCards(T, I, list, fixText) {
   const n = (I.near || {})[st] || 0, o = (I.ok || {})[st] || 0;
   const link = shareURL();
   const cityCfg = (CIVIC.links || {})[city] || {};
-  let h = `<section class="act"><h2>What you can do</h2>`;
+  let h = `<h2>What you can do</h2><div class="act-grid">`;
   h += `<div class="act-item"><h3>Tell a neighbor</h3><p>The link opens the map on this island, with its numbers, in a text or group chat.</p>` +
        `<button type="button" class="btn" id="share">${CAN_SHARE ? "Share link" : "Copy link"}</button> <span class="muted" id="copied"></span></div>`;
   let salutation = null, toAddr = null, intro = "";
@@ -743,7 +748,7 @@ function actionCards(T, I, list, fixText) {
   } else if (city === "Burlingame" && cityCfg.service_request) {
     h += `<div class="act-item"><h3>Ask the city to look at ${askWhat}</h3><p><a href="${cityCfg.service_request}" data-act="city_concern_clicked" data-city="${city}">Create a service request</a> with the city.</p></div>`;
   }
-  return h + `</section>`;
+  return h + `</div>`;
 }
 
 // Picking or clearing an island adds a history entry, so Back returns to the island before; other changes
