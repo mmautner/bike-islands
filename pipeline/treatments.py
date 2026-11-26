@@ -12,7 +12,7 @@ import collections
 from islands import lts, barrier, untamable, mph, lanes, facility, LOCAL_ROADS, SIGNAL_RULE, USE_VOLUME, DEFAULT_MPH
 
 MAXLOW = {"strict": 1, "standard": 2}
-WHO = {"strict": "kids", "standard": "most adults"}
+WHO = {"strict": "kids", "standard": "experienced riders"}
 TIERS = ("strict", "standard")
 MIN_MPH = 15      # the lowest limit searched (California's lowest posted limit)
 ADT_STEP = 100    # daily traffic is searched in steps of this many vehicles

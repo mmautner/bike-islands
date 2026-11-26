@@ -1,18 +1,22 @@
 # Bike islands
 
-Which homes in San Mateo and Burlingame have a low-stress bike route to Caltrain, which low-stress
-"islands" they sit on, and which single fixes would connect the most homes. Served at
+Which homes and kids in San Mateo and Burlingame have a low-stress bike route to a public elementary school
+and to Caltrain, which low-stress "islands" they sit on, and which single fixes would connect the most homes
+to Caltrain. Served at
 [maxmautner.com/bike-islands/](https://maxmautner.com/bike-islands/). Deployed with `./deploy.sh`.
 
 ## Layout
 
 - `pipeline/`: fetch scripts and the model.
-  - `fetch_osm.sh`, `fetch_blocks.sh`: download OpenStreetMap streets, signals, stations and platforms, and
-    Census 2020 block housing units and city boundaries, into `data/raw/` (not committed, ~37 MB).
+  - `fetch_osm.sh`, `fetch_blocks.sh`: download OpenStreetMap streets, signals, stations, platforms and school
+    grounds, the California School Directory, and Census 2020 block housing units, residents under 18 (needs a
+    free key in `CENSUS_API_KEY`) and city boundaries, into `data/raw/` (not committed, ~47 MB).
   - `islands.py`: rates every street's Level of Traffic Stress and builds islands.
   - `survey.py`: matches the City of San Mateo 2026 speed survey to OpenStreetMap (`data/survey_matches.csv`).
   - `connectivity.py`: homes with a low-stress route to each station; `--bridges STATION` ranks single fixes.
-  - `export.py`: writes `data/map_*.json`, `data/access.csv`, `data/bridges.csv`.
+  - `schools.py`: homes and kids with a low-stress route to a public elementary school (run alone for a report
+    by school, including the stricter "to the nearest school" measure; export uses `access()`).
+  - `export.py`: writes `data/map_*.json`, `data/access.csv`, `data/bridges.csv`, `data/schools.csv`.
   - `sensitivity.py`: detour limit × ride radius grid (`data/sensitivity.csv`).
   - `joints.py`: the intersections and segments holding each island together (diagnostic).
   - `tiles.py`: splits each standard's map data into `data/overview_<tier>.json` (every street simplified to
@@ -55,7 +59,7 @@ python3 build_site.py
     ≥4 lanes (El Camino Real) are barriers even at a signal. This departs from Mineta, which lets any signal
     make a crossing safe; under that rule one island spanned both cities, held together by signals on El
     Camino at Bellevue and at Bayswater/Primrose, and on Howard at Park Road.
-  - *standard* ("most adults") = LTS 1–2. Crossings are barriers at ≥35 mph or ≥4 lanes; any signal tames one.
+  - *standard* ("experienced riders") = LTS 1–2. Crossings are barriers at ≥35 mph or ≥4 lanes; any signal tames one.
   - Short multi-lane pieces of local streets (<60 m) are turn pockets, counted as 2 lanes.
 - **Traffic volume**: where the survey has a daily count (`adt`), mixed-traffic stress is the higher of the speed/lanes
   rating and the Greater Madison MPO's 2023 volume table (`volume_lts` in `pipeline/islands.py`; one-way streets count
@@ -66,6 +70,13 @@ python3 build_site.py
 - **Connected home**: a low-stress route to a station's platforms no more than 25% longer than the shortest
   route on any rideable street, for homes within a 2-mile ride. Homes are 2020 Census housing units per block,
   placed at the block's internal point and snapped to the nearest low-stress street within 150 m.
+- **Elementary schools**: the California School Directory's open public elementary schools, reached within 40 m
+  of their OpenStreetMap grounds (else 150 m of the directory point). A home or kid counts if a low-stress route
+  reaches any of them no more than 25% longer than the shortest ride to the nearest, within a 2-mile ride. Kids are
+  Census 2020 residents under 18 by block (P1 − P3), snapped like homes. No attendance areas yet.
+- **Labels**: the standards are named for who's riding, never for street types or LTS levels. The standard one was
+  "most adults" until 2026-11; it's "experienced riders" because many adults wouldn't ride LTS 2. Share addresses
+  made before the rename keep their `-most-adults` suffix.
 - **Bridges**: candidates are the high-stress pieces on each unconnected home's route minimizing
   length + 3 × high-stress length; the top 200 per station are each tested alone, and the best 20 kept.
   A street fix is tested as its whole OpenStreetMap way, then trimmed (`pipeline/fixes.py`) to the span the
@@ -84,6 +95,13 @@ python3 build_site.py
   all of them together are tested; the page names the smallest set that gets at least 90% of what all would.
 - **Quiz**: questions 1–3 and the cyclist types from Dill & McNeil, TRR 2587 (2016), with the lead-in shortened
   and numbers as digits; questions 4–7 written for this map and untested.
+
+## Findings (data/schools.csv)
+
+| Kids under 18 → an elementary school | standard | strict |
+|---|---|---|
+| San Mateo (20,676 within 2 miles) | 66% | 42% |
+| Burlingame (6,961) | 62% | 44% |
 
 ## Findings (data/access.csv)
 

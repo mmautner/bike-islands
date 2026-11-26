@@ -133,6 +133,7 @@
   .mapnote { font-size:15px; line-height:1.45; color:var(--ink); margin:10px 0 0; }
   .mapnote .muted { font-size:14px; }
   .heatlegend b { display:inline-block; width:22px; height:6px; background:var(--copper); vertical-align:middle; margin-right:5px; }
+  .legend b.schdot { display:inline-block; width:9px; height:9px; border-radius:50%; background:var(--ink); vertical-align:middle; margin-right:6px; }
   .legend i { display:inline-block; width:22px; height:0; border-top:3px solid; vertical-align:middle; margin-right:6px; }
   footer.bi-foot { font-size:13px; color:var(--grey); margin-top:24px; max-width: 80ch; line-height:1.5; }
   footer.bi-foot a { color:inherit; }
@@ -145,7 +146,7 @@
   <p class="sub" id="subtitle"></p>
   <div class="riders seg" role="group" aria-label="Who's riding?">
     <button data-tier="strict" aria-pressed="true"><strong>Kids and cautious riders</strong><span>Paths and quiet streets only. Never on busy streets, never across El Camino.</span></button>
-    <button data-tier="standard" aria-pressed="false"><strong>Most adults</strong><span>Also painted bike lanes and busier 2-lane streets. Any traffic light makes a crossing OK.</span></button>
+    <button data-tier="standard" aria-pressed="false"><strong>Experienced riders</strong><span>Also painted bike lanes and busier 2-lane streets. Any traffic light makes a crossing OK.</span></button>
     <button class="quizcard" id="openquiz"><strong>Which map fits you? 7 quick questions</strong><span>With photos of local streets. Your answers pick the map.</span></button>
   </div>
   <dialog id="quiz" aria-label="Which rider are you?"><div class="qwrap" id="qbody" tabindex="-1" style="outline:none"></div></dialog>
@@ -174,6 +175,7 @@
         <span id="lg-gap" hidden><i style="border-color:#b4442c"></i>In the way: stressful pieces on the best route</span>
         <span id="lg-join" hidden><i style="border-color:#5f87b5"></i>Islands the fix would join to yours</span>
         <span><i style="border-color:var(--ink); border-top-width:2px"></i>Stressful streets</span>
+        <span><b class="schdot"></b>Public elementary school</span>
         <span>&#9312; Fix that would connect your island (numbered as in the list; click or tap one to find it there)</span>
       </div>
       <div class="legend heatlegend" id="heatlegend" hidden></div>
@@ -187,7 +189,7 @@
 // Google Analytics events, prefixed islands_ to filter them from the blog's events in the shared property.
 // Never sends click coordinates or island ids: only the standard and a rough island size.
 function track(name, params) { if (typeof gtag === "function") gtag("event", "islands_" + name, params || {}); }
-// Only the default standard ships inside the page; "most adults" loads on first use (STD_URL).
+// Only the default standard ships inside the page; "experienced riders" loads on first use (STD_URL).
 const TIERS = ["strict", "standard"];
 const DATA = /*DATA*/;
 const STD_URL = /*STDURL*/;
@@ -288,7 +290,7 @@ function ensureTier(t) {
   return loadingStd;
 }
 function showLoading() {
-  document.getElementById("panel").innerHTML = '<h2>Your island</h2><p class="muted">Loading the map for most adults…</p>';
+  document.getElementById("panel").innerHTML = '<h2>Your island</h2><p class="muted">Loading the map for experienced riders…</p>';
 }
 
 // --- riding times: shortest low-stress route from the clicked spot to every street on the island ---
@@ -509,6 +511,18 @@ function draw() {
     ctx.beginPath(); ctx.arc(x, y, 6, 0, 7); ctx.fill(); ctx.stroke();
   }
   // bridges for the selected island
+  // elementary schools: a dot each, named when they're on the selected island
+  const onSel = new Set(sel && T.islands[sel] ? ((T.islands[sel].sch || {}).on || []) : []);
+  ctx.font = "600 12px 'IBM Plex Sans', sans-serif";
+  for (const [name, [la, lo]] of Object.entries(T.schools || {})) {
+    const [x, y] = px(la, lo), hot = onSel.has(name);
+    ctx.fillStyle = INK; ctx.strokeStyle = PAPER; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(x, y, hot ? 6 : 4.5, 0, 7); ctx.fill(); ctx.stroke();
+    if (hot) {
+      const label = name.replace(/ Elementary$/, "");
+      ctx.lineWidth = 4; ctx.strokeText(label, x + 9, y + 4); ctx.fillStyle = INK; ctx.fillText(label, x + 9, y + 4);
+    }
+  }
   // stations
   ctx.font = "600 13px 'IBM Plex Sans', sans-serif";
   for (const [name, [la, lo]] of Object.entries(T.stations)) {
@@ -557,18 +571,19 @@ const fixWhat = B => {
   return `Make ${B.name}${where} low-stress (${ftmi(Math.max(B.len, 15))})`;
 };
 // What this map's rating would need there, from pipeline/treatments.py: options, then why it's rated stressful now.
-const WHO_KIDS = {strict: "kids", standard: "most adults"};
+// The two standards, named by who's riding
+const WHO = {strict: "kids and cautious riders", standard: "experienced riders"};
 const whyOf = o => (DATA[tier].why || {})[o && o.why];
 const orList = xs => xs.length > 1 ? xs.slice(0, -1).join("; ") + "; or " + xs[xs.length - 1] : xs[0];
-function needText(o, t = tier) {      // "Would count for kids with a protected bike lane; or a 25 mph limit, ..."
+function needText(o, t = tier) {      // "Would count for kids and cautious riders with a protected bike lane; or a 25 mph limit, ..."
   const W = whyOf(o), opts = W && W.need[t];
   if (!W) return "";
-  if (!opts.length) return `Already counts for ${WHO_KIDS[t]}.`;
-  return `Would count for ${WHO_KIDS[t]} with ${orList(opts)}.`;
+  if (!opts.length) return `Already counts for ${WHO[t]}.`;
+  return `Would count for ${WHO[t]} with ${orList(opts)}.`;
 }
 function needShort(o) {               // the first option only, for the marker label and the phone chip
   const W = whyOf(o), opts = W && W.need[tier];
-  return opts && opts.length ? `Would count for ${WHO_KIDS[tier]} with ${opts[0]}${opts.length > 1 ? `, or ${opts.length - 1} other way${opts.length > 2 ? "s" : ""}` : ""}` : "";
+  return opts && opts.length ? `Would count for ${WHO[tier]} with ${opts[0]}${opts.length > 1 ? `, or ${opts.length - 1} other way${opts.length > 2 ? "s" : ""}` : ""}` : "";
 }
 function whyBlock(o) {
   const W = whyOf(o);
@@ -723,30 +738,36 @@ function share(T, st) {
   for (const v of Object.values(T.islands)) { near += (v.near || {})[st] || 0; ok += (v.ok || {})[st] || 0; }
   return [ok, near];
 }
+// Kids within 2 miles of a public elementary school, and those with a low-stress route to one, in a city
+// or in both (export's school_totals).
+function schoolTotals(T, city) {
+  const cs = city ? [T.school_totals[city]] : Object.values(T.school_totals);
+  return {kn: cs.reduce((a, c) => a + c.kn, 0), kok: cs.reduce((a, c) => a + c.kok, 0)};
+}
 function headline() {
-  // fixed headline: the cautious-rider finding, whichever standard is showing
-  const [ok, near] = share(DATA.strict, "San Mateo");
-  const n = Math.round(near / ok);
+  // fixed headline: San Mateo's kids and elementary schools, kids-and-cautious-riders standard, whichever is showing
+  const t = schoolTotals(DATA.strict, "San Mateo"), n = Math.round(10 * (1 - t.kok / t.kn));
   document.getElementById("title").textContent =
-    `Only 1 in ${n} homes within 2 miles of San Mateo's Caltrain station has a bike route there that feels safe for kids and cautious riders`;
+    `${n} in 10 San Mateo kids have no bike route to an elementary school that feels safe for them`;
   document.getElementById("subtitle").textContent =
-    `Quiet streets form islands, cut off from each other by busy streets and crossings. Pick who's riding, then ${COARSE ? "tap" : "click"} near home to see your island and the fixes that would connect it to Caltrain.`;
+    `Quiet streets form islands, cut off from each other by busy streets and crossings. Pick who's riding, then ${COARSE ? "tap" : "click"} near home to see your island: the schools and Caltrain stations it reaches, and the fixes that would connect it.`;
 }
 
 function panel() {
   const T = DATA[tier], el = document.getElementById("panel");
   if (!sel) {
     const act = document.getElementById("actions"); act.hidden = true; act.innerHTML = "";
-    const who = tier === "strict" ? "kids and cautious riders" : "most adults";
-    const rows = Object.keys(T.stations).map(st => {
+    const {kn, kok: ko} = schoolTotals(T);
+    const school = `<div class="stat"><div class="lbl">Elementary school: <strong>${pct(ko, kn)}</strong> of ${fmt(kn)} kids have a low-stress route to one</div><div class="bar"><i style="width:${100 * ko / kn}%"></i></div></div>`;
+    const rows = school + Object.keys(T.stations).map(st => {
       const [o, n] = share(T, st);
       return `<div class="stat"><div class="lbl">${st} Caltrain: <strong>${pct(o, n)}</strong> of ${fmt(n)} homes within 2 miles have a low-stress route</div><div class="bar"><i style="width:${100 * o / n}%"></i></div></div>`;
     }).join("");
-    el.innerHTML = `<h2>Your island</h2><p>Click a street near home. The map lights up every street you can reach from there without riding on, or crossing, a stressful one.</p><p class="muted" style="margin-bottom:4px">For ${who}, across San Mateo and Burlingame:</p>${rows}<p class="muted">The link you share names your island, not the spot you clicked.</p>`;
+    el.innerHTML = `<h2>Your island</h2><p>Click a street near home. The map lights up every street you can reach from there without riding on, or crossing, a stressful one.</p><p class="muted" style="margin-bottom:4px">For ${WHO[tier]}, across San Mateo and Burlingame:</p>${rows}<p class="muted">The link you share names your island, not the spot you clicked.</p>`;
     return;
   }
   const I = T.islands[sel] || {homes: 0, ok: {}, near: {}, bridges: []};
-  let h = `<h2>This island</h2><div><span class="big">${fmt(I.homes)}</span> homes</div>`;
+  let h = `<h2>This island</h2><div><span class="big">${fmt(I.homes)}</span> homes</div>` + schoolBlock(T, I);
   // The answer first: the stations this island reaches get a block each (share, minutes, why not the rest);
   // the ones within 2 miles it doesn't reach share one line; the ones farther away, one muted line.
   const far = [], cut = [], reached = [];
@@ -865,7 +886,6 @@ function actionCards(T, I, list, fixText) {
   if (!spot && top) spot = top.pts[Math.floor(top.pts.length / 2)];
   if (!spot) { const L = T.lines.find(L => L.i === sel); spot = L.pts[Math.floor(L.pts.length / 2)]; }
   const {city, district} = whereIs(spot);
-  const who = tier === "strict" ? "kids and cautious riders" : "most adults";
   // the station the email talks about: the top fix's, else the one most homes here are near
   const st = top ? top.st : Object.keys(T.stations).sort((a, b) => ((I.near || {})[b] || 0) - ((I.near || {})[a] || 0))[0];
   const n = (I.near || {})[st] || 0, o = (I.ok || {})[st] || 0;
@@ -886,8 +906,8 @@ function actionCards(T, I, list, fixText) {
   if (toAddr && CIVIC.email_card) {
     const lines = [`Dear ${salutation},`, "",
       `I used the bike islands map (maxmautner.com/bike-islands) to look at my neighborhood in ${city}.` +
-      (n ? (o ? ` For ${who}, ${fmt(o)} of the ${fmt(n)} homes on this island of quiet streets within 2 miles of ${st} Caltrain have a low-stress bike route there.`
-              : ` For ${who}, none of the ${fmt(n)} homes on this island of quiet streets within 2 miles of ${st} Caltrain has a low-stress bike route there.`) : "")];
+      (n ? (o ? ` For ${WHO[tier]}, ${fmt(o)} of the ${fmt(n)} homes on this island of quiet streets within 2 miles of ${st} Caltrain have a low-stress bike route there.`
+              : ` For ${WHO[tier]}, none of the ${fmt(n)} homes on this island of quiet streets within 2 miles of ${st} Caltrain has a low-stress bike route there.`) : "")];
     if (top) {
       const hu = list[0].per[top.st] || list[0].max;
       lines.push("", `The single fix that would help most here is ${fixText(top)}, which would connect ${fmt(hu)} more homes to ${top.st} Caltrain. ` +
@@ -933,7 +953,6 @@ function askCity(T, I, top) {
   const gap = !B && I.gaps && I.gaps.items[0];
   const o = B || gap;
   if (!o) return {place: "this neighborhood"};
-  const who = tier === "strict" ? "kids and cautious riders" : "most adults on bikes";
   const crossOf = x => `the crossing ${x.includes(" at ") ? "of" : "at"} ${x}`;
   let place, how, homes, st, tail;
   if (B) {
@@ -954,7 +973,7 @@ function askCity(T, I, top) {
   const cap = s => s[0].toUpperCase() + s.slice(1);
   const plain = place.replace(/ & /g, " and ");
   const parts = [`Please look at making ${plain} comfortable to bike ${how}.`,
-    `Rated by Level of Traffic Stress, it's too stressful for ${who}, and ${tail}.`];
+    `Rated by Level of Traffic Stress, it's too stressful for ${WHO[tier]}, and ${tail}.`];
   if (opts.length > 1) parts.push(`Either of these would bring it to a low-stress rating: ${opts.join("; or ")}.`);
   else if (opts.length) parts.push(`${cap(opts[0])} would bring it to a low-stress rating.`);
   parts.push("I'm not suggesting a specific design; the city knows best what fits here.");
@@ -1012,6 +1031,36 @@ function minsTo(T, st) {
   for (const [n, d] of stationNodes(T, sel, st)) if (heat.has(n)) best = Math.min(best, heat.get(n) + d);
   return best < Infinity ? Math.max(1, Math.round(best / M_PER_MIN)) : null;
 }
+// The island's elementary schools with minutes by low-stress streets from the click (null without a click),
+// quickest first. A school's page node numbers are the low-stress street points that reach its grounds.
+function schoolsOn(T, I) {
+  const out = ((I.sch || {}).on || []).filter(s => (T.schools || {})[s]).map(s => {
+    let best = Infinity;
+    if (heat && heatFrom === "where you clicked") for (const n of T.schools[s][2]) if (heat.has(n)) best = Math.min(best, heat.get(n));
+    return {name: s, mins: best < Infinity ? Math.max(1, Math.round(best / M_PER_MIN)) : null};
+  });
+  return out.sort((a, b) => (a.mins ?? 1e9) - (b.mins ?? 1e9) || a.name.localeCompare(b.name));
+}
+const andList = xs => xs.length > 2 ? xs.slice(0, -1).join(", ") + " and " + xs[xs.length - 1] : xs.join(" and ");
+// "To an elementary school": the share of this island's homes with a low-stress route to one, and which.
+function schoolBlock(T, I) {
+  const S = I.sch;
+  if (!S || !S.n) return "";
+  const on = schoolsOn(T, I), kids = S.kn ? ` That's about ${fmt(S.kok)} of its ${fmt(S.kn)} kids.` : "";
+  if (!S.ok) {
+    const how = S.det ? ` ${fmt(S.det)} homes have one only by a long detour.` : "";
+    return `<p class="answer">No low-stress route to an elementary school.${S.near ? ` The nearest is ${S.near}.` : ""}${how}</p>`;
+  }
+  const first = on.find(x => x.mins);
+  const mins = first ? ` <strong>About ${first.mins} min</strong> to ${first.name} from where you clicked.` : "";
+  const names = on.length ? `: ${andList(on.map(x => x.name))}` : "";
+  return `<div class="stat"><div class="sthead"><strong>To an elementary school</strong><span class="stpct">${pct(S.ok, S.n)}</span></div>` +
+    `<div class="bar"><i style="width:${100 * S.ok / S.n}%"></i></div>` +
+    `<div class="lbl"><strong>${fmt(S.ok)}</strong> of the ${fmt(S.n)} homes here have a low-stress route to a public elementary school${names}.${kids}${mins}</div>` +
+    (S.ok < S.n ? `<details class="why"><summary>Why not the rest?</summary>A route counts if it's no more than 25% longer than the direct ride to the nearest school.` +
+      (S.det ? ` ${fmt(S.det)} homes have a low-stress route, but it's too roundabout.` : "") +
+      (S.n - S.ok - S.det > 0 ? ` ${fmt(S.n - S.ok - S.det)} have no low-stress route at all.` : "") + `</details>` : "") + `</div>`;
+}
 // The hint in the map's corner. Once an island is picked on a phone, where the panel sits below the map,
 // it becomes a summary that jumps to the panel; on a wide screen the panel is beside the map, so it hides.
 function hint() {
@@ -1030,6 +1079,9 @@ function hint() {
   }
   const T = DATA[tier], I = T.islands[sel] || {};
   const bits = [`<strong>${fmt(I.homes || 0)} homes</strong>`];
+  const sc = (I.sch || {}).ok ? schoolsOn(T, I).find(x => x.mins) : null;
+  if (sc && sc.mins <= 25) bits.push(`${sc.name} ${sc.mins} min`);
+  else if (I.sch && I.sch.n && !I.sch.ok) bits.push("no low-stress route to a school");
   for (const st of Object.keys(T.stations)) {
     const m = (I.near || {})[st] ? minsTo(T, st) : null;
     if (m && m <= 25) bits.push(`${st} Caltrain ${m} min`);
@@ -1090,12 +1142,16 @@ function mapnote() {
     if (m) parts.push(m > 25 ? `${st} Caltrain only by a long detour (about ${m} min)` : `${st} Caltrain about ${m} min`);
   }
   const reached = Object.keys(T.stations).some(st => (I.near || {})[st] && !cut.includes(st));
-  if (cut.length) parts.push(reached ? `${parts.length ? "no" : "No"} low-stress route to ${cut.join(" or ")} Caltrain` : "No low-stress route to Caltrain");
+  const S = I.sch || {}, sc = S.ok ? schoolsOn(T, I).find(x => x.mins) : null;
+  if (sc) parts.unshift(`${sc.name} about ${sc.mins} min`);
+  else if (S.ok && (S.on || []).length) parts.unshift(S.on.length > 1 ? `Low-stress routes to ${S.on.length} elementary schools` : `Low-stress route to ${S.on[0]}`);
+  else if (S.n && !S.ok) parts.unshift("No low-stress route to an elementary school");
+  if (cut.length) parts.push(reached || parts.length ? `${parts.length ? "no" : "No"} low-stress route to ${cut.join(" or ")} Caltrain` : "No low-stress route to Caltrain");
   let h = `<strong>Colored streets are the ones you can reach from ${heatFrom === "where you clicked" ? "where you clicked" : "this island"}</strong> without riding on, or crossing, a stressful street` +
           ` (${fmt(I.homes || 0)} homes). ` + (parts.length ? parts.join(" · ") + "." : "");
   const o = otherStandardAt();
   if (o && tier === "standard") h += ` <span class="muted">For kids and cautious riders, this spot's island shrinks to ${fmt(o.homes)} homes.</span>`;
-  if (o && tier === "strict" && o.homes > (I.homes || 0)) h += ` <span class="muted">For most adults, it grows to ${fmt(o.homes)} homes.</span>`;
+  if (o && tier === "strict" && o.homes > (I.homes || 0)) h += ` <span class="muted">For experienced riders, it grows to ${fmt(o.homes)} homes.</span>`;
   el.innerHTML = h;
 }
 
@@ -1189,6 +1245,7 @@ function hoverTip(id, x, y) {
     (!n ? "<br>More than a 2-mile ride to Caltrain"
         : o ? `<br>${pct(o, n)} of homes within 2 miles of ${st} Caltrain have a low-stress route there`
         : `<br>No low-stress route to ${st} Caltrain`) +
+    (I.sch && I.sch.n ? (I.sch.ok ? `<br>${pct(I.sch.ok, I.sch.n)} have a low-stress route to an elementary school` : "<br>No low-stress route to an elementary school") : "") +
     `<br><span class="muted">Click to see this island</span>`;
   placeTip(x, y);
 }
@@ -1314,7 +1371,7 @@ document.querySelectorAll(".seg button[data-tier]").forEach(b => b.onclick = asy
     try { await ensureTier(want); }
     catch (err) {
       document.querySelectorAll(".seg button[data-tier]").forEach(x => x.setAttribute("aria-pressed", x.dataset.tier === tier));
-      document.getElementById("panel").innerHTML = '<h2>Your island</h2><p>The map for most adults didn\'t load. Check your connection and try again.</p>';
+      document.getElementById("panel").innerHTML = '<h2>Your island</h2><p>The map for experienced riders didn\'t load. Check your connection and try again.</p>';
       return;
     }
   }
@@ -1370,7 +1427,7 @@ function qrender() {
     if (!quizDone) { quizDone = true; track("quiz_completed", {standard: adult ? "standard" : "strict", cyclist_type: typeName}); }
     const t = adult ? "standard" : "strict";
     let msg = adult
-      ? "<p>Your map: <strong>most adults</strong>. You'd be comfortable on every kind of street and crossing it counts.</p>"
+      ? "<p>Your map: <strong>experienced riders</strong>. You'd be comfortable on every kind of street and crossing it counts.</p>"
       : "<p>Your map: <strong>kids and cautious riders</strong>. The other map counts at least one kind of street or crossing you'd be uncomfortable on.</p>";
     if (ans.a1 >= 3) msg += "<p>Even quiet residential streets feel uncomfortable to you, so the map may still show more routes than you'd use.</p>";
     const type = ans.a2 === 1 ? "strong and fearless" : ans.a3 === 1 ? "enthused and confident" : "interested but concerned";
@@ -1463,7 +1520,7 @@ function chooseStreet(r) {
   const [x, y] = px(r[3][0], r[3][1]);
   const id = pick(x, y, null, 8);
   const tap = COARSE ? "Tap" : "Click";
-  fMsg.textContent = !id ? `${r[0]} is a stressful street for ${tier === "strict" ? "kids and cautious riders" : "most adults"}, so it isn't on any island. ${tap} a quiet street near it to see that island.`
+  fMsg.textContent = !id ? `${r[0]} is a stressful street for ${WHO[tier]}, so it isn't on any island. ${tap} a quiet street near it to see that island.`
     : (e - w) * K + (n - s) > 0.012 ? `Showing the island at the middle of ${r[0]}, ${r[1]}. ${tap} your block if you live elsewhere on it.`
     : `Showing ${r[0]}, ${r[1]}, and its island. ${tap} another street to see its island.`;
   track("street_searched", {standard: tier, on_island: !!id});     // the street itself is never sent

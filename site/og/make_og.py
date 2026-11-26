@@ -102,7 +102,7 @@ def share_image(ent):
     img.paste(mimg, (box[0], box[1]))
     shade = Image.new("RGB", (50, H - 10), BG)
     img.paste(shade, (box[0], 0), Image.linear_gradient("L").rotate(90).resize((50, H - 10)))
-    who = "KIDS AND CAUTIOUS RIDERS" if ent["tier"] == "strict" else "MOST ADULTS"
+    who = "KIDS AND CAUTIOUS RIDERS" if ent["tier"] == "strict" else "EXPERIENCED RIDERS"
     d.text((PAD, PAD - 6), f"BIKE ISLANDS · {who}", font=font("IBMPlexSans.ttf", 20, 600), fill=TEXT3)
     for size in (46, 42, 38, 34, 30):
         f = font("Newsreader.ttf", size, 600)
@@ -176,13 +176,12 @@ def main():
     d.text((PAD, PAD - 6), "SAN MATEO AND BURLINGAME", font=font("IBMPlexSans.ttf", 22, 600), fill=TEXT3)
     f = font("Newsreader.ttf", 44, 600)
     y = 140
-    for line in wrap(d, f"Only 1 in {B.headline_share()} homes near San Mateo's Caltrain station has a bike route there "
-                        "that feels safe for kids and cautious riders", f, 500):
+    for line in wrap(d, B.HEADLINE, f, 500):
         d.text((PAD, y), line, font=f, fill=TEXT, anchor="ls")
         y += 52
     small = font("IBMPlexSans.ttf", 26, 400)
     y += 18
-    for line in wrap(d, "Find your bike island, and the fixes that would connect it to Caltrain.", small, 480):
+    for line in wrap(d, "Find your bike island: the schools and stations it reaches, and the fixes that would connect it.", small, 480):
         d.text((PAD, y), line, font=small, fill=TEXT2, anchor="ls")
         y += 36
     d.text((PAD, H - PAD + 26), f"maxmautner.com{B.BASE.rstrip('/')}", font=font("IBMPlexSans.ttf", 24, 400),

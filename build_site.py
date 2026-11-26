@@ -26,18 +26,18 @@ e = html.escape
 
 
 def headline_share():
-    """Same number the page's title computes: strict standard, San Mateo station, both cities."""
-    ok = near = 0
-    for v in DATA["strict"]["islands"].values():
-        near += (v.get("near") or {}).get("San Mateo", 0)
-        ok += (v.get("ok") or {}).get("San Mateo", 0)
-    return round(near / ok)
+    """Same number the page's title computes: of every 10 San Mateo kids within 2 miles of a public elementary
+    school, how many have no low-stress route to one for kids and cautious riders (the strict standard)."""
+    t = DATA["strict"]["school_totals"]["San Mateo"]
+    return round(10 * (1 - t["kok"] / t["kn"]))
+
+
+HEADLINE = f"{headline_share()} in 10 San Mateo kids have no bike route to an elementary school that feels safe for them"
 
 
 TITLE = "Find your bike island: San Mateo and Burlingame"
-DESCRIPTION = (f"Only 1 in {headline_share()} homes within 2 miles of San Mateo's Caltrain station has a bike route "
-               "there that feels safe for kids and cautious riders. Click near home to see your island and the fixes "
-               "that would connect it.")
+DESCRIPTION = (f"{HEADLINE}. Click near home to see your island, the schools and Caltrain stations it reaches, "
+               "and the fixes that would connect it.")
 
 # the same header as maxmautner.com and the speeds and crashes pages
 HEADER = """<header role="banner">
@@ -105,7 +105,7 @@ def footer():
         {"subject": "Possible error: bike islands map"}, quote_via=urllib.parse.quote)
     updated = datetime.date.fromisoformat(CFG["updated"])
     return f"""<footer class="bi-foot">
-  <p>Streets: OpenStreetMap contributors. Speed limits: City of San Mateo 2026 speed survey, obtained through a public records request. Homes: 2020 Census. <a href="{BASE}methodology/">How this was made</a>.</p>
+  <p>Streets: OpenStreetMap contributors. Speed limits: City of San Mateo 2026 speed survey, obtained through a public records request. Homes and kids: 2020 Census. Schools: California School Directory. <a href="{BASE}methodology/">How this was made</a>.</p>
   <p>Made by <a href="/about/">Max Mautner</a>. <a href="{e(CFG['repo_url'])}">The data and code are public</a>, so anyone can check how each number was reached. <a href="{e(issue)}">Report an error</a>.</p>
   <p>Updated {updated.strftime('%B')} {updated.day}, {updated.year}.</p>
   <p><a href="/tools/">More tools from public data</a></p>
@@ -145,7 +145,8 @@ def civic():
 
 ABBR = {"Avenue": "Ave", "Street": "St", "Drive": "Dr", "Road": "Rd", "Boulevard": "Blvd", "Lane": "Ln",
         "Court": "Ct", "Place": "Pl", "North": "N", "South": "S", "East": "E", "West": "W"}
-WHO = {"strict": "kids and cautious riders", "standard": "most adults"}
+# The two standards, named by who's riding (share addresses made earlier keep their "-most-adults" suffix)
+WHO = {"strict": "kids and cautious riders", "standard": "experienced riders"}
 
 
 def short(name):
@@ -171,7 +172,7 @@ MIN_FIX_HOMES = 100  # smaller fixes stay in the panel but get no share page
 # keeps its address for as long as it exists, and no address is ever given to a different fix or island, so
 # links already shared keep working. New pages are added when built; pages no longer built are listed.
 SHARE_PATHS = os.path.join(HERE, "data", "share_paths.json")
-WHO_SHORT = {"strict": "kids", "standard": "most adults"}
+WHO_SHORT = {"strict": "kids", "standard": "experienced riders"}
 
 
 def load_paths():
@@ -242,6 +243,10 @@ def share_entries():
                         f"of {st} Caltrain {'have' if o_ else 'has'} a low-stress bike route there.")
             else:
                 desc = f"{v['homes']:,} homes share this island of quiet streets, more than a 2-mile ride from Caltrain."
+            S = v.get("sch") or {}
+            if S.get("n"):
+                desc += (f" {round(100 * S['ok'] / S['n'])}% have one to a public elementary school." if S["ok"] else
+                         " None have one to a public elementary school.")
             slug = unique(slugify(" ".join(v["names"])) + suffix, "island", tier, iid)
             path = f"{BASE}island/{slug}/"
             entries.append({"kind": "island", "tier": tier, "slug": slug, "path": path, "title": title, "desc": desc,
@@ -294,7 +299,7 @@ def main():
     if os.path.exists(OUT):
         shutil.rmtree(OUT)
     os.makedirs(os.path.join(OUT, "methodology"))
-    # the default standard is inlined; "most adults" is a separate file the page fetches on first use
+    # the default standard is inlined; "experienced riders" is a separate file the page fetches on first use
     # the page gets the overview (simplified streets, island stats); full detail ships as tiles
     OV = {t: json.load(open(os.path.join(HERE, "data", f"overview_{t}.json"))) for t in ("strict", "standard")}
     std = json.dumps(OV["standard"], separators=(",", ":"))

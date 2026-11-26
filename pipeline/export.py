@@ -3,6 +3,7 @@
   data/map_<tier>.json   streets (polylines with LTS and island id), island stats, bridges
   data/access.csv        homes with a low-stress route, by tier, station, and city
   data/bridges.csv       each tested bridge's gain, by tier and station
+  data/schools.csv       homes and kids with a low-stress route to a public elementary school, by tier and city
 
 Usage: python pipeline/export.py data/raw/osm_corridor_YYYY-MM-DD.json
 """
@@ -19,6 +20,7 @@ from islands import islands as mk_islands, platforms, dist, PLATFORM_REACH_M, ST
 from homes import inside
 from fixes import Network, trim, describe, label as fix_label, where_text, gap_why
 import json as _json
+from schools import access as school_access, ok as school_ok, kid_origins
 
 HERE = os.path.dirname(__file__)
 DATA = os.path.join(HERE, "..", "data")
@@ -203,6 +205,54 @@ def test_combos(isl, iid, byk, tier, coord, low_edges, reaches):
             g.pop("_pc", None)
 
 
+def write_schools(isl, iid, coord, adj_all, low_edges, origins, node_ix, tier, rows):
+    """Each island's "sch": homes (n) and kids under 18 (kn) within 2 miles of a public elementary school, those
+    with a low-stress route to one within the detour limit (ok, kok), homes with one only by a longer detour
+    (det), the schools on the island (on), and for an island that reaches none, the school most of its homes
+    are nearest to (near). Returns the schools for the map, {name: [lat, lon, [page node numbers]]}, and the
+    totals by city, {city: {n, ok, kn, kok}}."""
+    sa = school_access(coord, adj_all, low_edges)
+    kids = kid_origins(low_edges, coord) or {}
+    tot = collections.defaultdict(collections.Counter)
+    nearest = collections.defaultdict(collections.Counter)
+    for wts, n_key, ok_key in ((origins, "n", "ok"), (kids, "kn", "kok")):
+        for (o, city), w in sorted(wts.items(), key=repr):
+            p = sa["per"].get(o)
+            if city not in CITIES or not w or not p:
+                continue
+            S = isl[iid(o)].setdefault("sch", {"n": 0, "ok": 0, "kn": 0, "kok": 0, "det": 0})
+            good = school_ok(p[1], p[2])
+            S[n_key] += w; S[ok_key] += w * good
+            tot[city][n_key] += w; tot[city][ok_key] += w * good
+            if n_key == "n":
+                S["det"] += w * (not good and p[2] < 1e18)
+                nearest[iid(o)][p[0]] += w
+    on = collections.defaultdict(set)
+    for s, ks in sa["on"].items():
+        for k in ks:
+            on[iid(k)].add(s)
+    for i, I in isl.items():
+        S = I.get("sch")
+        if not S:
+            continue
+        if on.get(i):
+            S["on"] = sorted(on[i])
+        if not S["ok"] and nearest[i]:
+            S["near"] = nearest[i].most_common(1)[0][0]
+    for city in CITIES:
+        t = tot[city]
+        rows.append({"tier": tier, "city": city, "homes_within_2mi": t["n"], "homes_low_stress": t["ok"],
+                     "kids_within_2mi": t["kn"], "kids_low_stress": t["kok"],
+                     "share_kids": round(t["kok"] / t["kn"], 3) if t["kn"] else ""})
+        print(f"[{tier}] {city}: elementary school, {t['ok']:,.0f} of {t['n']:,.0f} homes, "
+              f"{t['kok']:,.0f} of {t['kn']:,.0f} kids")
+    out = {}
+    for s, p in sorted(sa["pts"].items()):
+        if inview(p):
+            out[s] = [round(p[0], 5), round(p[1], 5), sorted({node_ix[k] for k in sa["on"].get(s, ()) if k in node_ix})]
+    return out, {c: {k: round(tot[c][k]) for k in ("n", "ok", "kn", "kok")} for c in CITIES}
+
+
 def write_streets(ws):
     """data/streets.json: every named street in the map frame, by city, with its extent, for the
     page's street search. Same-named streets in different cities stay separate.
@@ -241,7 +291,7 @@ def main():
     with Pool(4) as pool:
         res = pool.map(run, [(path, t, s) for t in TIERS for s in STATIONS])
     byk = {(t, s): r for t, s, r in res}
-    acc_rows, br_rows = [], []
+    acc_rows, br_rows, sch_rows = [], [], []
     for tier in TIERS:
         detail = {}
         ws, coord, bn, stations, adj_all, low_edges, high_edges, origins, _, reaches = setup(path, tier, detail)
@@ -414,17 +464,20 @@ def main():
                         med = rr
                         break
                 v["det"][st] = [tot_hu, med]
+        sch, sch_tot = write_schools(isl, iid, coord, adj_all, low_edges, origins, node_ix, tier, sch_rows)
         out = {"tier": tier, "view": VIEW, "lines": lines,
                "islands": {str(k): v for k, v in isl.items() if v["homes"] or v["bridges"]},
                "bridges": brs,
                "why": whys,     # what each fix and gap would need, by standard (pipeline/treatments.py)
                "stations": {s: stations[s] for s in STATIONS},
-               "reach": station_reach(path, stations)}
+               "reach": station_reach(path, stations),
+               "schools": sch,       # {name: [lat, lon, [page node numbers]]}
+               "school_totals": sch_tot}   # {city: {n, ok, kn, kok}}
         json.dump(out, open(os.path.join(DATA, f"map_{tier}.json"), "w"), separators=(",", ":"))
         if tier == "strict":
             write_streets(ws)
         print(tier, len(lines), "lines", len(out["islands"]), "islands with homes")
-    for name, rows in (("access.csv", acc_rows), ("bridges.csv", br_rows)):
+    for name, rows in (("access.csv", acc_rows), ("bridges.csv", br_rows), ("schools.csv", sch_rows)):
         with open(os.path.join(DATA, name), "w", newline="") as fh:
             wr = csv.DictWriter(fh, fieldnames=list(rows[0]))
             wr.writeheader()

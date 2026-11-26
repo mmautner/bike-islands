@@ -19,3 +19,14 @@ curl -s -m 300 -A "charts-research/1.0" -G \
   --data-urlencode "returnGeometry=true" --data-urlencode "f=json" \
   -o data/raw/places_2020.json
 python3 -c "import json;d=json.load(open('data/raw/places_2020.json'));print([f['attributes']['BASENAME'] for f in d['features']])"
+
+# 2020 population and adults (18+) per block, for children per block (P1_001N - P3_001N).
+# Needs a free Census API key in CENSUS_API_KEY (https://api.census.gov/data/key_signup.html).
+if [ -n "$CENSUS_API_KEY" ]; then
+  curl -s -m 300 -A "charts-research/1.0" \
+    "https://api.census.gov/data/2020/dec/pl?get=P1_001N,P3_001N&for=block:*&in=state:06%20county:081%20tract:*&key=$CENSUS_API_KEY" \
+    -o data/raw/pl_blocks_06081_2020.json
+  python3 -c "import json;d=json.load(open('data/raw/pl_blocks_06081_2020.json'));print(len(d)-1,'blocks',sum(int(r[0])-int(r[1]) for r in d[1:]),'under 18')"
+else
+  echo "CENSUS_API_KEY not set: skipping children per block (pipeline/schools.py counts homes only)"
+fi

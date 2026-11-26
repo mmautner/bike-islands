@@ -31,3 +31,13 @@ curl -s -m 300 -A "charts-research/1.0" https://overpass-api.de/api/interpreter 
   relation[\"leisure\"=\"golf_course\"]($BBOX);
 );
 out body geom;" -o data/raw/osm_golf_$DATE.json
+
+# School grounds (pipeline/schools.py reaches a school at its grounds edge)
+curl -s -m 300 -A "charts-research/1.0" https://overpass-api.de/api/interpreter --data-urlencode "data=[out:json][timeout:120];
+(
+  nwr[\"amenity\"=\"school\"]($BBOX);
+);
+out body geom;" -o data/raw/osm_schools_$DATE.json
+
+# California Department of Education public school directory (open public elementary schools)
+curl -s -m 300 -L -A "charts-research/1.0" "https://www.cde.ca.gov/SchoolDirectory/report?rid=dl1&tp=txt" -o data/raw/cde_pubschls.txt
