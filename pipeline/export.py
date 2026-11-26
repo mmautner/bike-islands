@@ -15,7 +15,7 @@ import sys
 from multiprocessing import Pool
 
 from connectivity import bridges, setup, base, CITIES, STATIONS
-from islands import islands as mk_islands
+from islands import islands as mk_islands, platforms, PLATFORM_REACH_M, STATION_RADIUS_M
 from homes import inside
 import json as _json
 
@@ -44,6 +44,14 @@ def enc(pts):
 def inview(c):
     # generous margin so a tall or wide map box still fills with streets past the frame
     return VIEW[0] - 0.03 <= c[0] <= VIEW[2] + 0.03 and VIEW[1] - 0.02 <= c[1] <= VIEW[3] + 0.02
+
+
+def station_reach(path, stations):
+    """What the page needs to find where an island reaches a station, by the same test as
+    islands.station_test: each station's platform edges, and the distances that count."""
+    pf = platforms(path, stations)
+    return {"platform_m": PLATFORM_REACH_M, "station_m": STATION_RADIUS_M,
+            "platforms": {s: [[round(x, 6) for x in (*a, *b)] for a, b in pf.get(s, [])] for s in STATIONS}}
 
 
 def write_streets(ws):
@@ -88,16 +96,39 @@ def main():
     for tier in TIERS:
         ws, coord, bn, stations, adj_all, low_edges, high_edges, origins, _, reaches = setup(path, tier)
         f, key = mk_islands(ws, bn)
-        # stable island ids: smallest raw OSM node id in the island
-        rep = {}
+        # stable island ids: smallest raw OSM node id in the island. A barrier node has a copy on each
+        # side, so two islands can share that smallest id; then the one with the most homes keeps it
+        # (share links stay put) and the others take their smallest node that isn't a barrier copy,
+        # which belongs to one island only.
+        # An island made only of barrier copies (a short piece between two busy crossings) has no node of its
+        # own; it takes minus its first segment (way id * 10,000 + index), as every segment is in one island.
+        rep, own, seg = {}, {}, {}
         for w, r, _, low in ws:
             if not low:
                 continue
             ns = w["nodes"]
             for i in range(len(ns) - 1):
+                sr = f(key(ns[i], w["id"], i, "out"))
+                seg[sr] = min(seg.get(sr, 1 << 62), w["id"] * 10_000 + i)
                 for k in (key(ns[i], w["id"], i, "out"), key(ns[i + 1], w["id"], i + 1, "in")):
                     root = f(k)
                     rep[root] = min(rep.get(root, 1 << 62), base(k))
+                    if not isinstance(k, tuple):
+                        own[root] = min(own.get(root, 1 << 62), k)
+        root_homes = collections.Counter()
+        for (o, city), hu in origins.items():
+            root_homes[f(o)] += hu
+        by_id = collections.defaultdict(list)
+        for root, r in rep.items():
+            by_id[r].append(root)
+        for r, roots in by_id.items():
+            if len(roots) > 1:
+                roots.sort(key=lambda x: (-root_homes[x], -(x in own), own.get(x, 1 << 62)))
+                for x in roots[1:]:
+                    rep[x] = own[x] if x in own else -seg[x]
+        clash = len(rep) - len(set(rep.values()))
+        if clash:
+            print(f"[{tier}] warning: {clash} islands still share an id (no node of their own)")
         iid = lambda k: rep[f(k)]
 
         lines = []
@@ -145,6 +176,7 @@ def main():
                 isl[iid(o)]["homes"] += hu
         # name each island after its 2 longest named streets (residential and up), for share pages
         name_len = collections.defaultdict(collections.Counter)
+        seg_len = collections.defaultdict(collections.Counter)
         for w, r, kind, low in ws:
             nm = w["tags"].get("name")
             if not low or not nm or w["tags"].get("highway") in ("footway", "path", "cycleway", "service", "pedestrian"):
@@ -152,8 +184,16 @@ def main():
             g = w["geometry"]
             ln = sum(math.hypot((b["lat"] - a["lat"]) * 111320, (b["lon"] - a["lon"]) * 88000) for a, b in zip(g, g[1:]))
             name_len[iid(key(w["nodes"][0], w["id"], 0, "out"))][nm] += ln
+            # also credit each segment to its own island: a street that starts across a busy crossing belongs
+            # to the island on the other side at its first node, and an island can be left with no name
+            ns = w["nodes"]
+            for i, (pa, pb) in enumerate(zip(g, g[1:])):
+                seg_len[iid(key(ns[i], w["id"], i, "out"))][nm] += math.hypot((pb["lat"] - pa["lat"]) * 111320, (pb["lon"] - pa["lon"]) * 88000)
         for i, cnt in name_len.items():
             if i in isl or True:
+                isl[i]["names"] = [n for n, _ in cnt.most_common(2)]
+        for i, cnt in seg_len.items():      # only where the first-node rule left an island nameless (names stay put)
+            if not isl[i].get("names"):
                 isl[i]["names"] = [n for n, _ in cnt.most_common(2)]
         brs = []
         for st in STATIONS:
@@ -187,7 +227,9 @@ def main():
                 if rank < 8:
                     bid = len(brs)
                     brs.append({"st": st, "id": f'{b["kind"]}{b["id"]}', "len": b.get("len", 0), "name": b["name"], "label": b["label"], "kind": b["kind"],
-                                "gain": b["gain"], "p": enc(b["geom"])})
+                                "gain": b["gain"], "p": enc(b["geom"]),
+                                # the islands this fix would join into one (the page lights them up)
+                                "joins": sorted({iid(k) for k in b["touch"]})})
                     per = collections.Counter()
                     for (o, city) in b["gained"]:
                         per[iid(o)] += near[(o, city)]
@@ -208,7 +250,8 @@ def main():
         out = {"tier": tier, "view": VIEW, "lines": lines,
                "islands": {str(k): v for k, v in isl.items() if v["homes"] or v["bridges"]},
                "bridges": brs,
-               "stations": {s: stations[s] for s in STATIONS}}
+               "stations": {s: stations[s] for s in STATIONS},
+               "reach": station_reach(path, stations)}
         json.dump(out, open(os.path.join(DATA, f"map_{tier}.json"), "w"), separators=(",", ":"))
         if tier == "strict":
             write_streets(ws)

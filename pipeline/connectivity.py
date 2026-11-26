@@ -139,6 +139,7 @@ def bridges(path, st, tier="standard", n_test=40):
                 names_at[n].add(w["tags"]["name"])
                 (busy_at if r > (2 if tier == "standard" else 1) else quiet_at)[n].add(w["tags"]["name"])
     copies = collections.defaultdict(set)
+    low_keys = {k for a, b, _, _ in low_edges for k in (a, b)}   # every point of the low-stress network
     for a, b, _, _ in low_edges:
         for x in (a, b):
             if isinstance(x, tuple):
@@ -203,6 +204,9 @@ def bridges(path, st, tier="standard", n_test=40):
             for n in ns:
                 for c in copies.get(n, ()):
                     extra.append((n, c, 0))
+            # the low-stress points the fixed street would touch: barrier copies at its nodes, and its nodes
+            # that quiet streets already meet; their islands are the ones this fix joins
+            touch = [c for n in ns for c in copies.get(n, ())] + [n for n in ns if n in low_keys]
             t = wmap[x]["tags"]
             g = wmap[x]["geometry"]
             L = seglen = sum(dist((p["lat"], p["lon"]), (q["lat"], q["lon"])) for p, q in zip(g, g[1:]))
@@ -212,6 +216,7 @@ def bridges(path, st, tier="standard", n_test=40):
         else:
             cs = list(copies.get(x, ()))
             extra = [(x, c, 0) for c in cs]
+            touch = cs
             label = "crossing: " + " & ".join(sorted(names_at[x])) + f" (node {x})"
             geom = [coord[x]]
             # name a crossing by the busy street being crossed, then up to 2 side streets
@@ -223,7 +228,8 @@ def bridges(path, st, tier="standard", n_test=40):
             adj2[b].append((a, L))
         ok, _ = score(adj2, near, direct, srcs_low)
         results.append({"gain": ok - ok0, "label": label, "kind": kind, "id": x, "name": name,
-                        "geom": geom, "gained": score.okset - ok0set, "len": round(seglen) if kind == "w" else 0})
+                        "geom": geom, "gained": score.okset - ok0set, "len": round(seglen) if kind == "w" else 0,
+                        "touch": touch})
     results.sort(key=lambda r: -r["gain"])
     tn = sum(near.values())
     if __name__ == "__main__":

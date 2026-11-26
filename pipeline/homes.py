@@ -39,7 +39,9 @@ def snap(blks, low_nodes, coord_of):
     Returns {key: [(housing_units, city), ...]} and the units that found no street."""
     cell = 0.002
     grid = collections.defaultdict(list)
-    for k in low_nodes:
+    # In a fixed order: a busy crossing's node has a copy on each side at the same spot, so a home can be
+    # equally near two islands; the first copy wins, which must not depend on Python's set order.
+    for k in sorted(low_nodes, key=repr):
         la, lo = coord_of(k)
         grid[(int(la / cell), int(lo / cell))].append((la, lo, k))
     snapped = collections.defaultdict(list)
