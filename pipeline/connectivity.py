@@ -132,10 +132,12 @@ def bridges(path, st, tier="standard", n_test=40):
     f, key = mk_islands(ws, bn)
     wmap = {w["id"]: w for w, _, _, _ in ws}
     names_at = collections.defaultdict(set)
-    for w, _, _, _ in ws:
+    busy_at, quiet_at = collections.defaultdict(set), collections.defaultdict(set)  # stressful vs low-stress streets at a node
+    for w, r, _, _ in ws:
         for n in w["nodes"]:
             if w["tags"].get("name"):
                 names_at[n].add(w["tags"]["name"])
+                (busy_at if r > (2 if tier == "standard" else 1) else quiet_at)[n].add(w["tags"]["name"])
     copies = collections.defaultdict(set)
     for a, b, _, _ in low_edges:
         for x in (a, b):
@@ -203,7 +205,7 @@ def bridges(path, st, tier="standard", n_test=40):
                     extra.append((n, c, 0))
             t = wmap[x]["tags"]
             g = wmap[x]["geometry"]
-            L = sum(dist((p["lat"], p["lon"]), (q["lat"], q["lon"])) for p, q in zip(g, g[1:]))
+            L = seglen = sum(dist((p["lat"], p["lon"]), (q["lat"], q["lon"])) for p, q in zip(g, g[1:]))
             label = f'{t.get("name", "(unnamed)")}: {L:.0f} m segment ({mph(t, t["highway"])} mph {"posted" if "maxspeed" in t else "assumed"}, {lanes(t, t["highway"])} lanes)'
             geom = [(p["lat"], p["lon"]) for p in g]
             name = t.get("name", "(unnamed)")
@@ -212,14 +214,16 @@ def bridges(path, st, tier="standard", n_test=40):
             extra = [(x, c, 0) for c in cs]
             label = "crossing: " + " & ".join(sorted(names_at[x])) + f" (node {x})"
             geom = [coord[x]]
-            name = " & ".join(sorted(names_at[x]))
+            # name a crossing by the busy street being crossed, then up to 2 side streets
+            busy, quiet = sorted(busy_at[x]), sorted(quiet_at[x] - busy_at[x])
+            name = (" & ".join(busy) + " at " + " & ".join(quiet[:2])) if busy and quiet else " & ".join(sorted(names_at[x])[:3])
         adj2 = collections.defaultdict(list, {k: list(v) for k, v in adj_low.items()})
         for a, b, L in extra:
             adj2[a].append((b, L))
             adj2[b].append((a, L))
         ok, _ = score(adj2, near, direct, srcs_low)
         results.append({"gain": ok - ok0, "label": label, "kind": kind, "id": x, "name": name,
-                        "geom": geom, "gained": score.okset - ok0set})
+                        "geom": geom, "gained": score.okset - ok0set, "len": round(seglen) if kind == "w" else 0})
     results.sort(key=lambda r: -r["gain"])
     tn = sum(near.values())
     if __name__ == "__main__":

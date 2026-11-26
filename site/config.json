@@ -22,5 +22,6 @@
       "service_request": "https://www.burlingame.org/259/Create-a-Service-Request",
       "_checked": "2026-11-25, burlingame.org/169/City-Council lists council@burlingame.org"
     }
-  }
+  },
+  "council_email_card": false
 }

@@ -7,6 +7,7 @@
 Usage: python pipeline/export.py data/raw/osm_corridor_YYYY-MM-DD.json
 """
 import collections
+import math
 import csv
 import json
 import os
@@ -134,6 +135,18 @@ def main():
         for (o, city), hu in origins.items():
             if city in CITIES:
                 isl[iid(o)]["homes"] += hu
+        # name each island after its 2 longest named streets (residential and up), for share pages
+        name_len = collections.defaultdict(collections.Counter)
+        for w, r, kind, low in ws:
+            nm = w["tags"].get("name")
+            if not low or not nm or w["tags"].get("highway") in ("footway", "path", "cycleway", "service", "pedestrian"):
+                continue
+            g = w["geometry"]
+            ln = sum(math.hypot((b["lat"] - a["lat"]) * 111320, (b["lon"] - a["lon"]) * 88000) for a, b in zip(g, g[1:]))
+            name_len[iid(key(w["nodes"][0], w["id"], 0, "out"))][nm] += ln
+        for i, cnt in name_len.items():
+            if i in isl or True:
+                isl[i]["names"] = [n for n, _ in cnt.most_common(2)]
         brs = []
         for st in STATIONS:
             r = byk[(tier, st)]
@@ -165,7 +178,7 @@ def main():
                                 "osm_id": b["id"], "label": b["label"]})
                 if rank < 8:
                     bid = len(brs)
-                    brs.append({"st": st, "id": f'{b["kind"]}{b["id"]}', "name": b["name"], "label": b["label"], "kind": b["kind"],
+                    brs.append({"st": st, "id": f'{b["kind"]}{b["id"]}', "len": b.get("len", 0), "name": b["name"], "label": b["label"], "kind": b["kind"],
                                 "gain": b["gain"], "p": enc(b["geom"])})
                     per = collections.Counter()
                     for (o, city) in b["gained"]:

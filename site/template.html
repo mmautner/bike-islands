@@ -73,6 +73,8 @@
   #locate { font:inherit; font-size:14px; padding:8px 12px; border:1px solid var(--ink); background:transparent; color:var(--ink); cursor:pointer; }
   #findmsg { font-size:13px; }
   .act { margin-top: 22px; }
+  ol.br li.focus { background: var(--card); margin-left: -6px; padding: 4px 6px; border-radius: 8px; }
+  a.sharefix { font-size: 13px; color: var(--copper); margin-left: 4px; }
   .act h2 { margin-bottom: 10px; }
   .act-item { background: var(--card); border-radius: 14px; padding: 14px 16px; margin: 0 0 12px; }
   .act-item h3 { font-size: 16px; font-weight: 600; color: var(--ink); margin: 0 0 4px; font-family: var(--font-sans); }
@@ -138,7 +140,14 @@ const TIERS = ["strict", "standard"];
 const DATA = /*DATA*/;
 const STD_URL = /*STDURL*/;
 const STREETS = /*STREETS*/;
-const CIVIC = /*CIVIC*/;       // city and council-district outlines, council contacts, city links   // [name, city, [s, w, n, e]] for every named street in the frame
+const CIVIC = /*CIVIC*/;
+const SHARE = /*SHARE*/;       // share-page paths for islands and fixes, per standard
+const ftmi = m => { const ft = m * 3.28084; return ft < 1000 ? `${(Math.round(ft / 50) * 50).toLocaleString("en-US")} ft` : `${(m / 1609.34).toFixed(1)} mi`; };
+const shareURL = () => {
+  const p = sel && SHARE.islands[tier][String(sel)];
+  return p ? location.origin + p : location.href;
+};
+let focusFix = null;   // a fix id from a share link, marked on the map       // city and council-district outlines, council contacts, city links   // [name, city, [s, w, n, e]] for every named street in the frame
 const FETCHED = /*FETCHED*/;
 let COPPER, INK, LOWC, FAINT, PAPER;
 function palette() {
@@ -358,8 +367,9 @@ function draw() {
       const B = T.bridges[e.bid];
       if (B.pts.length > 1) stroke(B.pts, INK, 3 * z);
       const m = B.pts[Math.floor(B.pts.length / 2)], [x, y] = px(m[0], m[1]);
-      ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.fillStyle = PAPER;
-      ctx.beginPath(); ctx.arc(x, y, 10, 0, 7); ctx.fill(); ctx.stroke();
+      const hot = B.id === focusFix;
+      ctx.strokeStyle = hot ? COPPER : INK; ctx.lineWidth = hot ? 3 : 2; ctx.fillStyle = PAPER;
+      ctx.beginPath(); ctx.arc(x, y, hot ? 13 : 10, 0, 7); ctx.fill(); ctx.stroke();
       ctx.fillStyle = INK; ctx.font = "600 12px 'IBM Plex Sans', sans-serif"; ctx.textAlign = "center";
       ctx.fillText(String(k + 1), x, y + 4); ctx.textAlign = "start";
     });
@@ -431,15 +441,17 @@ function panel() {
     h += `<div class="stat">${mins}<div class="lbl">To ${st} Caltrain: <strong>${fmt(o)} of ${fmt(n)}</strong> homes (${pct(o, n)}) have a low-stress route no more than 25% longer than the direct ride.${more}</div><div class="bar"><i style="width:${100 * o / n}%"></i></div></div>`;
   }
   const list = topBridges(T, sel);
-  const fixText = B => B.kind === "x" ? `a safe crossing at ${B.name}` : `making ${B.name} low-stress (${B.label.split(": ")[1].replace(/ segment.*$/, "")})`;
+  const fixText = B => B.kind === "x" ? `a safe crossing ${B.name.includes(" at ") ? "of" : "at"} ${B.name}` : `making ${ftmi(B.len)} of ${B.name} low-stress`;
   if (list.length) {
     h += `<h2 style="margin-top:16px">Fixes that would help</h2><ol class="br">`;
     for (const e of list) {
       const B = T.bridges[e.bid];
       const sts = Object.entries(e.per).sort((a, b) => b[1] - a[1]);
       const gains = sts.map(([st, hu], k) => k === 0 ? `${fmt(hu)} more homes here to ${st} Caltrain` : `${fmt(hu)} to ${st} Caltrain`).join(" and ");
-      const what = B.kind === "x" ? `Make the crossing at ${B.name} safe` : `Make ${B.name} low-stress (${B.label.split(": ")[1].replace(/ segment.*$/, "")})`;
-      h += `<li>${what}: connects ${gains}</li>`;
+      const what = B.kind === "x" ? `Make the crossing ${B.name.includes(" at ") ? "of" : "at"} ${B.name} safe` : `Make ${ftmi(B.len)} of ${B.name} low-stress`;
+      const sp = SHARE.fixes[tier][B.id];
+      h += `<li${B.id === focusFix ? ' class="focus"' : ""}>${what}: connects ${gains}` +
+           (sp ? ` <a class="sharefix" href="${sp}" data-share="${sp}">Share</a>` : "") + `</li>`;
     }
     h += `</ol>`;
   } else {
@@ -449,9 +461,14 @@ function panel() {
   h += actionCards(T, I, list, fixText);
   el.innerHTML = h;
   document.getElementById("share").onclick = () => {
-    navigator.clipboard.writeText(location.href).then(() => document.getElementById("copied").textContent = "Copied");
+    navigator.clipboard.writeText(shareURL()).then(() => document.getElementById("copied").textContent = "Copied");
     track("share_copied", {standard: tier});
   };
+  el.querySelectorAll("a.sharefix").forEach(a => a.addEventListener("click", ev => {
+    ev.preventDefault();
+    navigator.clipboard.writeText(location.origin + a.dataset.share).then(() => { a.textContent = "Link copied"; });
+    track("fix_share_copied", {standard: tier});
+  }));
   el.querySelectorAll("[data-act]").forEach(a => a.addEventListener("click", () => track(a.dataset.act, {standard: tier, city: a.dataset.city || ""})));
 }
 
@@ -480,7 +497,7 @@ function actionCards(T, I, list, fixText) {
   // the station the email talks about: the top fix's, else the one most homes here are near
   const st = top ? top.st : Object.keys(T.stations).sort((a, b) => ((I.near || {})[b] || 0) - ((I.near || {})[a] || 0))[0];
   const n = (I.near || {})[st] || 0, o = (I.ok || {})[st] || 0;
-  const link = location.href;
+  const link = shareURL();
   const cityCfg = (CIVIC.links || {})[city] || {};
   let h = `<section class="act"><h2>What you can do</h2>`;
   h += `<div class="act-item"><h3>Tell a neighbor</h3><p>The link opens the map on this island, with its numbers, in a text or group chat.</p>` +
@@ -494,7 +511,7 @@ function actionCards(T, I, list, fixText) {
     salutation = "Burlingame City Council"; toAddr = cityCfg.council_email;
     intro = `Burlingame's council is elected citywide, so the email goes to the whole council.`;
   }
-  if (toAddr) {
+  if (toAddr && CIVIC.email_card) {
     const lines = [`Dear ${salutation},`, "",
       `I used the bike islands map (maxmautner.com/bike-islands) to look at my neighborhood in ${city}.` +
       (n ? (o ? ` For ${who}, ${fmt(o)} of the ${fmt(n)} homes on this island of quiet streets within 2 miles of ${st} Caltrain have a low-stress bike route there.`
@@ -513,7 +530,7 @@ function actionCards(T, I, list, fixText) {
          `<p>${intro} The email starts with this island's numbers${top ? " and its top fix" : ""}; add a sentence of your own.</p>` +
          `<a class="btn btn-primary" href="${href}" data-act="email_clicked" data-city="${city}">Email ${salutation}</a></div>`;
   }
-  const askWhat = top ? (top.kind === "x" ? `the crossing at ${top.name}` : top.name) : "this neighborhood";
+  const askWhat = top ? (top.kind === "x" ? `the crossing ${top.name.includes(" at ") ? "of" : "at"} ${top.name}` : top.name) : "this neighborhood";
   if (city === "San Mateo" && cityCfg.service_request) {
     h += `<div class="act-item"><h3>Ask the city to look at ${askWhat}</h3><p><a href="${cityCfg.service_request}" data-act="city_concern_clicked" data-city="${city}">Report a concern</a> to the city, or <a href="${cityCfg.traffic_calming}" data-act="calming_request_clicked" data-city="${city}">request a traffic calming study</a> for your street.</p></div>`;
   } else if (city === "Burlingame" && cityCfg.service_request) {
@@ -530,6 +547,8 @@ async function applyHash() {
   tier = TIERS.includes(q.get("t")) ? q.get("t") : "strict";
   sel = q.get("i") ? Number(q.get("i")) : null;
   clickPt = null;
+  focusFix = q.get("f") || null;
+  const zoomIn = q.get("z") === "1";
   document.querySelectorAll(".seg button[data-tier]").forEach(b => b.setAttribute("aria-pressed", b.dataset.tier === tier));
   if (!DATA[tier]) {
     showLoading();
@@ -537,6 +556,15 @@ async function applyHash() {
     catch (err) { tier = "strict"; sel = null; document.querySelectorAll(".seg button[data-tier]").forEach(b => b.setAttribute("aria-pressed", b.dataset.tier === tier)); }
   }
   if (sel && !DATA[tier].lines.some(L => L.i === sel)) sel = null;
+  if (sel && zoomIn) {
+    // a share link: frame the island (and the fix, if any)
+    let b = [90, 180, -90, -180];
+    const grow = p => { b = [Math.min(b[0], p[0]), Math.min(b[1], p[1]), Math.max(b[2], p[0]), Math.max(b[3], p[1])]; };
+    for (const L of DATA[tier].lines) if (L.i === sel) L.pts.forEach(grow);
+    const F = focusFix && DATA[tier].bridges.find(B => B.id === focusFix);
+    if (F) F.pts.forEach(grow);
+    zoomTo(b[0], b[1], b[2], b[3], 6);
+  }
   render();
 }
 function render() {

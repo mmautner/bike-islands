@@ -48,6 +48,81 @@ def decode(p):
     return out
 
 
+def share_image(ent):
+    """Preview for one share page: its island lit up, cropped to fit (with the fix circled), beside its headline."""
+    T = B.DATA[ent["tier"]]
+    img = Image.new("RGB", (W, H), BG)
+    d = ImageDraw.Draw(img)
+    d.rectangle([0, H - 10, W, H], fill=ACCENT)
+    lines = [(L.get("i"), decode(L["p"])) for L in T["lines"]]
+    pts = [p for i, ps in lines if i == ent["island"] for p in ps]
+    fix = None
+    if ent["kind"] == "fix":
+        fix = next((decode(b["p"]) for b in T["bridges"] if b["id"] == ent["fix"]), None)
+        if fix:
+            pts += fix
+        if ent.get("st") in T["stations"]:
+            pts.append(tuple(T["stations"][ent["st"]]))  # keep the headline's station in frame
+    s_, w_, n_, e_ = min(p[0] for p in pts), min(p[1] for p in pts), max(p[0] for p in pts), max(p[1] for p in pts)
+    pad_la, pad_lo = max(0.003, (n_ - s_) * 0.12), max(0.004, (e_ - w_) * 0.12)
+    s_, n_, w_, e_ = s_ - pad_la, n_ + pad_la, w_ - pad_lo, e_ + pad_lo
+    box = (600, 0, W, H - 10)
+    mw, mh = box[2] - box[0], box[3] - box[1]
+    k = 0.79
+    z = min(mw / ((e_ - w_) * k), mh / (n_ - s_))
+    ox, oy = (mw - (e_ - w_) * k * z) / 2, (mh - (n_ - s_) * z) / 2
+    P = lambda la, lo: (ox + (lo - w_) * k * z, oy + (n_ - la) * z)
+    mimg = Image.new("RGB", (mw, mh), BG)
+    md = ImageDraw.Draw(mimg)
+    near = lambda ps: any(s_ - 0.01 < a < n_ + 0.01 and w_ - 0.01 < b < e_ + 0.01 for a, b in ps)
+    for i, ps in lines:
+        if i is not None and i != ent["island"] and len(ps) > 1 and near(ps):
+            md.line([P(*q) for q in ps], fill=LOW, width=2)
+    for i, ps in lines:
+        if i is None and len(ps) > 1 and near(ps):
+            md.line([P(*q) for q in ps], fill=HIGH, width=2)
+    for i, ps in lines:
+        if i == ent["island"] and len(ps) > 1:
+            md.line([P(*q) for q in ps], fill=ACCENT, width=4, joint="curve")
+    if fix:
+        if len(fix) > 1:
+            md.line([P(*q) for q in fix], fill=TEXT, width=6)
+        cx, cy = P(*fix[len(fix) // 2])
+        md.ellipse([cx - 18, cy - 18, cx + 18, cy + 18], outline=TEXT, width=5)
+    lab = font("IBMPlexSans.ttf", 20, 600)
+    for name, (la, lo) in T["stations"].items():
+        if s_ < la < n_ and w_ < lo < e_:
+            x, y = P(la, lo)
+            md.rectangle([x - 8, y - 8, x + 8, y + 8], fill=TEXT)
+            md.rectangle([x - 4, y - 4, x + 4, y + 4], fill=BG)
+            text = f"{name} Caltrain"
+            tw = md.textlength(text, font=lab)
+            tx = x + 14 if x + 14 + tw < mw - 10 else x - 14 - tw   # flip left near the right edge
+            md.text((tx, y + 7), text, font=lab, fill=TEXT, anchor="ls", stroke_width=4, stroke_fill=BG)
+    img.paste(mimg, (box[0], box[1]))
+    shade = Image.new("RGB", (50, H - 10), BG)
+    img.paste(shade, (box[0], 0), Image.linear_gradient("L").rotate(90).resize((50, H - 10)))
+    who = "KIDS AND CAUTIOUS RIDERS" if ent["tier"] == "strict" else "MOST ADULTS"
+    d.text((PAD, PAD - 6), f"BIKE ISLANDS · {who}", font=font("IBMPlexSans.ttf", 20, 600), fill=TEXT3)
+    for size in (46, 42, 38, 34, 30):
+        f = font("Newsreader.ttf", size, 600)
+        tl = wrap(d, ent["title"], f, 480)
+        if len(tl) <= 6:
+            break
+    y = 130
+    for line in tl:
+        d.text((PAD, y), line, font=f, fill=TEXT, anchor="ls"); y += int(size * 1.18)
+    small = font("IBMPlexSans.ttf", 22, 400)
+    y += 14
+    sub = ent["desc"] if ent["kind"] == "island" else "See the bike islands it would join."
+    for line in wrap(d, sub, small, 470)[:4]:
+        d.text((PAD, y), line, font=small, fill=TEXT2, anchor="ls"); y += 31
+    d.text((PAD, H - PAD + 26), f"maxmautner.com{B.BASE.rstrip('/')}", font=font("IBMPlexSans.ttf", 22, 400), fill=TEXT3, anchor="ls")
+    out = OUT / ent["kind"]
+    out.mkdir(parents=True, exist_ok=True)
+    img.quantize(colors=64, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).save(out / f"{ent['slug']}.png", optimize=True)
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     img = Image.new("RGB", (W, H), BG)
@@ -114,6 +189,12 @@ def main():
            fill=TEXT3, anchor="ls")
     img.quantize(colors=64, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).save(OUT / "index.png", optimize=True)
     print(f"wrote {OUT / 'index.png'}", file=sys.stderr)
+    import json
+    from concurrent.futures import ProcessPoolExecutor
+    entries = json.load(open(Path(B.HERE) / "dist" / "share_entries.json"))
+    with ProcessPoolExecutor() as ex:
+        list(ex.map(share_image, entries, chunksize=4))
+    print(f"wrote {len(entries)} share previews", file=sys.stderr)
 
 
 if __name__ == "__main__":

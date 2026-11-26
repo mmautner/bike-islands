@@ -68,9 +68,10 @@ def analytics():
   </script>"""
 
 
-def head(title, description, path):
+def head(title, description, path, image="og/index.png", noindex=False):
     page_url = f"{CFG['site_url']}{path}"
-    img = f"{CFG['site_url']}{BASE}og/index.png"
+    img = f"{CFG['site_url']}{BASE}{image}"
+    robots = '\n  <meta name="robots" content="noindex">' if noindex else ""
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -89,7 +90,7 @@ def head(title, description, path):
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="{e(description)}">
-  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:card" content="summary_large_image">{robots}
   {analytics()}
   <link rel="icon" href="/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -135,8 +136,103 @@ def civic():
     else:
         print("warning: council.json not found; the council email card will be hidden")
     out["council"] = council
+    out["email_card"] = bool(CFG.get("council_email_card", False))  # off for now; set true to bring the email card back
     out["links"] = {c: {k: v for k, v in d.items() if not k.startswith("_")} for c, d in CFG.get("cities", {}).items()}
     return out
+
+
+ABBR = {"Avenue": "Ave", "Street": "St", "Drive": "Dr", "Road": "Rd", "Boulevard": "Blvd", "Lane": "Ln",
+        "Court": "Ct", "Place": "Pl", "North": "N", "South": "S", "East": "E", "West": "W"}
+WHO = {"strict": "kids and cautious riders", "standard": "most adults"}
+
+
+def short(name):
+    return " ".join(ABBR.get(t, t) for t in name.split())
+
+
+def slugify(text):
+    import re
+    return re.sub(r"[^a-z0-9]+", "-", short(text).lower()).strip("-")
+
+
+def feet_or_miles(m):
+    ft = m * 3.28084
+    return f"{round(ft / 50) * 50:,} ft" if ft < 1000 else f"{m / 1609.34:.1f} mi"
+
+
+MIN_FIX_HOMES = 100  # smaller fixes stay in the panel but get no share page
+
+
+def share_entries():
+    """Pages worth sharing: every island with 150+ homes, and every fix in the export, per standard.
+    Returns the entries and the manifest the map page uses to find each view's share link."""
+    entries, used = [], set()
+    manifest = {"islands": {"strict": {}, "standard": {}}, "fixes": {"strict": {}, "standard": {}}}
+
+    def unique(slug):
+        base, k = slug, 2
+        while slug in used:
+            slug = f"{base}-{k}"
+            k += 1
+        used.add(slug)
+        return slug
+
+    for tier in ("strict", "standard"):
+        T = DATA[tier]
+        suffix = "" if tier == "strict" else "-most-adults"
+        for iid, v in sorted(T["islands"].items(), key=lambda kv: -kv[1]["homes"]):
+            if v["homes"] < 150 or not v.get("names"):
+                continue
+            names = " & ".join(short(n) for n in v["names"])
+            st = max(T["stations"], key=lambda x: (v.get("near") or {}).get(x, 0))
+            n_, o_ = (v.get("near") or {}).get(st, 0), (v.get("ok") or {}).get(st, 0)
+            title = f"The bike island around {names}"
+            if n_:
+                part = f"{round(100 * o_ / n_)}% of its homes" if o_ else "none of its homes"
+                desc = (f"{v['homes']:,} homes share this island of quiet streets. For {WHO[tier]}, {part} within 2 miles "
+                        f"of {st} Caltrain {'have' if o_ else 'has'} a low-stress bike route there.")
+            else:
+                desc = f"{v['homes']:,} homes share this island of quiet streets, more than a 2-mile ride from Caltrain."
+            slug = unique(slugify(" ".join(v["names"])) + suffix)
+            path = f"{BASE}island/{slug}/"
+            entries.append({"kind": "island", "tier": tier, "slug": slug, "path": path, "title": title, "desc": desc,
+                            "island": int(iid), "target": f"{BASE}#t={tier}&i={iid}&z=1"})
+            manifest["islands"][tier][iid] = path
+        # one page per fix, titled by the station where it connects the most homes
+        best = {}
+        for bid, B in enumerate(T["bridges"]):
+            if B["id"] not in best or B["gain"] > T["bridges"][best[B["id"]]]["gain"]:
+                best[B["id"]] = bid
+        for fid, bid in best.items():
+            B = T["bridges"][bid]
+            if B["gain"] < MIN_FIX_HOMES:
+                continue
+            helped = [(hu, int(i)) for i, v in T["islands"].items() for b, hu in v["bridges"] if T["bridges"][b]["id"] == fid]
+            if not helped:
+                continue
+            island = max(helped)[1]
+            if B["kind"] == "x":
+                what = f"A safe crossing {'of' if ' at ' in B['name'] else 'at'} {short(B['name'])}"
+            else:
+                what = f"Making {feet_or_miles(B['len'])} of {short(B['name'])} low-stress"
+            title = f"{what} would connect {round(B['gain']):,} homes to {B['st']} Caltrain"
+            desc = f"For {WHO[tier]}. See the bike islands it would join on the map of San Mateo and Burlingame."
+            slug = unique(slugify(B["name"]) + suffix)
+            path = f"{BASE}fix/{slug}/"
+            entries.append({"kind": "fix", "tier": tier, "slug": slug, "path": path, "title": title, "desc": desc,
+                            "island": island, "fix": fid, "st": B["st"], "target": f"{BASE}#t={tier}&i={island}&z=1&f={fid}"})
+            manifest["fixes"][tier][fid] = path
+    return entries, manifest
+
+
+def share_page(ent):
+    """A tiny page with its own preview, which sends people on to the map with the view preset."""
+    img = f"og/{ent['kind']}/{ent['slug']}.png"
+    t = ent["target"]
+    return (head(ent["title"], ent["desc"], ent["path"], image=img, noindex=True)
+            + f'\n  <meta http-equiv="refresh" content="0; url={html.escape(t)}">'
+            + f"\n  <script>location.replace({json.dumps(t)});</script>\n</head>\n"
+            + f'<body><p><a href="{html.escape(t)}">{html.escape(ent["title"])}: open the bike islands map</a></p></body>\n</html>\n')
 
 
 def main():
@@ -148,6 +244,12 @@ def main():
     os.makedirs(os.path.join(OUT, "data"))
     open(os.path.join(OUT, "data", "standard.json"), "w").write(std)
     std_url = f"{BASE}data/standard.json?v={hashlib.sha1(std.encode()).hexdigest()[:10]}"
+    entries, manifest = share_entries()
+    json.dump(entries, open(os.path.join(HERE, "dist", "share_entries.json"), "w"))  # read by site/og/make_og.py
+    for ent in entries:
+        d = os.path.join(OUT, ent["path"][len(BASE):])
+        os.makedirs(d, exist_ok=True)
+        open(os.path.join(d, "index.html"), "w").write(share_page(ent))
     page = open(os.path.join(HERE, "site", "template.html")).read()
     page = (page.replace("/*HEAD*/", head(TITLE, DESCRIPTION, BASE))
                 .replace("/*HEADER*/", HEADER)
@@ -155,6 +257,7 @@ def main():
                 .replace("/*STDURL*/", json.dumps(std_url))
                 .replace("/*STREETS*/", open(os.path.join(HERE, "data", "streets.json")).read())
                 .replace("/*CIVIC*/", json.dumps(civic(), separators=(",", ":")))
+                .replace("/*SHARE*/", json.dumps(manifest, separators=(",", ":")))
                 .replace("/*DATA*/", json.dumps({"strict": DATA["strict"]}, separators=(",", ":")))
                 .replace("/*FETCHED*/", json.dumps(CFG["osm_fetched"])))
     open(os.path.join(OUT, "index.html"), "w").write(page)
@@ -171,6 +274,7 @@ def main():
     img = os.path.join(HERE, "site", "img")
     if os.path.isdir(img):
         shutil.copytree(img, os.path.join(OUT, "img"))
+    print(f"{len(entries)} share pages")
     print(f"built index and methodology into {OUT} ({os.path.getsize(os.path.join(OUT, 'index.html')) / 1e6:.1f} MB page)")
 
 
