@@ -86,6 +86,20 @@ def low_adj(low_edges, extra_edges=(), fixed_nodes=()):
     return adj
 
 
+class Overlay:
+    """adj_low plus a few extra edges, without copying adj_low: dj only reads adj[u]. Neighbours come in the
+    same order as in a copy with the extras appended, so results are identical."""
+    def __init__(self, adj, extra):
+        self.adj, self.extra = adj, collections.defaultdict(list)
+        for a, b, L in extra:
+            self.extra[a].append((b, L))
+            self.extra[b].append((a, L))
+
+    def __getitem__(self, u):
+        e = self.extra.get(u)
+        return self.adj.get(u, []) + e if e else self.adj.get(u, ())
+
+
 def score(adj_low, origins, direct, station_srcs_low):
     dl = dj(adj_low, station_srcs_low)
     ok = 0.0
@@ -126,7 +140,7 @@ if __name__ == "__main__" and "--bridges" not in sys.argv:
     main()
 
 
-def bridges(path, st, tier="standard", n_test=40):
+def bridges(path, st, tier="standard", n_test=200):
     from islands import graph, dijkstra, islands as mk_islands
     ws, coord, bn, stations, adj_all, low_edges, high_edges, origins, _, reaches = setup(path, tier)
     f, key = mk_islands(ws, bn)
@@ -236,11 +250,7 @@ def bridges(path, st, tier="standard", n_test=40):
             # name a crossing by the busy street being crossed, then up to 2 side streets
             busy, quiet = sorted(busy_at[x]), sorted(quiet_at[x] - busy_at[x])
             name = (" & ".join(busy) + " at " + " & ".join(quiet[:2])) if busy and quiet else " & ".join(sorted(names_at[x])[:3])
-        adj2 = collections.defaultdict(list, {k: list(v) for k, v in adj_low.items()})
-        for a, b, L in extra:
-            adj2[a].append((b, L))
-            adj2[b].append((a, L))
-        ok, _ = score(adj2, near, direct, srcs_low)
+        ok, _ = score(Overlay(adj_low, extra), near, direct, srcs_low)
         results.append({"gain": ok - ok0, "label": label, "kind": kind, "id": x, "name": name,
                         "geom": geom, "gained": score.okset - ok0set, "len": round(seglen) if kind == "w" else 0,
                         "touch": touch})

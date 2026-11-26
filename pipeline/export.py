@@ -14,7 +14,7 @@ import os
 import sys
 from multiprocessing import Pool
 
-from connectivity import bridges, setup, base, CITIES, STATIONS
+from connectivity import bridges, setup, base, low_adj, score, Overlay, CITIES, STATIONS
 from islands import islands as mk_islands, platforms, dist, PLATFORM_REACH_M, STATION_RADIUS_M
 from homes import inside
 import json as _json
@@ -54,6 +54,7 @@ def station_reach(path, stations):
             "platforms": {s: [[round(x, 6) for x in (*a, *b)] for a, b in pf.get(s, [])] for s in STATIONS}}
 
 
+FIXES_PER_STATION = 20   # best single fixes kept per station (of the 200 tested in connectivity.bridges)
 GAP_SHARE = 0.5   # a stressful piece is "in the way" if the routes of at least this share of the homes use it
 GAP_GROUPS = 5    # streets and crossings listed per island and station
 
@@ -81,13 +82,15 @@ def write_gaps(isl, iid, r, near, coord, st):
                 continue
             if pc[0] == "x":
                 nm = r["piece_names"][pc]
-                g = groups.setdefault(("x", nm), {"kind": "x", "name": nm, "pts": [], "w": 0})
+                g = groups.setdefault(("x", nm), {"kind": "x", "name": nm, "pts": [], "w": 0, "_pc": []})
+                g["_pc"].append(pc)
                 c = coord[pc[1]]
                 g["pts"].append([round(c[0], 5), round(c[1], 5)])
                 g["w"] = max(g["w"], x)
             else:
                 nm = r["piece_names"][("w", pc[2])]
-                g = groups.setdefault(("w", nm), {"kind": "w", "name": nm, "len": 0, "w": 0})
+                g = groups.setdefault(("w", nm), {"kind": "w", "name": nm, "len": 0, "w": 0, "_pc": []})
+                g["_pc"].append(pc)
                 g["len"] += dist(coord[pc[1][0]], coord[pc[1][1]])
                 g["w"] = max(g["w"], x)
                 segs[("w", nm)].append(pc[1])
@@ -127,6 +130,65 @@ def pick_gaps(isl):
             continue
         st = min(cand, key=lambda s: cand[s][0])
         I["gaps"] = {"st": st, "items": cand[st][1]}
+
+
+def test_combos(isl, iid, byk, tier, coord, low_edges, reaches):
+    """For each island that reaches no station, test fixing what's in the way together: every group alone,
+    every pair, and all of them. Keeps the smallest set (fewest groups, then shortest) that connects at least
+    90% of what fixing all of them would, with the homes it connects on this island and elsewhere."""
+    adj_low = low_adj(low_edges)
+    copies = collections.defaultdict(set)
+    for a, b, _, _ in low_edges:
+        for x in (a, b):
+            if isinstance(x, tuple):
+                copies[x[0]].add(x)
+    ctx = {}
+    for i, I in isl.items():
+        G = I.get("gaps")
+        if not G:
+            continue
+        st = G["st"]
+        if st not in ctx:
+            r = byk[(tier, st)]
+            srcs = [n for n in adj_low if reaches(st, coord[base(n)])]
+            ctx[st] = (r["near"], r["direct"], srcs, r["ok"])
+        near, direct, srcs, ok0 = ctx[st]
+
+        def extra(groups):
+            out = []
+            for g in groups:
+                for pc in g["_pc"]:
+                    if pc[0] == "x":
+                        out += [(pc[1], c, 0) for c in copies.get(pc[1], ())]
+                    else:
+                        a, b = pc[1]
+                        out.append((a, b, dist(coord[a], coord[b])))
+                        out += [(n, c, 0) for n in (a, b) for c in copies.get(n, ())]
+            return out
+
+        def gain(ks):
+            score(Overlay(adj_low, extra([G["items"][k] for k in ks])), near, direct, srcs)
+            new = score.okset - ok0
+            here = sum(near[oc] for oc in new if iid(oc[0]) == i)
+            return here, sum(near[oc] for oc in new) - here
+
+        k = len(G["items"])
+        tried = {tuple(range(k)): gain(range(k))}
+        best_all = tried[tuple(range(k))][0]
+        if best_all > 0 and k > 1:
+            for a in range(k):
+                tried[(a,)] = gain((a,))
+            for a in range(k):
+                for b in range(a + 1, k):
+                    tried[(a, b)] = gain((a, b))
+        length = lambda ks: sum(G["items"][x].get("len", 0) for x in ks)
+        enough = [ks for ks, (h, _) in tried.items() if best_all and h >= 0.9 * best_all]
+        ks = min(enough, key=lambda ks: (len(ks), length(ks))) if enough else tuple(range(k))
+        h, o = tried[ks]
+        G["combo"] = {"items": list(ks), "homes": round(h), "elsewhere": round(o), "all": round(best_all)}
+    for I in isl.values():
+        for g in (I.get("gaps") or {}).get("items", []):
+            g.pop("_pc", None)
 
 
 def write_streets(ws):
@@ -300,7 +362,7 @@ def main():
                 br_rows.append({"tier": tier, "station": st, "rank": rank + 1, "gain_homes": b["gain"],
                                 "share_of_near": round(b["gain"] / sum(tot.values()), 3), "kind": b["kind"],
                                 "osm_id": b["id"], "label": b["label"]})
-                if rank < 8:
+                if rank < FIXES_PER_STATION:
                     bid = len(brs)
                     brs.append({"st": st, "id": f'{b["kind"]}{b["id"]}', "len": b.get("len", 0), "name": b["name"], "label": b["label"], "kind": b["kind"],
                                 "gain": b["gain"], "p": enc(b["geom"]),
@@ -312,6 +374,7 @@ def main():
                     for i, hu in per.items():
                         isl[i]["bridges"].append([bid, hu])
         pick_gaps(isl)
+        test_combos(isl, iid, byk, tier, coord, low_edges, reaches)
         # summarize detours: homes and the homes-weighted median ratio
         for v in isl.values():
             for st, lst in list(v.get("det", {}).items()):

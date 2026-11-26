@@ -67,7 +67,10 @@ python3 build_site.py
   route on any rideable street, for homes within a 2-mile ride. Homes are 2020 Census housing units per block,
   placed at the block's internal point and snapped to the nearest low-stress street within 150 m.
 - **Bridges**: candidates are the high-stress pieces on each unconnected home's route minimizing
-  length + 3 × high-stress length; the top 40 per station are each tested alone.
+  length + 3 × high-stress length; the top 200 per station are each tested alone, and the best 20 kept.
+- **What's in the way**: for an island that reaches no station, the stressful pieces on the same routes of at
+  least half its homes, to the nearest station (shortest average direct ride). Each piece alone, each pair and
+  all of them together are tested; the page names the smallest set that gets at least 90% of what all would.
 - **Quiz**: questions 1–3 and the cyclist types from Dill & McNeil, TRR 2587 (2016), with the lead-in shortened
   and numbers as digits; questions 4–7 written for this map and untested.
 
