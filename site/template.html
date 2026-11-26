@@ -72,6 +72,15 @@
   #streetlist li[aria-selected="true"], #streetlist li:hover { background:var(--card); }
   #locate { font:inherit; font-size:14px; padding:8px 12px; border:1px solid var(--ink); background:transparent; color:var(--ink); cursor:pointer; }
   #findmsg { font-size:13px; }
+  .act { margin-top: 22px; }
+  .act h2 { margin-bottom: 10px; }
+  .act-item { background: var(--card); border-radius: 14px; padding: 14px 16px; margin: 0 0 12px; }
+  .act-item h3 { font-size: 16px; font-weight: 600; color: var(--ink); margin: 0 0 4px; font-family: var(--font-sans); }
+  .act-item p { margin: 0 0 10px; font-size: 14.5px; }
+  .act-item p:last-child { margin-bottom: 0; }
+  .act-item a { color: var(--copper); }
+  .btn { display:inline-block; font:inherit; font-size:15px; padding:9px 16px; border-radius:9px; border:1px solid var(--light); background:var(--bg); color:var(--ink); cursor:pointer; text-decoration:none; }
+  .act-item a.btn-primary { background: var(--copper); border-color: var(--copper); color: var(--accent-ink); font-weight: 500; }
   .mapnote { font-size:15px; line-height:1.45; color:var(--ink); margin:10px 0 0; }
   .mapnote .muted { font-size:14px; }
   .heatlegend b { display:inline-block; width:22px; height:6px; background:var(--copper); vertical-align:middle; margin-right:5px; }
@@ -103,7 +112,7 @@
         <span id="findmsg" class="muted" aria-live="polite"></span>
       </div>
       <div id="mapbox">
-        <canvas id="map" aria-label="Map of San Mateo and Burlingame streets. Click a street to see its bike island."></canvas>
+        <canvas id="bimap" aria-label="Map of San Mateo and Burlingame streets. Click a street to see its bike island."></canvas>
         <div class="zoom"><button id="zin" aria-label="Zoom in">+</button><button id="zout" aria-label="Zoom out">&minus;</button></div>
         <div class="hint" id="hint">Click near where you live</div>
       </div>
@@ -128,7 +137,8 @@ function track(name, params) { if (typeof gtag === "function") gtag("event", "is
 const TIERS = ["strict", "standard"];
 const DATA = /*DATA*/;
 const STD_URL = /*STDURL*/;
-const STREETS = /*STREETS*/;   // [name, city, [s, w, n, e]] for every named street in the frame
+const STREETS = /*STREETS*/;
+const CIVIC = /*CIVIC*/;       // city and council-district outlines, council contacts, city links   // [name, city, [s, w, n, e]] for every named street in the frame
 const FETCHED = /*FETCHED*/;
 let COPPER, INK, LOWC, FAINT, PAPER;
 function palette() {
@@ -265,7 +275,7 @@ function islandColors(T) {
 }
 
 let tier = "strict", sel = null;
-const cv = document.getElementById("map"), ctx = cv.getContext("2d");
+const cv = document.getElementById("bimap")  /* not "map": site.css sizes #map to 600px for the blog photo maps */, ctx = cv.getContext("2d");
 const box = document.getElementById("mapbox");
 const V = DATA.strict.view; // [s, w, n, e]
 const K = Math.cos((V[0] + V[2]) / 2 * Math.PI / 180);
@@ -421,6 +431,7 @@ function panel() {
     h += `<div class="stat">${mins}<div class="lbl">To ${st} Caltrain: <strong>${fmt(o)} of ${fmt(n)}</strong> homes (${pct(o, n)}) have a low-stress route no more than 25% longer than the direct ride.${more}</div><div class="bar"><i style="width:${100 * o / n}%"></i></div></div>`;
   }
   const list = topBridges(T, sel);
+  const fixText = B => B.kind === "x" ? `a safe crossing at ${B.name}` : `making ${B.name} low-stress (${B.label.split(": ")[1].replace(/ segment.*$/, "")})`;
   if (list.length) {
     h += `<h2 style="margin-top:16px">Fixes that would help</h2><ol class="br">`;
     for (const e of list) {
@@ -435,12 +446,80 @@ function panel() {
     h += `<p class="muted" style="margin-top:12px">None of the single fixes tested would connect more homes on this island.</p>`;
   }
   h += `<p style="margin:14px 0 4px">Is this the right map for you? <button class="askquiz">Take the 7-question quiz</button></p>`;
-  h += `<button class="share" id="share">Copy link to this island</button> <span class="muted" id="copied"></span>`;
+  h += actionCards(T, I, list, fixText);
   el.innerHTML = h;
   document.getElementById("share").onclick = () => {
     navigator.clipboard.writeText(location.href).then(() => document.getElementById("copied").textContent = "Copied");
     track("share_copied", {standard: tier});
   };
+  el.querySelectorAll("[data-act]").forEach(a => a.addEventListener("click", () => track(a.dataset.act, {standard: tier, city: a.dataset.city || ""})));
+}
+
+// --- "What you can do": which city and council district a spot is in, looked up in the browser ---
+function inRings(lon, lat, rings) {
+  let c = false;
+  for (const r of rings) for (let i = 0, j = r.length - 1; i < r.length; j = i++) {
+    const [x1, y1] = r[i], [x2, y2] = r[j];
+    if ((y1 > lat) !== (y2 > lat) && lon < (x2 - x1) * (lat - y1) / (y2 - y1) + x1) c = !c;
+  }
+  return c;
+}
+function whereIs([lat, lon]) {
+  const city = (CIVIC.cities.find(([, rings]) => inRings(lon, lat, rings)) || [null])[0];
+  const district = city === "San Mateo" ? (CIVIC.districts.find(([, rings]) => inRings(lon, lat, rings)) || [null])[0] : null;
+  return {city, district};
+}
+function actionCards(T, I, list, fixText) {
+  // the spot: the click if there is one (it never leaves the page), else the top fix, else the island's middle
+  const top = list[0] && T.bridges[list[0].bid];
+  let spot = clickPt;
+  if (!spot && top) spot = top.pts[Math.floor(top.pts.length / 2)];
+  if (!spot) { const L = T.lines.find(L => L.i === sel); spot = L.pts[Math.floor(L.pts.length / 2)]; }
+  const {city, district} = whereIs(spot);
+  const who = tier === "strict" ? "kids and cautious riders" : "most adults";
+  // the station the email talks about: the top fix's, else the one most homes here are near
+  const st = top ? top.st : Object.keys(T.stations).sort((a, b) => ((I.near || {})[b] || 0) - ((I.near || {})[a] || 0))[0];
+  const n = (I.near || {})[st] || 0, o = (I.ok || {})[st] || 0;
+  const link = location.href;
+  const cityCfg = (CIVIC.links || {})[city] || {};
+  let h = `<section class="act"><h2>What you can do</h2>`;
+  h += `<div class="act-item"><h3>Tell a neighbor</h3><p>The link opens the map on this island, with its numbers, in a text or group chat.</p>` +
+       `<button type="button" class="btn" id="share">Copy link</button> <span class="muted" id="copied"></span></div>`;
+  let salutation = null, toAddr = null, intro = "";
+  if (city === "San Mateo" && district && CIVIC.council[district]) {
+    const m = CIVIC.council[district];
+    salutation = m.salutation; toAddr = m.email;
+    intro = `This spot is in City Council District ${district}, represented by ${m.title} ${m.name}.`;
+  } else if (city === "Burlingame" && cityCfg.council_email) {
+    salutation = "Burlingame City Council"; toAddr = cityCfg.council_email;
+    intro = `Burlingame's council is elected citywide, so the email goes to the whole council.`;
+  }
+  if (toAddr) {
+    const lines = [`Dear ${salutation},`, "",
+      `I used the bike islands map (maxmautner.com/bike-islands) to look at my neighborhood in ${city}.` +
+      (n ? (o ? ` For ${who}, ${fmt(o)} of the ${fmt(n)} homes on this island of quiet streets within 2 miles of ${st} Caltrain have a low-stress bike route there.`
+              : ` For ${who}, none of the ${fmt(n)} homes on this island of quiet streets within 2 miles of ${st} Caltrain has a low-stress bike route there.`) : "")];
+    if (top) {
+      const hu = list[0].per[top.st] || list[0].max;
+      lines.push("", `The single fix that would help most here is ${fixText(top)}, which would connect ${fmt(hu)} more homes to ${top.st} Caltrain. ` +
+        (city === "San Mateo" ? "Could the city consider it for the Quick Build Mobility Program?" : "Could the city consider it?"));
+    } else {
+      lines.push("", "What would it take to connect these streets to the rest of the city?");
+    }
+    lines.push("", "[Add a sentence of your own]", "", link, "", "Thank you,");
+    const subj = top ? `A safe bike connection to ${top.st} Caltrain` : `Bike routes in my neighborhood`;
+    const href = `mailto:${toAddr}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(lines.join("\n"))}`;
+    h += `<div class="act-item"><h3>${city === "San Mateo" ? "Email your council member" : "Email the city council"}</h3>` +
+         `<p>${intro} The email starts with this island's numbers${top ? " and its top fix" : ""}; add a sentence of your own.</p>` +
+         `<a class="btn btn-primary" href="${href}" data-act="email_clicked" data-city="${city}">Email ${salutation}</a></div>`;
+  }
+  const askWhat = top ? (top.kind === "x" ? `the crossing at ${top.name}` : top.name) : "this neighborhood";
+  if (city === "San Mateo" && cityCfg.service_request) {
+    h += `<div class="act-item"><h3>Ask the city to look at ${askWhat}</h3><p><a href="${cityCfg.service_request}" data-act="city_concern_clicked" data-city="${city}">Report a concern</a> to the city, or <a href="${cityCfg.traffic_calming}" data-act="calming_request_clicked" data-city="${city}">request a traffic calming study</a> for your street.</p></div>`;
+  } else if (city === "Burlingame" && cityCfg.service_request) {
+    h += `<div class="act-item"><h3>Ask the city to look at ${askWhat}</h3><p><a href="${cityCfg.service_request}" data-act="city_concern_clicked" data-city="${city}">Create a service request</a> with the city.</p></div>`;
+  }
+  return h + `</section>`;
 }
 
 function setHash() {

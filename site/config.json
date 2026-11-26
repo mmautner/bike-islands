@@ -8,5 +8,19 @@
   "google_analytics_key": "G-P740XBJCNP",
   "site_css": "/assets/css/site.css",
   "contact_email": "movesanmateo@gmail.com",
-  "updated": "2026-11-25"
+  "updated": "2026-11-25",
+  "council_json": "../san-mateo-crashes/site/council.json",
+  "cities": {
+    "San Mateo": {
+      "service_request": "https://www.cityofsanmateo.org/4940",
+      "traffic_calming": "https://cityofsanmateo.org/forms.aspx?fid=111",
+      "quick_build": "https://www.cityofsanmateo.org/DocumentCenter/View/98889/2025-26-Adopted-CIP-Charters"
+    },
+    "Burlingame": {
+      "council_email": "council@burlingame.org",
+      "council_page": "https://www.burlingame.org/169/City-Council",
+      "service_request": "https://www.burlingame.org/259/Create-a-Service-Request",
+      "_checked": "2026-11-25, burlingame.org/169/City-Council lists council@burlingame.org"
+    }
+  }
 }

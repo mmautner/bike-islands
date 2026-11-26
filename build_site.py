@@ -123,6 +123,22 @@ METHOD_CSS = """<style>
 </style>"""
 
 
+def civic():
+    """Boundaries (data/civic.json), San Mateo council contacts read from the crashes repo's council.json
+    (one place to update after an election), and city links from site/config.json."""
+    out = json.load(open(os.path.join(HERE, "data", "civic.json")))
+    council = {}
+    cpath = os.path.join(HERE, CFG.get("council_json", ""))
+    if CFG.get("council_json") and os.path.exists(cpath):
+        cj = json.load(open(cpath))
+        council = {k: {f: v[f] for f in ("name", "title", "salutation", "email")} for k, v in cj["members"].items()}
+    else:
+        print("warning: council.json not found; the council email card will be hidden")
+    out["council"] = council
+    out["links"] = {c: {k: v for k, v in d.items() if not k.startswith("_")} for c, d in CFG.get("cities", {}).items()}
+    return out
+
+
 def main():
     if os.path.exists(OUT):
         shutil.rmtree(OUT)
@@ -138,6 +154,7 @@ def main():
                 .replace("/*FOOTER*/", footer())
                 .replace("/*STDURL*/", json.dumps(std_url))
                 .replace("/*STREETS*/", open(os.path.join(HERE, "data", "streets.json")).read())
+                .replace("/*CIVIC*/", json.dumps(civic(), separators=(",", ":")))
                 .replace("/*DATA*/", json.dumps({"strict": DATA["strict"]}, separators=(",", ":")))
                 .replace("/*FETCHED*/", json.dumps(CFG["osm_fetched"])))
     open(os.path.join(OUT, "index.html"), "w").write(page)
