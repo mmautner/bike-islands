@@ -139,6 +139,7 @@ function track(name, params) { if (typeof gtag === "function") gtag("event", "is
 const TIERS = ["strict", "standard"];
 const DATA = /*DATA*/;
 const STD_URL = /*STDURL*/;
+const TILE_BASE = /*TILEBASE*/, TILE_V = /*TILEV*/;   // detail tiles: TILE_BASE + "<standard>/<tile>.json"
 const STREETS = /*STREETS*/;
 const CIVIC = /*CIVIC*/;
 const SHARE = /*SHARE*/;       // share-page paths for islands and fixes, per standard
@@ -161,22 +162,64 @@ const pct = (a, b) => b ? Math.round(100 * a / b) + "%" : "n/a";
 { const f = document.getElementById("fetched"); if (f) f.textContent = FETCHED; }
 
 // decode delta-encoded lines once per tier
+function decodePts(p, oy, ox) {
+  const out = []; let a = oy || 0, b = ox || 0;
+  for (let k = 0; k < p.length; k += 2) { a += p[k]; b += p[k + 1]; out.push([a / 1e5, b / 1e5]); }
+  return out;
+}
+const tileKey = (la, lo, T) => `${Math.floor(la / T.tile_size[0])}_${Math.floor(lo / T.tile_size[1])}`;
 function decodeTier(t) {
-  for (const L of t.lines) {
-    const p = L.p, out = [];
-    let a = 0, b = 0;
-    for (let k = 0; k < p.length; k += 2) { a += p[k]; b += p[k + 1]; out.push([a / 1e5, b / 1e5]); }
-    L.pts = out;
-    if (L.n) { let c = 0; L.nodes = L.n.map(d => (c += d)); }
-  }
-  for (const B of t.bridges) {
-    const p = B.p, out = [];
-    let a = 0, b = 0;
-    for (let k = 0; k < p.length; k += 2) { a += p[k]; b += p[k + 1]; out.push([a / 1e5, b / 1e5]); }
-    B.pts = out;
-  }
+  // overview: [lts, island or 0, first point relative to the frame corner, deltas...]
+  t.lines = t.packed.map(r => {
+    const pts = decodePts(r.slice(2), t.origin[0], t.origin[1]);
+    const L = {l: r[0], pts};
+    if (r[1]) L.i = r[1];
+    const m = pts[Math.floor(pts.length / 2)];
+    L.t = tileKey(m[0], m[1], t);       // the tile holding this street's full detail
+    return L;
+  });
+  delete t.packed;
+  t.tileSet = new Set(t.tiles);
+  t.detail = new Map();                 // tile key -> full lines with routing nodes
+  t.loading = new Map();
+  for (const B of t.bridges) B.pts = decodePts(B.p);
 }
 decodeTier(DATA.strict);
+// --- detail tiles: full geometry and routing nodes, fetched only where they're needed ---
+function loadTiles(t, which, keys) {
+  return Promise.all(keys.filter(k => t.tileSet.has(k) && !t.detail.has(k)).map(k => {
+    if (!t.loading.has(k)) t.loading.set(k, fetch(`${TILE_BASE}${which}/${k}.json?v=${TILE_V}`)
+      .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(d => {
+        for (const L of d.lines) {
+          L.pts = decodePts(L.p); delete L.p;
+          if (L.n) { let c = 0; L.nodes = L.n.map(x => (c += x)); delete L.n; }   // stressful streets have no routing nodes
+        }
+        t.detail.set(k, d.lines); t.loading.delete(k); t._adjFor = null;
+      })
+      .catch(err => { t.loading.delete(k); throw err; }));
+    return t.loading.get(k);
+  }));
+}
+function tilesIn(t, s, w, n, e) {
+  const [a, b] = t.tile_size, out = [];
+  for (let y = Math.floor(s / a); y <= Math.floor(n / a); y++)
+    for (let x = Math.floor(w / b); x <= Math.floor(e / b); x++) out.push(`${y}_${x}`);
+  return out;
+}
+function islandBox(t, id) {
+  let bb = [90, 180, -90, -180];
+  for (const L of t.lines) if (L.i === id) for (const p of L.pts)
+    bb = [Math.min(bb[0], p[0]), Math.min(bb[1], p[1]), Math.max(bb[2], p[0]), Math.max(bb[3], p[1])];
+  return bb;
+}
+const islandTiles = (t, id) => tilesIn(t, ...islandBox(t, id));
+const islandReady = (t, id) => islandTiles(t, id).every(k => !t.tileSet.has(k) || t.detail.has(k));
+function detailLines(t, id) {
+  const out = [];
+  for (const lines of t.detail.values()) for (const L of lines) if (L.i === id) out.push(L);
+  return out;
+}
 let loadingStd = null;
 function ensureTier(t) {
   if (DATA[t]) return Promise.resolve();
@@ -195,14 +238,15 @@ const MPH = 10, M_PER_MIN = MPH * 1609.34 / 60;      // an easy pace; no hills, 
 const BANDS = [5, 10, 15, 20];                        // minutes
 const ALPHA = [1, 0.78, 0.58, 0.42, 0.28];            // nearer = stronger
 const metres = (a, b) => Math.hypot((b[0] - a[0]) * 111320, (b[1] - a[1]) * 111320 * Math.cos(37.55 * Math.PI / 180));
-function graph(T) {
-  if (T._adj) return T._adj;
+function graph(T, id) {
+  if (T._adjFor === id && T._adj) return T._adj;
   const adj = new Map();
   const add = (a, b, m) => { if (!adj.has(a)) adj.set(a, []); adj.get(a).push([b, m]); };
-  for (const L of T.lines) if (L.nodes) for (let k = 1; k < L.pts.length; k++) {
+  for (const L of detailLines(T, id)) for (let k = 1; k < L.pts.length; k++) {
     const m = metres(L.pts[k - 1], L.pts[k]);
     add(L.nodes[k - 1], L.nodes[k], m); add(L.nodes[k], L.nodes[k - 1], m);
   }
+  T._adjFor = id;
   return (T._adj = adj);
 }
 function dijkstra(adj, seeds) {              // seeds: [[node, metres]]
@@ -227,7 +271,7 @@ let clickPt = null;           // [lat, lon] of the last click; kept in memory on
 let heat = null, heatFrom = "";
 function nearestOnIsland(T, id, pt) {
   let best = null;
-  for (const L of T.lines) if (L.i === id && L.nodes) for (let k = 1; k < L.pts.length; k++) {
+  for (const L of detailLines(T, id)) for (let k = 1; k < L.pts.length; k++) {
     const a = L.pts[k - 1], b = L.pts[k], ab = metres(a, b);
     const ax = metres(a, [a[0], pt[1]]) * Math.sign(pt[1] - a[1]), ay = metres(a, [pt[0], a[1]]) * Math.sign(pt[0] - a[0]);
     const bx = metres(a, [a[0], b[1]]) * Math.sign(b[1] - a[1]), by = metres(a, [b[0], a[1]]) * Math.sign(b[0] - a[0]);
@@ -240,7 +284,7 @@ function nearestOnIsland(T, id, pt) {
 function stationNode(T, id, st) {            // the island's node nearest a station, within 250 m
   const sp = T.stations[st];
   let best = null;
-  for (const L of T.lines) if (L.i === id && L.nodes) L.pts.forEach((p, k) => {
+  for (const L of detailLines(T, id)) L.pts.forEach((p, k) => {
     const d = metres(p, sp); if (d < 250 && (!best || d < best.d)) best = {d, n: L.nodes[k]};
   });
   return best;
@@ -248,7 +292,14 @@ function stationNode(T, id, st) {            // the island's node nearest a stat
 function computeHeat() {
   heat = null; heatFrom = "";
   if (!sel) return;
-  const T = DATA[tier], adj = graph(T);
+  const T = DATA[tier];
+  if (!islandReady(T, sel)) {
+    // fetch the island's detail, then draw again; until then the island shows in solid color
+    const want = sel, wantTier = tier;
+    loadTiles(T, wantTier, islandTiles(T, want)).then(() => { if (sel === want && tier === wantTier) render(); }).catch(() => {});
+    return;
+  }
+  const adj = graph(T, sel);
   const near = clickPt && nearestOnIsland(T, sel, clickPt);
   if (near) { heat = dijkstra(adj, near.seeds); heatFrom = "where you clicked"; return; }
   // a shared link carries no click: color from the island's station, if it reaches one
@@ -316,19 +367,38 @@ function stroke(pts, color, width) {
   pts.forEach((p, k) => { const [x, y] = px(p[0], p[1]); k ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
   ctx.stroke();
 }
+// Zoomed out, the simplified overview is enough. Zoomed in, swap in full detail for the tiles in view,
+// fetching any that aren't loaded yet; until they arrive their streets draw from the overview.
+const DETAIL_SCALE = 3;
+let tileTimer = null;
+function baseLines(T) {
+  if (scale < DETAIL_SCALE) return T.lines;
+  const [la1, lo1] = unpx(0, H), [la2, lo2] = unpx(W, 0);
+  const keys = tilesIn(T, la1, lo1, la2, lo2);
+  if (keys.some(k => T.tileSet.has(k) && !T.detail.has(k))) {
+    clearTimeout(tileTimer);
+    const which = tier;
+    tileTimer = setTimeout(() => loadTiles(T, which, keys).then(draw).catch(() => {}), 120);
+  }
+  const out = T.lines.filter(L => !T.detail.has(L.t));
+  for (const k of keys) for (const L of T.detail.get(k) || []) out.push(L);
+  return out;
+}
 function draw() {
   const T = DATA[tier] || DATA.strict;
   ctx.clearRect(0, 0, W, H);
   ctx.lineCap = "round"; ctx.lineJoin = "round";
   const z = Math.max(1, Math.sqrt(scale));
-  for (const L of T.lines) if (L.i === undefined) stroke(L.pts, INK, 1.1 * z);
-  if (sel) { for (const L of T.lines) if (L.i !== undefined && L.i !== sel) stroke(L.pts, FAINT, 1.1 * z); }
+  const base = baseLines(T);
+  for (const L of base) if (L.i === undefined) stroke(L.pts, INK, 1.1 * z);
+  if (sel) { for (const L of base) if (L.i !== undefined && L.i !== sel) stroke(L.pts, FAINT, 1.1 * z); }
   else {
     const col = islandColors(T);
-    for (const L of T.lines) if (L.i !== undefined && !col.has(L.i)) stroke(L.pts, LOWC, 1.1 * z);
-    for (const L of T.lines) if (col.has(L.i)) stroke(L.pts, ISLAND_HUES[col.get(L.i)], 1.7 * z);
+    for (const L of base) if (L.i !== undefined && !col.has(L.i)) stroke(L.pts, LOWC, 1.1 * z);
+    for (const L of base) if (col.has(L.i)) stroke(L.pts, ISLAND_HUES[col.get(L.i)], 1.7 * z);
   }
-  if (sel) for (const L of T.lines) if (L.i === sel) {
+  const selLines = sel && heat ? detailLines(T, sel) : (sel ? T.lines.filter(L => L.i === sel) : []);
+  for (const L of selLines) {
     if (!heat || !L.nodes) { stroke(L.pts, COPPER, 2.6 * z); continue; }
     for (let k = 1; k < L.pts.length; k++) {
       const da = heat.get(L.nodes[k - 1]), db = heat.get(L.nodes[k]);
@@ -640,12 +710,24 @@ function pick(cx, cy, T) {
 
 // interaction: drag to pan, wheel or buttons to zoom, click to pick
 let drag = null, moved = false;
-cv.addEventListener("pointerdown", e => { drag = [e.clientX, e.clientY, ox, oy]; moved = false; cv.setPointerCapture(e.pointerId); });
+// While dragging, slide a snapshot of the map instead of redrawing every street on every move;
+// the full redraw happens once, on release. Keeps panning smooth on phones as the map grows.
+const snap = document.createElement("canvas"), snapCtx = snap.getContext("2d");
+cv.addEventListener("pointerdown", e => {
+  drag = [e.clientX, e.clientY, ox, oy]; moved = false; cv.setPointerCapture(e.pointerId);
+  snap.width = cv.width; snap.height = cv.height; snapCtx.drawImage(cv, 0, 0);
+});
 cv.addEventListener("pointermove", e => {
   if (!drag) return;
   const dx = e.clientX - drag[0], dy = e.clientY - drag[1];
   if (Math.abs(dx) + Math.abs(dy) > 4) moved = true;
-  ox = drag[2] + dx; oy = drag[3] + dy; draw();
+  ox = drag[2] + dx; oy = drag[3] + dy;
+  if (!moved) return;
+  const dpr = window.devicePixelRatio || 1;
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = PAPER; ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.drawImage(snap, dx * dpr, dy * dpr);
+  ctx.restore();
 });
 cv.addEventListener("pointerup", e => {
   if (drag && !moved) {
@@ -658,7 +740,7 @@ cv.addEventListener("pointerup", e => {
       track("island_selected", {standard: tier, island_homes: h < 500 ? "under 500" : h <= 5000 ? "500-5000" : "over 5000"});
     }
     setHash(); render();
-  }
+  } else if (drag && moved) draw();
   drag = null;
 });
 function zoomAt(f, cx, cy) {

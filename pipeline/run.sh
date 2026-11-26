@@ -8,4 +8,5 @@ python3 pipeline/survey.py "$OSM"
 python3 pipeline/export.py "$OSM"
 python3 pipeline/sensitivity.py "$OSM" > /dev/null
 python3 pipeline/civic.py
+python3 pipeline/tiles.py
 echo "data/ rebuilt from $OSM"

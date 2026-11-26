@@ -15,6 +15,11 @@ Which homes in San Mateo and Burlingame have a low-stress bike route to Caltrain
   - `export.py`: writes `data/map_*.json`, `data/access.csv`, `data/bridges.csv`.
   - `sensitivity.py`: detour limit × ride radius grid (`data/sensitivity.csv`).
   - `joints.py`: the intersections and segments holding each island together (diagnostic).
+  - `tiles.py`: splits each standard's map data into `data/overview_<tier>.json` (every street simplified to
+    ~10 m, packed as flat arrays, with island stats and fixes) and `data/tiles/<tier>/<y>_<x>.json` (full
+    geometry and routing nodes, ~2.2 km cells). The page inlines only the overview; it fetches the tiles an
+    island covers when one is selected, and the tiles in view when zoomed in. A street goes in the tile that holds
+    its midpoint, so an island's bounding box always covers all of its streets.
   - `run.sh`: reruns survey, export and sensitivity from `data/raw/`.
 - `data/sources/ets_2026_segments.csv`: the city's 2026 speed survey, copied from
   [san-mateo-speeds](https://github.com/mmautner/san-mateo-speeds), which parsed it from the survey summary

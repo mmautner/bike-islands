@@ -240,8 +240,16 @@ def main():
         shutil.rmtree(OUT)
     os.makedirs(os.path.join(OUT, "methodology"))
     # the default standard is inlined; "most adults" is a separate file the page fetches on first use
-    std = json.dumps(DATA["standard"], separators=(",", ":"))
-    os.makedirs(os.path.join(OUT, "data"))
+    # the page gets the overview (simplified streets, island stats); full detail ships as tiles
+    OV = {t: json.load(open(os.path.join(HERE, "data", f"overview_{t}.json"))) for t in ("strict", "standard")}
+    std = json.dumps(OV["standard"], separators=(",", ":"))
+    tsrc = os.path.join(HERE, "data", "tiles")
+    shutil.copytree(tsrc, os.path.join(OUT, "data", "tiles"))
+    th = hashlib.sha1()
+    for root, _, files in sorted(os.walk(tsrc)):
+        for fn in sorted(files):
+            th.update(open(os.path.join(root, fn), "rb").read())
+    tile_v = th.hexdigest()[:10]
     open(os.path.join(OUT, "data", "standard.json"), "w").write(std)
     std_url = f"{BASE}data/standard.json?v={hashlib.sha1(std.encode()).hexdigest()[:10]}"
     entries, manifest = share_entries()
@@ -258,7 +266,8 @@ def main():
                 .replace("/*STREETS*/", open(os.path.join(HERE, "data", "streets.json")).read())
                 .replace("/*CIVIC*/", json.dumps(civic(), separators=(",", ":")))
                 .replace("/*SHARE*/", json.dumps(manifest, separators=(",", ":")))
-                .replace("/*DATA*/", json.dumps({"strict": DATA["strict"]}, separators=(",", ":")))
+                .replace("/*TILEBASE*/", json.dumps(f"{BASE}data/tiles/")).replace("/*TILEV*/", json.dumps(tile_v))
+                .replace("/*DATA*/", json.dumps({"strict": OV["strict"]}, separators=(",", ":")))
                 .replace("/*FETCHED*/", json.dumps(CFG["osm_fetched"])))
     open(os.path.join(OUT, "index.html"), "w").write(page)
 
