@@ -181,19 +181,33 @@ def bridges(path, st, tier="standard", n_test=40):
                 d[v] = x + w; prev[v] = (u, wid); cnt += 1; heapq.heappush(h, (x + w, cnt, v))
     high_ids = {wid for _, _, _, wid in high_edges}
     credit = collections.Counter()
-    for (o, _), wgt in near.items():
+    # route_blocks: for each home without a good low-stress route, the stressful pieces of the same route:
+    # ("s", (node, node), way id) for each busy segment ridden, ("x", node) for each barrier crossing.
+    # The export finds the pieces most of an island's homes must use ("what's in the way").
+    route_blocks, piece_names = {}, {}
+    for (o, city), wgt in near.items():
         if dl.get(o, 1e18) <= DETOUR * direct[base(o)] + 50:
             continue
-        u, used = o, set()
+        u, used, path = o, set(), set()
         while u in prev:
             v, wid = prev[u]
             if wid is None:
                 used.add(("x", base(u)))
+                path.add(("x", base(u)))
             elif wid in high_ids:
                 used.add(("w", wid))
+                a, b = base(u), base(v)
+                path.add(("s", (min(a, b), max(a, b)), wid))
             u = v
         for x in used:
             credit[x] += wgt
+        route_blocks[(o, city)] = path
+    for pc in set().union(*route_blocks.values()) if route_blocks else ():
+        if pc[0] == "x" and pc not in piece_names:
+            busy, quiet = sorted(busy_at[pc[1]]), sorted(quiet_at[pc[1]] - busy_at[pc[1]])
+            piece_names[pc] = (" & ".join(busy) + " at " + " & ".join(quiet[:2])) if busy and quiet else " & ".join(sorted(names_at[pc[1]])[:3])
+        elif pc[0] == "s" and ("w", pc[2]) not in piece_names:
+            piece_names[("w", pc[2])] = wmap[pc[2]]["tags"].get("name", "(unnamed)")
     results = []
     for (kind, x), _ in credit.most_common(n_test):
         extra = []
@@ -236,7 +250,8 @@ def bridges(path, st, tier="standard", n_test=40):
         print(f"[{tier}] {st} station: baseline {ok0:,.0f} of {tn:,.0f} homes within 2 mi ({ok0/tn:.0%})")
         for r in results[:12]:
             print(f"  +{r['gain']:6,.0f} homes (+{r['gain']/tn:.0%})  {r['label']}")
-    return {"near": near, "ok": ok0set, "results": results, "direct": direct, "dl": dl}
+    return {"near": near, "ok": ok0set, "results": results, "direct": direct, "dl": dl,
+            "blocks": route_blocks, "piece_names": piece_names}
 
 
 if __name__ == "__main__" and "--bridges" in sys.argv:

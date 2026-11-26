@@ -15,7 +15,7 @@ import sys
 from multiprocessing import Pool
 
 from connectivity import bridges, setup, base, CITIES, STATIONS
-from islands import islands as mk_islands, platforms, PLATFORM_REACH_M, STATION_RADIUS_M
+from islands import islands as mk_islands, platforms, dist, PLATFORM_REACH_M, STATION_RADIUS_M
 from homes import inside
 import json as _json
 
@@ -52,6 +52,81 @@ def station_reach(path, stations):
     pf = platforms(path, stations)
     return {"platform_m": PLATFORM_REACH_M, "station_m": STATION_RADIUS_M,
             "platforms": {s: [[round(x, 6) for x in (*a, *b)] for a, b in pf.get(s, [])] for s in STATIONS}}
+
+
+GAP_SHARE = 0.5   # a stressful piece is "in the way" if the routes of at least this share of the homes use it
+GAP_GROUPS = 5    # streets and crossings listed per island and station
+
+
+def write_gaps(isl, iid, r, near, coord, st):
+    """What's in the way, for each island that doesn't reach station st: the stressful pieces (busy segments
+    ridden, barrier crossings) on the best route of at least GAP_SHARE of its homes, by housing units, each
+    route being connectivity.bridges' cheapest one with stressful metres weighted (the one fix candidates come
+    from). Busy segments are grouped by street and chained into lines for the map; crossings are grouped by
+    name. Kept per station as a candidate; pick_gaps keeps the nearest station's, for islands that reach none."""
+    W, PW, D = collections.Counter(), collections.defaultdict(collections.Counter), collections.Counter()
+    for oc, path in r["blocks"].items():
+        i, hu = iid(oc[0]), near[oc]
+        W[i] += hu
+        D[i] += hu * r["direct"].get(base(oc[0]), 0)
+        for pc in path:
+            PW[i][pc] += hu
+    for i, w in W.items():
+        I = isl[i]
+        if I["ok"].get(st) or (I.get("det") or {}).get(st):
+            continue
+        groups, segs = {}, collections.defaultdict(list)
+        for pc, x in PW[i].items():
+            if x < GAP_SHARE * w:
+                continue
+            if pc[0] == "x":
+                nm = r["piece_names"][pc]
+                g = groups.setdefault(("x", nm), {"kind": "x", "name": nm, "pts": [], "w": 0})
+                c = coord[pc[1]]
+                g["pts"].append([round(c[0], 5), round(c[1], 5)])
+                g["w"] = max(g["w"], x)
+            else:
+                nm = r["piece_names"][("w", pc[2])]
+                g = groups.setdefault(("w", nm), {"kind": "w", "name": nm, "len": 0, "w": 0})
+                g["len"] += dist(coord[pc[1][0]], coord[pc[1][1]])
+                g["w"] = max(g["w"], x)
+                segs[("w", nm)].append(pc[1])
+        for k, pairs in segs.items():     # chain node pairs into as few lines as possible
+            adj = collections.defaultdict(list)
+            for a, b in pairs:
+                adj[a].append(b); adj[b].append(a)
+            seen, lines = set(), []
+            for start in sorted(adj, key=lambda n: (len(adj[n]) != 1, n)):   # ends first
+                for nxt in adj[start]:
+                    if (start, nxt) in seen:
+                        continue
+                    line, u, v = [start], start, nxt
+                    while True:
+                        seen.add((u, v)); seen.add((v, u)); line.append(v)
+                        more = [x for x in adj[v] if (v, x) not in seen]
+                        if len(adj[v]) != 2 or not more:
+                            break
+                        u, v = v, more[0]
+                    lines.append(enc([coord[n] for n in line]))
+            groups[k]["p"] = lines
+        out = sorted(groups.values(), key=lambda g: (-g["w"], g["name"]))[:GAP_GROUPS]
+        for g in out:
+            g["share"] = round(g.pop("w") / w, 2)
+            if g["kind"] == "w":
+                g["len"] = round(g["len"])
+        if out:
+            I.setdefault("_gapc", {})[st] = (D[i] / w, out)
+
+
+def pick_gaps(isl):
+    """For an island that reaches no station, keep what's in the way of the nearest one (shortest average
+    direct ride from its homes); drop the other candidates."""
+    for I in isl.values():
+        cand = I.pop("_gapc", None)
+        if not cand or any(I["ok"].values()) or any((I.get("det") or {}).values()):
+            continue
+        st = min(cand, key=lambda s: cand[s][0])
+        I["gaps"] = {"st": st, "items": cand[st][1]}
 
 
 def write_streets(ws):
@@ -216,6 +291,7 @@ def main():
                     isl[iid(o)]["ok"][st] = isl[iid(o)]["ok"].get(st, 0) + hu
                 isl[iid(o)].setdefault("near", {})
                 isl[iid(o)]["near"][st] = isl[iid(o)]["near"].get(st, 0) + hu
+            write_gaps(isl, iid, r, near, coord, st)
             for city in CITIES:
                 acc_rows.append({"tier": tier, "station": st, "city": city,
                                  "homes_within_2mi": tot[city], "homes_low_stress": okc[city],
@@ -235,6 +311,7 @@ def main():
                         per[iid(o)] += near[(o, city)]
                     for i, hu in per.items():
                         isl[i]["bridges"].append([bid, hu])
+        pick_gaps(isl)
         # summarize detours: homes and the homes-weighted median ratio
         for v in isl.values():
             for st, lst in list(v.get("det", {}).items()):
