@@ -1,17 +1,17 @@
 tier,station,city,homes_within_2mi,homes_low_stress,share
-standard,Burlingame,San Mateo,13004,4053,0.312
-standard,Burlingame,Burlingame,9550,4014,0.42
-standard,San Mateo,San Mateo,22450,11591,0.516
-standard,San Mateo,Burlingame,4408,2609,0.592
-standard,Hayward Park,San Mateo,28451,5978,0.21
+standard,Burlingame,San Mateo,12984,3978,0.306
+standard,Burlingame,Burlingame,9505,3396,0.357
+standard,San Mateo,San Mateo,22317,12739,0.571
+standard,San Mateo,Burlingame,4296,2560,0.596
+standard,Hayward Park,San Mateo,27037,10219,0.378
 standard,Hayward Park,Burlingame,0,0,
-standard,Hillsdale,San Mateo,22532,922,0.041
+standard,Hillsdale,San Mateo,22476,922,0.041
 standard,Hillsdale,Burlingame,0,0,
-strict,Burlingame,San Mateo,12980,0,0.0
-strict,Burlingame,Burlingame,9496,867,0.091
-strict,San Mateo,San Mateo,22450,4217,0.188
-strict,San Mateo,Burlingame,4408,0,0.0
-strict,Hayward Park,San Mateo,28468,2781,0.098
+strict,Burlingame,San Mateo,12960,71,0.005
+strict,Burlingame,Burlingame,9451,1505,0.159
+strict,San Mateo,San Mateo,22317,4096,0.184
+strict,San Mateo,Burlingame,4296,0,0.0
+strict,Hayward Park,San Mateo,27002,2730,0.101
 strict,Hayward Park,Burlingame,0,0,
-strict,Hillsdale,San Mateo,22532,612,0.027
+strict,Hillsdale,San Mateo,22476,612,0.027
 strict,Hillsdale,Burlingame,0,0,

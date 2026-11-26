@@ -21,7 +21,7 @@ import os
 import sys
 
 from islands import dist, seg_dist
-from connectivity import setup, low_adj, dj, base, DETOUR, CITIES
+from connectivity import setup, low_adj, dj, base, DETOUR, CITIES, TwoWay
 from homes import blocks, snap
 
 RAW = os.path.join(os.path.dirname(__file__), "..", "data", "raw")
@@ -95,7 +95,12 @@ def schools():
 
 def dj_label(adj, srcs, cutoff):
     """Multi-source shortest paths that also carry which source each node is nearest to.
-    srcs: [(node, label)]. Returns ({node: metres}, {node: label})."""
+    srcs: [(node, label)]. Returns ({node: metres}, {node: label}). For a TwoWay, the longer of the ride from
+    the sources and the ride to them, labelled by the source nearest that way."""
+    if isinstance(adj, TwoWay):
+        (a, la), (b, lb) = dj_label(adj.fw, srcs, cutoff), dj_label(adj.bw, srcs, cutoff)
+        d = {k: max(v, b[k]) for k, v in a.items() if k in b}
+        return d, {k: (la[k] if a[k] >= b[k] else lb[k]) for k in d}
     d, lab, h = {}, {}, []
     for i, (n, l) in enumerate(sorted(srcs, key=repr)):     # sorted: ties go the same way every run
         if n not in d:

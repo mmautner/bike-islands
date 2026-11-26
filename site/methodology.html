@@ -9,6 +9,8 @@
     <li><strong>Kids and cautious riders</strong> (LTS 1) counts only paths, protected bike lanes, and quiet streets posted 25 mph or less with no more than 2 lanes. Crossing a street posted 30 mph or more, or with 3 or more lanes, is stressful unless there is a signal or an all-way stop. Crossing a street posted 35 mph or more, or with 4 or more lanes (such as El Camino Real), is stressful even at a signal. That last rule is stricter than Mineta's, which lets any signal make a crossing safe; without it, a few signals on El Camino and Howard Avenue joined neighborhoods across both cities into one island.</li>
     <li><strong>Experienced riders</strong> (LTS 1 and 2) also counts painted bike lanes on streets up to 30 mph, quiet streets up to 30 mph, and busier 2-lane streets up to 25 mph, and treats crossings as stressful only at 35 mph or 4 lanes.</li>
     <li>Where the city's speed survey counted daily traffic (San Mateo's surveyed streets), busy streets rate as more stressful to ride on, following the <a href="https://www.cityofmadison.com/mpo/documents/Item_8d_Appx_B_LTS_methodology.pdf">Greater Madison MPO's 2023 table</a>, which added traffic volume to the Mineta method in line with NACTO guidance: on a street with one lane each way posted 25 to 30 mph, more than 3,000 vehicles a day is stressful even for experienced riders. Volume can only raise a street's stress, and it doesn't change how crossings are rated. Burlingame's streets aren't adjusted yet: its survey has been requested.</li>
+    <li>A signal or all-way stop counts at the intersection it controls. OpenStreetMap often draws a signal or stop sign on each approach, a few metres before the intersection; the map moves it to the first intersection within 30 m (25 m for stop signs) in the direction it faces. Before November 2026 the map missed these, and all-way stops entirely, so it treated signalized crossings such as El Camino Real at 20th Avenue as uncontrolled.</li>
+    <li>On a divided road, drawn as a separate one-way roadway for each direction, the street's lanes are both roadways' together: two lanes each way is a 4-lane street, to ride on and to cross. A roundabout and the split legs that meet it don't count as a divided road.</li>
     <li>Flashing beacons for people walking don't count as a control: a person on a bike can't be expected to stop, walk to the button and cross as a pedestrian.</li>
   </ul>
 
@@ -24,6 +26,7 @@
   <h2>Connected to Caltrain</h2>
   <ul>
     <li>A home counts as having a low-stress route to a station when one exists that is no more than 25% longer than the shortest ride on any street, for homes within a 2-mile ride of the station's platforms.</li>
+    <li>Routes follow one-way streets, and a home counts only if it has a low-stress route there and a low-stress route back: the longer of the two rides is compared with the longer of the two shortest legal rides on any street. Alleys and parking aisles count as two-way, as does a one-way street with a contra-flow bike lane. An island is where you can ride from any point to any other and back. The same rule applies to schools and everyday places.</li>
     <li>Homes are 2020 Census housing units by block, placed at each block's center and matched to the nearest low-stress street within 150 m.</li>
     <li>Fixes are tested one at a time: each candidate street segment or crossing is treated as low-stress, and the homes it connects are counted. Combinations of fixes can connect more than the sum.</li>
     <li>Each street fix is trimmed to the stretch the connected homes' routes actually use, and named by its cross streets; the trimmed stretch connects the same homes as the whole street. A fix whose routes only cross the street is shown as that crossing.</li>
@@ -32,7 +35,7 @@
 
   <h2>Riding times</h2>
   <ul>
-    <li>After a click, your browser finds the shortest low-stress route from that spot to every street on the island and colors the island by riding time, at an easy 10 mph. Hills, waits at lights and slower riding with children aren't counted. The click and the times stay in your browser; the link you share names only the island.</li>
+    <li>After a click, your browser finds the shortest low-stress route from that spot to every street on the island and colors the island by riding time, at an easy 10 mph. Hills, waits at lights and slower riding with children aren't counted, and these times don't yet follow one-way streets. The click and the times stay in your browser; the link you share names only the island.</li>
     <li>A shared link has no click, so it colors the island by riding time from the Caltrain station it reaches, if any.</li>
     <li>Street search and "Use my location" also run entirely in your browser: the street list ships with the page, and neither what you type nor your location is sent anywhere.</li>
     <li>The "What you can do" cards work out which city a spot is in from Census 2020 city limits that ship with the page, to link to that city's service requests.</li>
@@ -41,9 +44,9 @@
 
   <h2>Sources</h2>
   <ul>
-    <li>Streets, signals, stations and platforms from <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors (ODbL), fetched /*FETCHED*/.</li>
+    <li>Streets, signals, stop signs, stations and platforms from <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors (ODbL), fetched /*FETCHED*/.</li>
     <li>Posted speed limits from the City of San Mateo's 2026 Engineering and Traffic Survey, obtained through a public records request (see <a href="/san-mateo-speeds/">San Mateo speeds</a>). Where neither the survey nor OpenStreetMap gives a limit, residential streets are assumed to be 25 mph and major streets 30 to 40 mph.</li>
-    <li>A few speed limits and intersection controls were checked in person or on Google Street View, and two links of the shared-use path to Hillsdale station, which OpenStreetMap draws unconnected, were added from the <a href="https://www.cityofsanmateo.org/GapClosure">city's project page</a>. Each is listed with its source in the repository.</li>
+    <li>A few speed limits, intersection controls and one-way streets were checked in person or on Google Street View, and two links of the shared-use path to Hillsdale station, which OpenStreetMap draws unconnected, were added from the <a href="https://www.cityofsanmateo.org/GapClosure">city's project page</a>. Each is listed with its source in the repository.</li>
     <li>Housing units, and residents under 18, from the 2020 Census.</li>
     <li>Public elementary schools from the <a href="https://www.cde.ca.gov/ds/si/ds/pubschls.asp">California School Directory</a>, fetched November 26, 2026; school grounds from OpenStreetMap.</li>
   </ul>

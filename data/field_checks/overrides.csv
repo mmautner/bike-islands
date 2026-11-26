@@ -1,3 +1,7 @@
 name,tag,value,bbox,source
 East Poplar Avenue,maxspeed,25 mph,,"Field check by Max Mautner, 2026-11-24 (posted sign)"
 Oak Grove Avenue,maxspeed,25 mph,37.57 -122.37 37.60 -122.33,"Field check by Max Mautner, 2026-11-24 (Burlingame)"
+Lorton Avenue,oneway,no,37.575 -122.355 37.585 -122.340,"Max Mautner, 2026-11-26: two-way (OpenStreetMap draws a one-way pair near Burlingame station)"
+Primrose Road,oneway,no,37.575 -122.355 37.585 -122.340,"Max Mautner, 2026-11-26: two-way (OpenStreetMap draws a one-way pair near Burlingame station)"
+Highland Avenue,oneway,no,37.575 -122.355 37.585 -122.340,"Max Mautner, 2026-11-26: two-way (OpenStreetMap draws a one-way pair near Burlingame station)"
+South Railroad Avenue,bi:lts,2,37.5640 -122.3260 37.5695 -122.3195,"Max Mautner, 2026-11-26: the one-way stretch beside the tracks downtown, next to San Mateo station; not low-stress for kids and cautious riders (LTS 2), fine for experienced riders"

@@ -33,8 +33,9 @@ to Caltrain. Served at
 - `data/sources/ets_2026_segments.csv`: the city's 2026 speed survey, copied from
   [san-mateo-speeds](https://github.com/mmautner/san-mateo-speeds), which parsed it from the survey summary
   sheets obtained through a public records request.
-- `data/field_checks/`: speed limits (`overrides.csv`) and intersection controls (`crossings.csv`) checked in
-  person or on Street View, each with its source.
+- `data/field_checks/`: speed limits and one-way streets (`overrides.csv`) and intersection controls (`crossings.csv`)
+  checked in person or on Street View, each with its source. An override can also set `bi:lts`, a rating judged in
+  the field where the tags can't say why (South Railroad Ave by San Mateo station); `lts()` returns it as is.
 - `site/places.json`: the places that get their own page, matched to OpenStreetMap by name. San Mateo only until
   Burlingame's speed survey is in. `site/place.html`: the place page template.
 - `site/template.html`: the page (map, rider switch, panel: three answers, the one fix that would help most, the rest folded under "More"; quiz). `site/img/`: quiz photos, cropped from Google
@@ -68,6 +69,15 @@ python3 build_site.py
     Camino at Bellevue and at Bayswater/Primrose, and on Howard at Park Road.
   - *standard* ("experienced riders") = LTS 1–2. Crossings are barriers at ≥35 mph or ≥4 lanes; any signal tames one.
   - Short multi-lane pieces of local streets (<60 m) are turn pockets, counted as 2 lanes.
+  - **Controls**: signals (`highway=traffic_signals`, `crossing=traffic_signals`) and all-way stops (`highway=stop` +
+    `stop=all`, from `data/raw/osm_stops_*.json`) tame a crossing. A control drawn on an approach rather than on the
+    intersection counts at the first junction within `SIGNAL_REACH_M` (30 m) or `STOP_REACH_M` (25 m) along its street,
+    in its `traffic_signals:direction` / `direction` (`control_junctions` in `pipeline/islands.py`). A field check
+    that found no control (`crossings.csv`) wins over the map.
+  - **Divided roads**: a one-way arterial with a same-named one-way arterial running the other way within
+    `DIVIDED_M` (40 m) is one roadway of a divided road (`bi:divided=yes`); its `lanes` becomes both roadways'
+    together (its own is kept as `lanes:roadway`), and its traffic volume is rated as a two-way street's.
+    Roundabout rings and the legs that touch them are left out (`mark_divided`).
 - **Traffic volume**: where the survey has a daily count (`adt`), mixed-traffic stress is the higher of the speed/lanes
   rating and the Greater Madison MPO's 2023 volume table (`volume_lts` in `pipeline/islands.py`; one-way streets count
   1.5x). Crossings don't use volume (neither Furth's criteria nor Madison's do). Toggle with `USE_VOLUME`.
@@ -75,7 +85,13 @@ python3 build_site.py
   tertiary 30, primary/secondary 40, the PeopleForBikes defaults). 110 of 123 survey segments match; the rest are
   printed by `survey.py`.
 - **Connected home**: a low-stress route to a station's platforms no more than 25% longer than the shortest
-  route on any rideable street, for homes within a 2-mile ride. Homes are 2020 Census housing units per block,
+  route on any rideable street, for homes within a 2-mile ride.
+- **One-way streets** (`DIRECTED` in `pipeline/islands.py`): routes follow `oneway` (and `oneway:bicycle`,
+  roundabouts); alleys and parking aisles (`highway=service`) and contra-flow bike lanes are two-way. Where one-way
+  streets exist, `low_adj` returns a `TwoWay` (forward and backward adjacency) and `dj` gives the longer of the ride
+  from the sources and the ride to them, so a home counts only with a low-stress route both ways. The all-street
+  baseline is a `TwoWay` too, so legal rides are compared with legal rides. Islands are strongly connected
+  components. Fixes being tested are two-way. The browser's riding times are still undirected. Homes are 2020 Census housing units per block,
   placed at the block's internal point and snapped to the nearest low-stress street within 150 m.
 - **Elementary schools**: the California School Directory's open public elementary schools, reached within 40 m
   of their OpenStreetMap grounds (else 150 m of the directory point). A home or kid counts if a low-stress route
@@ -107,17 +123,18 @@ python3 build_site.py
 
 | Kids under 18 → an elementary school | standard | strict |
 |---|---|---|
-| San Mateo (20,676 within 2 miles) | 66% | 42% |
-| Burlingame (6,961) | 62% | 44% |
+| San Mateo (20,676 within 2 miles) | 60% | 41% |
+| Burlingame (6,961) | 62% | 48% |
 
 ## Findings (data/access.csv)
 
 | Homes → station | standard | strict |
 |---|---|---|
-| San Mateo → San Mateo | 71% of 22,450 | 23% |
-| Burlingame → Burlingame | 42% of 9,550 | 9% |
-| San Mateo → Burlingame | 47% of 12,996 | 0% |
-| Burlingame → San Mateo | 59% of 4,408 | 0% |
+| San Mateo → San Mateo | 57% of 22,317 | 18% |
+| Burlingame → Burlingame | 36% of 9,505 | 16% |
+| San Mateo → Burlingame | 31% of 12,984 | 1% |
+| Burlingame → San Mateo | 60% of 4,296 | 0% |
+| San Mateo → Hayward Park | 38% of 27,037 | 10% |
 
 ## Limitations
 
@@ -126,4 +143,6 @@ python3 build_site.py
 - Traffic volume is known only for San Mateo's surveyed streets; Burlingame's survey has been requested (`data/records_requests.csv`).
 - Outside San Mateo's survey, many speeds are defaults.
 - Fixes are tested one at a time; combinations can do more than the sum.
+- One-way tags come from OpenStreetMap; Lorton Ave, Primrose Rd and Highland Ave by Burlingame station are drawn one-way
+  but are two-way on the ground (`overrides.csv`).
 - Not causal: the map shows where routes exist, not whether people would ride them.

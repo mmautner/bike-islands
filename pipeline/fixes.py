@@ -9,7 +9,7 @@ to check. A span of one node is a crossing, and is described as one.
 """
 import collections
 
-from connectivity import base, low_adj, score, Overlay, way_extra, dj_prev, street_names, crossing_name, STATIONS
+from connectivity import base, low_adj, score, Overlay, way_extra, dj_prevs, street_names, crossing_name, STATIONS
 from islands import dist, mph, lanes
 from treatments import Explainer
 
@@ -63,22 +63,23 @@ class Network:
         pos = collections.defaultdict(list)
         for i, n in enumerate(ns):
             pos[n].append(i)
-        _, prev = dj_prev(Overlay(self.adj_low, ex), self.srcs(r["st"]))
+        _, prevs = dj_prevs(Overlay(self.adj_low, ex), self.srcs(r["st"]))   # with one-way streets, both ways
         used, cross = set(), set()
-        for o, _ in gained:
-            u, last = o, None
-            while u in prev:
-                v = prev[u]
-                if (u, v) in seg or (u, v) in link:
-                    for n in (u, v):
-                        if not isinstance(n, tuple):
-                            used.update(pos[n])
-                    if (u, v) in link and last == "link" and not isinstance(u, tuple):
-                        cross.add(u)          # quiet street -> u -> quiet street
-                    last = "link" if (u, v) in link else "seg"
-                else:
-                    last = None
-                u = v
+        for prev in prevs:
+            for o, _ in gained:
+                u, last = o, None
+                while u in prev:
+                    v = prev[u]
+                    if (u, v) in seg or (u, v) in link:
+                        for n in (u, v):
+                            if not isinstance(n, tuple):
+                                used.update(pos[n])
+                        if (u, v) in link and last == "link" and not isinstance(u, tuple):
+                            cross.add(u)          # quiet street -> u -> quiet street
+                        last = "link" if (u, v) in link else "seg"
+                    else:
+                        last = None
+                    u = v
         return used, cross
 
     def end_name(self, ns, i, step, own):

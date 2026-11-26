@@ -32,7 +32,7 @@ import os
 import sys
 
 from islands import islands as mk_islands, dist
-from connectivity import setup, low_adj, dj, dj_prev, base, DETOUR, CITIES, street_names, crossing_name
+from connectivity import setup, low_adj, dj, dj_prevs, base, DETOUR, CITIES, street_names, crossing_name
 from schools import inside, edge_dist, kid_origins
 from treatments import Explainer
 
@@ -271,7 +271,7 @@ def place_detail(ctx, pl):
     """What a place page needs, and each tested fix's gained origin keys."""
     wi = WEIGHT[ctx.tier]
     src_all, src_low = ctx.sources(pl)
-    d_all, prev = dj_prev(ctx.adj_all, src_all, cutoff=RIDE_M * 1.3)
+    d_all, prevs = dj_prevs(ctx.adj_all, src_all, cutoff=RIDE_M * 1.3)   # with one-way streets, there and back
     near = {k: w for k, w in ctx.W.items() if (w[0] or w[1]) and d_all.get(base(k), 1e18) <= RIDE_M}
 
     def reach(adj, fixed=frozenset(), srcs=src_low):
@@ -288,21 +288,23 @@ def place_detail(ctx, pl):
     for k in near:
         if k in ok0:
             continue
-        n, seen, lowin = base(k), set(), True
-        while n in prev:
-            m = prev[n]
-            wid, r, low = ctx.seg_way.get((n, m), (None, 0, True))
-            nm = ctx.wmap[wid][0]["tags"].get("name") if wid else None
-            if not low and nm:     # an unnamed busy way (a ramp, a parking aisle) isn't something to ask the city about
-                key = ("along", nm)
-                items[key]["segs"].add((n, m))
-                seen.add(key)
-            if n in ctx.bn and low and lowin:
-                key = ("cross", crossing_name(n, ctx.names_at, ctx.busy_at, ctx.quiet_at))
-                items[key]["nodes"].add(n)
-                seen.add(key)
-            lowin = low
-            n = m
+        seen = set()
+        for prev in prevs:
+            n, lowin = base(k), True
+            while n in prev:
+                m = prev[n]
+                wid, r, low = ctx.seg_way.get((n, m), (None, 0, True))
+                nm = ctx.wmap[wid][0]["tags"].get("name") if wid else None
+                if not low and nm:     # an unnamed busy way (a ramp, a parking aisle) isn't something to ask the city about
+                    key = ("along", nm)
+                    items[key]["segs"].add((n, m))
+                    seen.add(key)
+                if n in ctx.bn and low and lowin:
+                    key = ("cross", crossing_name(n, ctx.names_at, ctx.busy_at, ctx.quiet_at))
+                    items[key]["nodes"].add(n)
+                    seen.add(key)
+                lowin = low
+                n = m
         for key in seen:
             items[key]["w"][0] += near[k][0]
             items[key]["w"][1] += near[k][1]

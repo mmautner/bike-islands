@@ -52,7 +52,7 @@ def _speeds(s0):
 
 def _lane_counts(t):
     n0 = lanes(t, _hw(t))
-    lo = 1 if t.get("oneway") == "yes" else 2
+    lo = 1 if t.get("oneway") == "yes" and t.get("bi:divided") != "yes" else 2   # a divided road keeps a lane each way
     return list(range(n0, lo - 1, -1)) if n0 > lo else [n0]
 
 
@@ -148,6 +148,8 @@ def _lanes_text(t):
     n = lanes(t, _hw(t))
     if "lanes" not in t:
         return f"{n} lanes assumed", f"no lane count is mapped, so {n} lanes are assumed"
+    if t.get("bi:divided") == "yes":
+        return f"{n} lanes on two roadways", None
     return f"{n} lane{'s' if n != 1 else ''}", None
 
 
@@ -161,6 +163,8 @@ def describe_way(t):
     fac = {"track": "a protected bike lane", "lane": "a painted bike lane", "mixed": "no bike lane"}[facility(t)]
     bits = [kind, sp, ln, fac]
     assumed = [a for a in (a1, a2) if a]
+    if t.get("bi:lts"):
+        assumed.append("rated from a field check, not from its speed, lanes or traffic")
     if facility(t) == "mixed" and USE_VOLUME:
         if t.get("survey:adt"):
             bits.append(f"{int(float(t['survey:adt'])):,} cars a day (city count)")

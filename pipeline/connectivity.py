@@ -11,7 +11,7 @@ import collections
 import heapq
 import sys
 
-from islands import build, islands, dist, mph, lanes, station_test
+from islands import build, islands, dist, mph, lanes, station_test, oneway
 from homes import blocks, snap
 
 DETOUR = 1.25
@@ -20,7 +20,30 @@ STATIONS = ["Burlingame", "San Mateo", "Hayward Park", "Hillsdale"]
 CITIES = ["San Mateo", "Burlingame"]
 
 
+class TwoWay:
+    """A low-stress network with one-way streets: fw[a] lists where you may ride to from a, bw[b] where you may
+    have come from. A search from a place over fw gives the ride home from it, over bw the ride there; dj takes
+    the longer of the two, so a home counts only if it has a low-stress route both ways."""
+    def __init__(self, fw, bw):
+        self.fw, self.bw = fw, bw
+
+    def __iter__(self):
+        return iter(dict.fromkeys(list(self.fw) + list(self.bw)))
+
+    def __contains__(self, k):
+        return k in self.fw or k in self.bw
+
+
+class LowEdges(list):
+    """setup's low_edges, (a, b, L, way id) with a -> b along the way's nodes, plus .oneway: {way id: 1 or -1}
+    for the one-way ones (islands.oneway), so low_adj can build a TwoWay."""
+    oneway = {}
+
+
 def dj(adj, srcs, cutoff=8000):
+    if isinstance(adj, TwoWay):
+        a, b = dj(adj.fw, srcs, cutoff), dj(adj.bw, srcs, cutoff)
+        return {k: max(v, b[k]) for k, v in a.items() if k in b}
     d = {s: 0.0 for s in srcs}
     h = [(0.0, i, s) for i, s in enumerate(srcs)]
     c = len(h)
@@ -36,8 +59,19 @@ def dj(adj, srcs, cutoff=8000):
     return d
 
 
+def dj_prevs(adj, srcs, cutoff=8000):
+    """dj, and a list of predecessor maps to trace routes back by: one, or for a TwoWay, the ride from the
+    sources and the ride to them."""
+    if isinstance(adj, TwoWay):
+        (a, pa), (b, pb) = dj_prev(adj.fw, srcs, cutoff), dj_prev(adj.bw, srcs, cutoff)
+        return {k: max(v, b[k]) for k, v in a.items() if k in b}, [pa, pb]
+    d, prev = dj_prev(adj, srcs, cutoff)
+    return d, [prev]
+
+
 def dj_prev(adj, srcs, cutoff=8000):
-    """dj, also returning each node's predecessor on its shortest route, to trace routes back."""
+    """dj, also returning each node's predecessor on its shortest route, to trace routes back. Not for a
+    TwoWay (use dj_prevs)."""
     d = {s: 0.0 for s in srcs}
     prev = {}
     h = [(0.0, i, s) for i, s in enumerate(srcs)]
@@ -80,8 +114,12 @@ def base(n):
 def setup(path, tier, detail=None):
     ws, coord, bn, stations = build(path, tier, detail)
     f, key = islands(ws, bn)
-    adj_all = collections.defaultdict(list)
-    low_edges = []   # (a, b, L, wid)
+    # every rideable street, for the shortest ride a low-stress route is compared with; with one-way streets
+    # it is a TwoWay too, so the comparison is between legal rides
+    all_edges = LowEdges()
+    all_edges.oneway = {w["id"]: oneway(w["tags"]) for w, _, _, _ in ws if oneway(w["tags"])}
+    low_edges = LowEdges()   # (a, b, L, wid)
+    low_edges.oneway = {w["id"]: oneway(w["tags"]) for w, _, _, low in ws if low and oneway(w["tags"])}
     high_edges = []  # (na, nb, L, wid)
     low_nodes = set()
     for w, r, _, low in ws:
@@ -89,8 +127,7 @@ def setup(path, tier, detail=None):
         res = w["tags"].get("highway") == "residential"
         for i in range(len(ns) - 1):
             L = dist(coord[ns[i]], coord[ns[i + 1]])
-            adj_all[ns[i]].append((ns[i + 1], L))
-            adj_all[ns[i + 1]].append((ns[i], L))
+            all_edges.append((ns[i], ns[i + 1], L, w["id"]))
             if low:
                 low_edges.append((key(ns[i], w["id"], i, "out"), key(ns[i + 1], w["id"], i + 1, "in"), L, w["id"]))
             else:
@@ -98,6 +135,7 @@ def setup(path, tier, detail=None):
             if low:
                 low_nodes.add(key(ns[i], w["id"], i, "out"))
                 low_nodes.add(key(ns[i + 1], w["id"], i + 1, "in"))
+    adj_all = low_adj(all_edges)
     snapped, unsnapped = snap(blocks(), low_nodes, lambda k: coord[base(k)])
     # origins: {(node, city): housing units}
     origins = collections.Counter()
@@ -109,21 +147,43 @@ def setup(path, tier, detail=None):
 
 
 def low_adj(low_edges, extra_edges=(), fixed_nodes=()):
-    adj = collections.defaultdict(list)
-    for a, b, L, _ in low_edges:
+    """The low-stress network as {node: [(neighbour, metres)]}, or a TwoWay where it has one-way streets.
+    Extra edges (a fix being tested) are two-way."""
+    ow = getattr(low_edges, "oneway", {})
+    if not ow:
+        adj = collections.defaultdict(list)
+        fw = bw = adj
+    else:
+        fw, bw = collections.defaultdict(list), collections.defaultdict(list)
+    for a, b, L, wid in low_edges:
         if fixed_nodes:
             a = base(a) if base(a) in fixed_nodes else a
             b = base(b) if base(b) in fixed_nodes else b
-        adj[a].append((b, L))
-        adj[b].append((a, L))
+        d = ow.get(wid, 0)
+        if d != -1:
+            fw[a].append((b, L))
+            if bw is not fw:
+                bw[b].append((a, L))
+        if d != 1:
+            fw[b].append((a, L))
+            if bw is not fw:
+                bw[a].append((b, L))
     for a, b, L in extra_edges:
-        adj[a].append((b, L))
-        adj[b].append((a, L))
+        fw[a].append((b, L)); fw[b].append((a, L))
+        if bw is not fw:
+            bw[a].append((b, L)); bw[b].append((a, L))
     # a raw node connects to every copy of itself only if it is not a barrier
-    return adj
+    return fw if bw is fw else TwoWay(fw, bw)
 
 
-class Overlay:
+def Overlay(adj, extra):
+    """adj plus a few extra two-way edges, without copying adj."""
+    if isinstance(adj, TwoWay):
+        return TwoWay(_Overlay(adj.fw, extra), _Overlay(adj.bw, extra))
+    return _Overlay(adj, extra)
+
+
+class _Overlay:
     """adj_low plus a few extra edges, without copying adj_low: dj only reads adj[u]. Neighbours come in the
     same order as in a copy with the extras appended, so results are identical."""
     def __init__(self, adj, extra):
@@ -213,47 +273,62 @@ def bridges(path, st, tier="standard", n_test=200):
     # minimum-stress route, this avoids long detours, so its high-stress pieces are the
     # ones that fixing would bring the route within the detour limit.
     LAMBDA = 3.0
-    cg = collections.defaultdict(list)
-    for a, b, L, wid in low_edges:
-        cg[a].append((b, L, wid)); cg[b].append((a, L, wid))
-    for a, b, L, wid in high_edges:
-        cg[a].append((b, L * (1 + LAMBDA), wid)); cg[b].append((a, L * (1 + LAMBDA), wid))
-    for n, cs in copies.items():
-        for c in sorted(cs):
-            pen = 15 * LAMBDA
-            cg[c].append((n, pen, None)); cg[n].append((c, pen, None))
-    d, prev = {}, {}
-    h = []
-    for i, k in enumerate(k for k in cg if reaches(st, coord[base(k)])):
-        d[k] = 0.0; h.append((0.0, i, k))
-    heapq.heapify(h); cnt = len(h)
-    while h:
-        x, _, u = heapq.heappop(h)
-        if x > d[u] or x > 30000:
-            continue
-        for v, w, wid in cg[u]:
-            if x + w < d.get(v, 1e18):
-                d[v] = x + w; prev[v] = (u, wid); cnt += 1; heapq.heappush(h, (x + w, cnt, v))
+    ow = getattr(low_edges, "oneway", {})
+
+    def search(back):
+        """Least-cost routes from the station (back=False: the ride home) or to it (back=True: the ride there),
+        as predecessor links. Busy streets are two-way here; one-way quiet streets are followed."""
+        cg = collections.defaultdict(list)
+        for a, b, L, wid in low_edges:
+            d = ow.get(wid, 0) * (-1 if back else 1)
+            if d != -1:
+                cg[a].append((b, L, wid))
+            if d != 1:
+                cg[b].append((a, L, wid))
+        for a, b, L, wid in high_edges:
+            cg[a].append((b, L * (1 + LAMBDA), wid)); cg[b].append((a, L * (1 + LAMBDA), wid))
+        for n, cs in copies.items():
+            for c in sorted(cs):
+                pen = 15 * LAMBDA
+                cg[c].append((n, pen, None)); cg[n].append((c, pen, None))
+        d, prev = {}, {}
+        h = []
+        for i, k in enumerate(k for k in cg if reaches(st, coord[base(k)])):
+            d[k] = 0.0; h.append((0.0, i, k))
+        heapq.heapify(h); cnt = len(h)
+        while h:
+            x, _, u = heapq.heappop(h)
+            if x > d[u] or x > 30000:
+                continue
+            for v, w, wid in cg[u]:
+                if x + w < d.get(v, 1e18):
+                    d[v] = x + w; prev[v] = (u, wid); cnt += 1; heapq.heappush(h, (x + w, cnt, v))
+        return prev
+
+    prevs = [search(False)] + ([search(True)] if ow else [])
     high_ids = {wid for _, _, _, wid in high_edges}
     credit = collections.Counter()
-    # route_blocks: for each home without a good low-stress route, the stressful pieces of the same route:
-    # ("s", (node, node), way id) for each busy segment ridden, ("x", node) for each barrier crossing.
-    # The export finds the pieces most of an island's homes must use ("what's in the way").
+    # route_blocks: for each home without a good low-stress route, the stressful pieces of the same route
+    # (both ways, with one-way streets): ("s", (node, node), way id) for each busy segment ridden, ("x", node)
+    # for each barrier crossing. The export finds the pieces most of an island's homes must use ("what's in
+    # the way").
     route_blocks, piece_names = {}, {}
     for (o, city), wgt in near.items():
         if dl.get(o, 1e18) <= DETOUR * direct[base(o)] + 50:
             continue
-        u, used, path = o, set(), set()
-        while u in prev:
-            v, wid = prev[u]
-            if wid is None:
-                used.add(("x", base(u)))
-                path.add(("x", base(u)))
-            elif wid in high_ids:
-                used.add(("w", wid))
-                a, b = base(u), base(v)
-                path.add(("s", (min(a, b), max(a, b)), wid))
-            u = v
+        used, path = set(), set()
+        for prev in prevs:
+            u = o
+            while u in prev:
+                v, wid = prev[u]
+                if wid is None:
+                    used.add(("x", base(u)))
+                    path.add(("x", base(u)))
+                elif wid in high_ids:
+                    used.add(("w", wid))
+                    a, b = base(u), base(v)
+                    path.add(("s", (min(a, b), max(a, b)), wid))
+                u = v
         for x in sorted(used):     # insertion order breaks ties in credit.most_common
             credit[x] += wgt
         route_blocks[(o, city)] = path

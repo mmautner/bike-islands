@@ -1,5 +1,5 @@
 tier,city,homes_within_2mi,homes_low_stress,kids_within_2mi,kids_low_stress,share_kids
-standard,San Mateo,41826,25846,20676,13581,0.657
-standard,Burlingame,13021,7543,6961,4335,0.623
-strict,San Mateo,41826,15633,20676,8686,0.42
-strict,Burlingame,13021,4624,6961,3078,0.442
+standard,San Mateo,41826,23251,20676,12499,0.605
+standard,Burlingame,13021,7198,6961,4292,0.617
+strict,San Mateo,41826,15387,20676,8558,0.414
+strict,Burlingame,13021,4992,6961,3336,0.479

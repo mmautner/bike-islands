@@ -45,6 +45,17 @@ CROSSING_PENALTY_M = 30  # high-stress metres charged for crossing a barrier str
 STATION_RADIUS_M = 150   # fallback: distance from the station point, if no platform is mapped
 PLATFORM_REACH_M = 60    # a street node this close to a station's platform edge reaches it
 TURN_POCKET_M = 60       # local-street pieces shorter than this with >2 lanes are turn pockets
+# OpenStreetMap often draws a signal or stop sign on each approach a few metres before the intersection
+# (highway=traffic_signals + traffic_signals:direction, highway=stop + stop=all + direction). Such a control
+# counts at the first junction this far along its street, in its direction.
+SIGNAL_REACH_M = 30
+STOP_REACH_M = 25
+# A one-way arterial with a same-named one-way arterial running the other way this close is one roadway of a
+# divided road: the street's lanes are both roadways' together.
+DIVIDED_M = 40
+# Routes follow one-way streets, and a home counts only with a low-stress route both there and back. Alleys
+# and parking aisles (every highway=service) are treated as two-way.
+DIRECTED = True
 # ------------------------------------------------------------------------------------
 
 
@@ -90,6 +101,8 @@ def lts(t):
         return None
     if hw == "service" and t.get("service") in SKIP_SERVICE:
         return None
+    if t.get("bi:lts"):    # rated in the field (data/field_checks/overrides.csv), where the tags can't say why
+        return int(t["bi:lts"]), "street"
     s, n, f = mph(t, hw), lanes(t, hw), facility(t)
     local = hw in LOCAL_ROADS
     if f == "track":
@@ -105,7 +118,9 @@ def lts(t):
     # mixed traffic (includes sharrows)
     adt = t.get("survey:adt")
     if adt and USE_VOLUME:
-        return max(mixed_lts(s, n, local), volume_lts(s, n, int(float(adt)), t.get("oneway") == "yes")), "street"
+        # a divided road's roadway carries half the street's traffic in its lanes, like a two-way street
+        one = t.get("oneway") == "yes" and t.get("bi:divided") != "yes"
+        return max(mixed_lts(s, n, local), volume_lts(s, n, int(float(adt)), one)), "street"
     return mixed_lts(s, n, local), "street"
 
 
@@ -138,6 +153,22 @@ def mixed_lts(s, n, local):
     if s <= 25 and n <= 4:
         return 3
     return 4
+
+
+def oneway(t):
+    """Which way a bike may ride this way: 1 along its nodes, -1 against them, 0 both. Alleys and parking
+    aisles (highway=service) count as two-way; so does a one-way street with a contraflow bike lane."""
+    if not DIRECTED or t.get("highway") == "service":
+        return 0
+    ob = t.get("oneway:bicycle")
+    if ob == "no":
+        return 0
+    if any(v.startswith("opposite") for k, v in t.items() if k.startswith("cycleway")):
+        return 0
+    if any(t.get(f"cycleway:{s}:oneway") in ("no", "-1") for s in ("left", "right", "both")):
+        return 0
+    v = ob or t.get("oneway") or ("yes" if t.get("junction") in ("roundabout", "circular") else "no")
+    return {"yes": 1, "true": 1, "1": 1, "-1": -1}.get(v, 0)
 
 
 def dist(a, b):
@@ -268,6 +299,115 @@ def controlled_crossings(ways):
     return on, off
 
 
+def stop_nodes(path):
+    """Stop-sign nodes from data/raw/osm_stops_*.json (fetch_osm.sh), or [] if not fetched."""
+    import glob
+    pf = sorted(glob.glob(os.path.join(os.path.dirname(path), "osm_stops_*.json")))
+    if not pf:
+        print("no data/raw/osm_stops_*.json: all-way stops from OpenStreetMap aren't counted", file=sys.stderr)
+        return []
+    return [e for e in json.load(open(pf[-1]))["elements"] if e["type"] == "node"]
+
+
+ROUTE_ROADS = RIDEABLE_ROADS | {"cycleway", "path", "trunk", "trunk_link", "motorway", "motorway_link"}
+
+
+def control_junctions(ways, nodes, reach, direction_key):
+    """The intersections a set of control nodes (signals or all-way stops) govern: a node that is itself a
+    junction (3 or more street directions meet), else the first junction within `reach` metres along its street,
+    ahead of it if tagged direction=forward, behind if backward, the nearer either way otherwise."""
+    route = [w for w in ways if w["tags"].get("highway") in ROUTE_ROADS
+             and w["tags"].get("service") not in SKIP_SERVICE]
+    nbr, xy, on = collections.defaultdict(set), {}, collections.defaultdict(list)
+    for w in route:
+        ns = w["nodes"]
+        for i, (n, g) in enumerate(zip(ns, w["geometry"])):
+            xy[n] = (g["lat"], g["lon"])
+            on[n].append((ns, i))
+        for a, b in zip(ns, ns[1:]):
+            nbr[a].add(b)
+            nbr[b].add(a)
+    junction = {n for n, s in nbr.items() if len(s) >= 3}
+    out = set()
+    for e in nodes:
+        n = e["id"]
+        if n in junction:
+            out.add(n)
+            continue
+        if n not in xy:
+            continue
+        d = e.get("tags", {}).get(direction_key, "")
+        found = []
+        for ns, i in on[n]:
+            for step in {"forward": (1,), "backward": (-1,)}.get(d, (1, -1)):
+                if not 0 <= i + step < len(ns):
+                    continue
+                prev, u, run = n, ns[i + step], dist(xy[n], xy[ns[i + step]])
+                while run <= reach:                  # along the street, across splits into the next way
+                    if u in junction:
+                        found.append((run, u))
+                        break
+                    nxt = [v for v in nbr[u] if v != prev]
+                    if len(nxt) != 1:
+                        break
+                    prev, u = u, nxt[0]
+                    run += dist(xy[prev], xy[u])
+        if found:
+            out.add(min(found)[1])
+    return out
+
+
+def mark_divided(ways):
+    """Tag each roadway of a divided arterial (bi:divided=yes) and set its lanes to the street's: its own plus
+    the opposite roadway's (its own twice if that one has no count). Its own count is kept as lanes:roadway."""
+    # A roundabout's ring, and the split legs that meet it around their islands, aren't divided roads.
+    ring = {n for w in ways if w["tags"].get("junction") in ("roundabout", "circular") for n in w["nodes"]}
+    arts = [w for w in ways if w["tags"].get("highway") in ("primary", "secondary", "tertiary")
+            and w["tags"].get("oneway") == "yes" and w["tags"].get("name")
+            and w["tags"].get("junction") not in ("roundabout", "circular") and not ring & set(w["nodes"])]
+    by_name = collections.defaultdict(list)
+    for w in arts:
+        by_name[w["tags"]["name"]].append(w)
+
+    def pts(w):
+        return [(g["lat"], g["lon"]) for g in w["geometry"]]
+
+    def heading(p, q):
+        return ((q[1] - p[1]) * math.cos(math.radians(37.55)), q[0] - p[0])
+
+    found = []
+    for name, ws in by_name.items():
+        for w in ws:
+            p = pts(w)
+            mid = p[len(p) // 2]
+            h = heading(p[0], p[-1])
+            best = None
+            for o in ws:
+                if o is w:
+                    continue
+                q = pts(o)
+                d = min(seg_dist(mid, a, b) for a, b in zip(q, q[1:])) if len(q) > 1 else dist(mid, q[0])
+                ho = heading(q[0], q[-1])
+                if d <= DIVIDED_M and h[0] * ho[0] + h[1] * ho[1] < 0 and (best is None or d < best[0]):
+                    best = (d, o)
+            if best:
+                found.append((w, best[1]))
+    own = {w["id"]: w["tags"].get("lanes") for w, _ in found}      # before any are changed
+    for w, o in found:
+        t = w["tags"]
+        t["bi:divided"] = "yes"
+        if own[w["id"]] is None:
+            continue           # no count mapped: lanes() falls back to the street-class default, a total
+        try:
+            mine = int(float(own[w["id"]].split(";")[0]))
+            other = int(float((own.get(o["id"]) or o["tags"].get("lanes") or str(mine)).split(";")[0]))
+        except ValueError:
+            continue
+        t["lanes:roadway"] = str(mine)
+        t["lanes"] = str(mine + other)
+    return len(found)
+
+
 def build(path, tier, detail=None):
     """detail: a dict to fill with what treatments.py needs to explain a rating: the rated ways (tags as
     adjusted here), the controlled crossing nodes, and the ones field-checked as uncontrolled."""
@@ -276,11 +416,18 @@ def build(path, tier, detail=None):
     apply_overrides([e for e in els if e["type"] == "way" and "tags" in e])
     fixed_on, fixed_off = controlled_crossings([e for e in els if e["type"] == "way" and "highway" in e.get("tags", {})])
     ways = [e for e in els if e["type"] == "way" and "highway" in e.get("tags", {})]
-    # Controlled crossings: signals, signalized crosswalks, and all-way stops.
+    mark_divided(ways)
+    # Controlled crossings: signals, signalized crosswalks, and all-way stops, each counted at the intersection
+    # it governs (control_junctions) as well as where it's drawn.
+    sig = [e for e in els if e["type"] == "node" and e.get("tags", {}).get("highway") == "traffic_signals"]
+    stops = [e for e in stop_nodes(path) if e.get("tags", {}).get("stop") == "all"]
     signals = {e["id"] for e in els if e["type"] == "node" and (
         e.get("tags", {}).get("highway") == "traffic_signals"
-        or e.get("tags", {}).get("crossing") == "traffic_signals"
-        or (e.get("tags", {}).get("highway") == "stop" and e["tags"].get("stop") == "all"))}
+        or e.get("tags", {}).get("crossing") == "traffic_signals")}
+    signals |= {e["id"] for e in stops}
+    signals |= control_junctions(ways, sig, SIGNAL_REACH_M, "traffic_signals:direction")
+    signals |= control_junctions(ways, stops, STOP_REACH_M, "direction")
+    signals -= fixed_off     # a field check that found no control wins over the map
     stations = {e["tags"]["name"]: (e["lat"], e["lon"]) for e in els
                 if e["type"] == "node" and e.get("tags", {}).get("railway") == "station"
                 and e["tags"].get("network") == "Caltrain"}
@@ -333,14 +480,61 @@ def islands(ws, barrier_nodes):
         touches it, so islands never connect through an uncontrolled busy crossing."""
         return (nid, wid, i, side) if nid in barrier_nodes else nid
 
+    one = []     # one-way low-stress segments, as (from, to)
     for w, _, _, low in ws:
         if not low:
             continue
-        ns = w["nodes"]
+        ns, d = w["nodes"], oneway(w["tags"])
         for i in range(len(ns) - 1):
             a, b = key(ns[i], w["id"], i, "out"), key(ns[i + 1], w["id"], i + 1, "in")
-            par[f(a)] = f(b)
+            if d == 0:
+                par[f(a)] = f(b)
+            else:
+                f(a), f(b)
+                one.append((a, b) if d == 1 else (b, a))
+    # With one-way streets, an island is where you can ride from any point to any other and back: the
+    # strongly connected components of the two-way pieces joined by one-way segments.
+    out = collections.defaultdict(list)
+    for a, b in one:
+        out[f(a)].append(f(b))
+    for comp in _sccs(out):
+        for x in comp[1:]:
+            par[f(x)] = f(comp[0])
     return f, key
+
+
+def _sccs(out):
+    """Strongly connected components with more than one member, of the graph {node: [successors]} (iterative
+    Tarjan). Order is deterministic given out's insertion order."""
+    nodes = list(dict.fromkeys(list(out) + [v for vs in out.values() for v in vs]))
+    index, low, on, stack, comps, n = {}, {}, set(), [], [], 0
+    for s in nodes:
+        if s in index:
+            continue
+        work = [(s, iter(out.get(s, ())))]
+        index[s] = low[s] = n; n += 1; stack.append(s); on.add(s)
+        while work:
+            v, it = work[-1]
+            for u in it:
+                if u not in index:
+                    index[u] = low[u] = n; n += 1; stack.append(u); on.add(u)
+                    work.append((u, iter(out.get(u, ()))))
+                    break
+                if u in on:
+                    low[v] = min(low[v], index[u])
+            else:
+                work.pop()
+                if work:
+                    low[work[-1][0]] = min(low[work[-1][0]], low[v])
+                if low[v] == index[v]:
+                    comp = []
+                    while True:
+                        x = stack.pop(); on.discard(x); comp.append(x)
+                        if x == v:
+                            break
+                    if len(comp) > 1:
+                        comps.append(comp)
+    return comps
 
 
 def graph(ws, coord, barrier_nodes, f, key):

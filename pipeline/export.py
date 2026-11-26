@@ -261,15 +261,19 @@ def island_ids(ws, f, key, origins, tier):
     # which belongs to one island only.
     # An island made only of barrier copies (a short piece between two busy crossings) has no node of its
     # own; it takes minus its first segment (way id * 10,000 + index), as every segment is in one island.
-    rep, own, seg = {}, {}, {}
+    rep, own, seg_out, seg_in = {}, {}, {}, {}
     for w, r, _, low in ws:
         if not low:
             continue
         ns = w["nodes"]
         for i in range(len(ns) - 1):
-            sr = f(key(ns[i], w["id"], i, "out"))
-            seg[sr] = min(seg.get(sr, 1 << 62), w["id"] * 10_000 + i)
-            for k in (key(ns[i], w["id"], i, "out"), key(ns[i + 1], w["id"], i + 1, "in")):
+            ka, kb = key(ns[i], w["id"], i, "out"), key(ns[i + 1], w["id"], i + 1, "in")
+            sid = w["id"] * 10_000 + i
+            # a segment is named by the island it starts in; with one-way streets it can run from one island into
+            # another, so an island no segment starts in falls back to one that ends in it
+            seg_out[f(ka)] = min(seg_out.get(f(ka), 1 << 62), sid)
+            seg_in[f(kb)] = min(seg_in.get(f(kb), 1 << 62), sid)
+            for k in (ka, kb):
                 root = f(k)
                 rep[root] = min(rep.get(root, 1 << 62), base(k))
                 if not isinstance(k, tuple):
@@ -284,7 +288,7 @@ def island_ids(ws, f, key, origins, tier):
         if len(roots) > 1:
             roots.sort(key=lambda x: (-root_homes[x], -(x in own), own.get(x, 1 << 62)))
             for x in roots[1:]:
-                rep[x] = own[x] if x in own else -seg[x]
+                rep[x] = own[x] if x in own else -seg_out.get(x, seg_in.get(x))
     clash = len(rep) - len(set(rep.values()))
     if clash:
         print(f"[{tier}] warning: {clash} islands still share an id (no node of their own)")

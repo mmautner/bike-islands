@@ -16,6 +16,14 @@ out body geom;" -o data/raw/osm_corridor_$DATE.json
 ls -la data/raw/osm_corridor_$DATE.json
 
 
+# Stop signs (pipeline/islands.py counts all-way stops, highway=stop + stop=all, as controlled crossings)
+curl -s -m 300 -A "charts-research/1.0" https://overpass-api.de/api/interpreter --data-urlencode "data=[out:json][timeout:120];
+(
+  node[\"highway\"=\"stop\"]($BBOX);
+);
+out body;" -o data/raw/osm_stops_$DATE.json
+
+
 # Caltrain platforms (routes end where a rideable street comes near a platform)
 curl -s -m 300 -A "charts-research/1.0" https://overpass-api.de/api/interpreter --data-urlencode "data=[out:json][timeout:120];
 (
