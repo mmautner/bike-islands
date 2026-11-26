@@ -108,7 +108,7 @@ def footer():
   <p>Streets: OpenStreetMap contributors. Speed limits: City of San Mateo 2026 speed survey, obtained through a public records request. Homes: 2020 Census. <a href="{BASE}methodology/">How this was made</a>.</p>
   <p>Made by <a href="/about/">Max Mautner</a>. <a href="{e(CFG['repo_url'])}">The data and code are public</a>, so anyone can check how each number was reached. <a href="{e(issue)}">Report an error</a>.</p>
   <p>Updated {updated.strftime('%B')} {updated.day}, {updated.year}.</p>
-  <p><a href="/tools/">More tools for San Mateo's streets</a></p>
+  <p><a href="/tools/">More tools from public data</a></p>
 </footer>"""
 
 
