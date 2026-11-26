@@ -1,0 +1,32 @@
+{
+  "_readme": "Places that get their own page (places/<slug>/) and can be named in the island panel's fix line. Each matches one place in pipeline/places.py by its OpenStreetMap name ('osm'), nearest to 'near' when several share the name. 'name' is what the page says. San Mateo only until Burlingame's speed survey is in (Burlingame streets without a posted speed are assumed 30 mph). Caltrain and schools aren't here: the map already counts them, within 2 miles.",
+  "places": [
+    {"slug": "central-park", "name": "Central Park", "osm": "San Mateo Central Park", "category": "park"},
+    {"slug": "martin-luther-king-park", "name": "Martin Luther King Park", "osm": "Martin Luther King Park", "category": "park"},
+    {"slug": "gateway-park", "name": "Gateway Park", "osm": "Gateway Park", "category": "park"},
+    {"slug": "beresford-park", "name": "Beresford Park", "osm": "Beresford Park", "category": "park"},
+    {"slug": "borel-park", "name": "Borel Park", "osm": "Borel Park", "category": "park"},
+    {"slug": "trinta-park", "name": "Trinta Park", "osm": "Trinta Park", "category": "park"},
+    {"slug": "east-hillsdale-park", "name": "East Hillsdale Park", "osm": "East Hillsdale Park", "category": "park"},
+    {"slug": "joinville-park", "name": "Joinville Park", "osm": "Joinville Park", "category": "park"},
+    {"slug": "fiesta-meadows-park", "name": "Fiesta Meadows Park", "osm": "Fiesta Meadows Park", "category": "park"},
+    {"slug": "shoreview-park", "name": "Shoreview Park", "osm": "Shoreview Park", "category": "park"},
+    {"slug": "seal-point-park", "name": "Seal Point Park", "osm": "Seal Point Park", "category": "park"},
+    {"slug": "parkside-aquatic-park", "name": "Parkside Aquatic Park", "osm": "Parkside Aquatic Park", "category": "park"},
+    {"slug": "lakeshore-park", "name": "Lakeshore Park", "osm": "Lakeshore Park", "category": "park"},
+    {"slug": "coyote-point", "name": "Coyote Point", "osm": "Coyote Point Recreation Area", "category": "park"},
+    {"slug": "sugarloaf", "name": "Sugarloaf Mountain", "osm": "Sugarloaf Mountain Open Space", "category": "park"},
+    {"slug": "main-library", "name": "the main library", "title": "San Mateo's main library", "osm": "San Mateo Public Library", "category": "library"},
+    {"slug": "hillsdale-library", "name": "the Hillsdale library", "title": "the Hillsdale library", "osm": "Hillsdale Branch Library", "category": "library"},
+    {"slug": "marina-library", "name": "the Marina library", "title": "the Marina library", "osm": "Marina Branch San Mateo Public Library", "category": "library"},
+    {"slug": "downtown", "name": "downtown", "title": "downtown San Mateo", "osm": "Downtown San Mateo (B Street)", "category": "downtown"},
+    {"slug": "trader-joes-hillsdale", "name": "Trader Joe's on Hillsdale Blvd", "osm": "Trader Joe's", "near": [37.5355, -122.2984], "category": "grocery"},
+    {"slug": "trader-joes-grant", "name": "Trader Joe's on Grant St", "osm": "Trader Joe's", "near": [37.5547, -122.3028], "category": "grocery"},
+    {"slug": "whole-foods", "name": "Whole Foods", "osm": "Whole Foods Market", "near": [37.5444, -122.2921], "category": "grocery"},
+    {"slug": "safeway-el-camino", "name": "Safeway on El Camino", "osm": "Safeway", "near": [37.5534, -122.3141], "category": "grocery"},
+    {"slug": "safeway-delaware", "name": "Safeway on Delaware St", "osm": "Safeway", "near": [37.5804, -122.3331], "category": "grocery"},
+    {"slug": "takahashi-market", "name": "Takahashi Market", "osm": "Takahashi Market", "category": "grocery"},
+    {"slug": "mi-rancho", "name": "Mi Rancho Supermarket", "osm": "Mi Rancho Supermarket", "near": [37.5687, -122.3255], "category": "grocery"},
+    {"slug": "nijiya-market", "name": "Nijiya Market", "osm": "Nijiya Market", "category": "grocery"}
+  ]
+}

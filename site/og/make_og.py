@@ -1,4 +1,5 @@
-"""Open Graph preview image (1200x630) for the bike islands page: og/index.png, also used by methodology.
+"""Open Graph preview images (1200x630): og/index.png for the map page (also used by methodology), one per share
+page (og/island/, og/fix/), and one per place page (og/places/<slug>.png).
 
     ../san-mateo-speeds/pipeline/.venv/bin/python site/og/make_og.py   # after build_site.py (needs Pillow)
 
@@ -123,6 +124,82 @@ def share_image(ent):
     img.quantize(colors=64, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).save(out / f"{ent['slug']}.png", optimize=True)
 
 
+CAN = "#5cb98d"   # blocks where kids can bike to the place; the rest are ACCENT, as on the place pages
+
+
+def place_image(slug):
+    """Preview for one place page: the share of kids within a mile who can bike there, beside its map."""
+    import json
+    P = json.load(open(Path(B.HERE) / "data" / "places" / "strict" / f"{slug}.json"))
+    M = P["map"]
+    k_, kok = P["total"]["kids"], P["ok"]["kids"]
+    img = Image.new("RGB", (W, H), BG)
+    d = ImageDraw.Draw(img)
+    d.rectangle([0, H - 10, W, H], fill=ACCENT)
+    box = (600, 0, W, H - 10)
+    mw, mh = box[2] - box[0], box[3] - box[1]
+    s_, w_, n_, e_ = (v / 1e5 for v in M["box"])
+    k = 0.79
+    z = min(mw / ((e_ - w_) * k), mh / (n_ - s_)) * 1.1     # a little tighter than the page's map
+    ox, oy = (mw - (e_ - w_) * k * z) / 2, (mh - (n_ - s_) * z) / 2
+    Q = lambda la, lo: (ox + (lo / 1e5 - w_) * k * z, oy + (n_ - la / 1e5) * z)
+    pts = lambda a: [Q(a[i], a[i + 1]) for i in range(0, len(a), 2)]
+    mimg = Image.new("RGB", (mw, mh), BG)
+    md = ImageDraw.Draw(mimg)
+    for r in M["rings"]:
+        if len(r) >= 6:
+            md.polygon(pts(r), fill="#2f3a2c")
+    for st in M["streets"]:
+        if st[0] and len(st) > 3:
+            md.line(pts(st[1:]), fill=LOW, width=1)
+    for st in M["streets"]:
+        if not st[0] and len(st) > 3:
+            md.line(pts(st[1:]), fill=HIGH, width=2)
+    for la, lo, ok, _, kids in M["dots"]:
+        if kids:
+            x, y = Q(la, lo)
+            r = max(2.5, kids ** 0.5 * 1.1)
+            md.ellipse([x - r, y - r, x + r, y + r], fill=CAN if ok else ACCENT)
+    x, y = Q(0, 0)
+    if not M["rings"]:
+        md.ellipse([x - 10, y - 10, x + 10, y + 10], outline=TEXT, width=4)
+    name = P["title"][:1].upper() + P["title"][1:]
+    md.text((x, y + (0 if M["rings"] else 28)), name, font=font("IBMPlexSans.ttf", 22, 600), fill=TEXT, anchor="mm",
+            stroke_width=5, stroke_fill=BG)
+    img.paste(mimg, (box[0], box[1]))
+    shade = Image.new("RGB", (50, H - 10), BG)
+    img.paste(shade, (box[0], 0), Image.linear_gradient("L").rotate(90).resize((50, H - 10)))
+    d.text((PAD, PAD - 6), "BIKE ISLANDS · SAN MATEO", font=font("IBMPlexSans.ttf", 20, 600), fill=TEXT3)
+    title = f"Who can bike to {P['title']}?"
+    for size in (50, 46, 42, 38, 34):
+        f = font("Newsreader.ttf", size, 600)
+        tl = wrap(d, title, f, 480)
+        if len(tl) <= 3:
+            break
+    y = 140
+    for line in tl:
+        d.text((PAD, y), line, font=f, fill=TEXT, anchor="ls"); y += int(size * 1.15)
+    # the answer: the share who can, big, over a can / can't bar
+    y += 40
+    share = round(100 * kok / k_) if k_ else 0
+    big = font("Newsreader.ttf", 84, 600)
+    d.text((PAD, y + 50), f"{share}%", font=big, fill=CAN, anchor="ls")
+    bx = PAD + d.textlength(f"{share}%", font=big) + 18
+    small = font("IBMPlexSans.ttf", 22, 400)
+    for i, line in enumerate(wrap(d, "of kids within a mile can bike there on quiet streets", small, 470 - (bx - PAD))):
+        d.text((bx, y + 14 + i * 28), line, font=small, fill=TEXT2, anchor="ls")
+    y += 76
+    bw = 460
+    d.rectangle([PAD, y, PAD + bw, y + 14], fill=ACCENT)
+    d.rectangle([PAD, y, PAD + bw * share / 100, y + 14], fill=CAN)
+    y += 50
+    d.text((PAD, y), f"{kok:,} of {k_:,} kids", font=small, fill=TEXT2, anchor="ls")
+    d.text((PAD, H - PAD + 26), f"maxmautner.com{B.BASE.rstrip('/')}", font=font("IBMPlexSans.ttf", 22, 400), fill=TEXT3, anchor="ls")
+    out = OUT / "places"
+    out.mkdir(parents=True, exist_ok=True)
+    img.quantize(colors=64, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).save(out / f"{slug}.png", optimize=True)
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     img = Image.new("RGB", (W, H), BG)
@@ -194,6 +271,12 @@ def main():
     with ProcessPoolExecutor() as ex:
         list(ex.map(share_image, entries, chunksize=4))
     print(f"wrote {len(entries)} share previews", file=sys.stderr)
+    pf = Path(B.HERE) / "data" / "places_strict.json"
+    if pf.exists():
+        slugs = [p["slug"] for p in json.load(open(pf))["places"]]
+        with ProcessPoolExecutor() as ex:
+            list(ex.map(place_image, slugs, chunksize=4))
+        print(f"wrote {len(slugs)} place previews", file=sys.stderr)
 
 
 if __name__ == "__main__":

@@ -9,7 +9,7 @@ to Caltrain. Served at
 
 - `pipeline/`: fetch scripts and the model.
   - `fetch_osm.sh`, `fetch_blocks.sh`: download OpenStreetMap streets, signals, stations, platforms and school
-    grounds, the California School Directory, and Census 2020 block housing units, residents under 18 (needs a
+    grounds, everyday places, the California School Directory, and Census 2020 block housing units, residents under 18 (needs a
     free key in `CENSUS_API_KEY`) and city boundaries, into `data/raw/` (not committed, ~47 MB).
   - `islands.py`: rates every street's Level of Traffic Stress and builds islands.
   - `survey.py`: matches the City of San Mateo 2026 speed survey to OpenStreetMap (`data/survey_matches.csv`).
@@ -17,6 +17,11 @@ to Caltrain. Served at
   - `schools.py`: homes and kids with a low-stress route to a public elementary school (run alone for a report
     by school, including the stricter "to the nearest school" measure; export uses `access()`).
   - `export.py`: writes `data/map_*.json`, `data/access.csv`, `data/bridges.csv`, `data/schools.csv`.
+  - `places.py`: everyday places (grocery stores, parks, libraries, downtown) and who can bike to each within a
+    1-mile ride. `--export` writes `data/places_<tier>.json` (each island's "From here" lists and the one fix that
+    would let the most homes there bike to more places; `tiles.py` merges it into the overview) and
+    `data/places/<tier>/<slug>.json` (a page's data for each place in `site/places.json`: who can bike there, what's in
+    the way, and the fixes that would help most, alone and in pairs). Run alone with `--at "Street, City"` for a report.
   - `sensitivity.py`: detour limit × ride radius grid (`data/sensitivity.csv`).
   - `joints.py`: the intersections and segments holding each island together (diagnostic).
   - `tiles.py`: splits each standard's map data into `data/overview_<tier>.json` (every street simplified to
@@ -30,6 +35,8 @@ to Caltrain. Served at
   sheets obtained through a public records request.
 - `data/field_checks/`: speed limits (`overrides.csv`) and intersection controls (`crossings.csv`) checked in
   person or on Street View, each with its source.
+- `site/places.json`: the places that get their own page, matched to OpenStreetMap by name. San Mateo only until
+  Burlingame's speed survey is in. `site/place.html`: the place page template.
 - `site/template.html`: the page (map, panel, rider cards, quiz). `site/img/`: quiz photos, cropped from Google
   Street View screenshots. Not in git until Google's terms for publishing them are checked; the originals are
   Max's 2950×1964 browser screenshots, cropped to the street view and scaled to 1200 px wide:

@@ -253,6 +253,44 @@ def write_schools(isl, iid, coord, adj_all, low_edges, origins, node_ix, tier, r
     return out, {c: {k: round(tot[c][k]) for k in ("n", "ok", "kn", "kok")} for c in CITIES}
 
 
+def island_ids(ws, f, key, origins, tier):
+    """Stable island ids for one standard's islands (f, key from islands.islands): returns iid(low-stress key)."""
+    # stable island ids: smallest raw OSM node id in the island. A barrier node has a copy on each
+    # side, so two islands can share that smallest id; then the one with the most homes keeps it
+    # (share links stay put) and the others take their smallest node that isn't a barrier copy,
+    # which belongs to one island only.
+    # An island made only of barrier copies (a short piece between two busy crossings) has no node of its
+    # own; it takes minus its first segment (way id * 10,000 + index), as every segment is in one island.
+    rep, own, seg = {}, {}, {}
+    for w, r, _, low in ws:
+        if not low:
+            continue
+        ns = w["nodes"]
+        for i in range(len(ns) - 1):
+            sr = f(key(ns[i], w["id"], i, "out"))
+            seg[sr] = min(seg.get(sr, 1 << 62), w["id"] * 10_000 + i)
+            for k in (key(ns[i], w["id"], i, "out"), key(ns[i + 1], w["id"], i + 1, "in")):
+                root = f(k)
+                rep[root] = min(rep.get(root, 1 << 62), base(k))
+                if not isinstance(k, tuple):
+                    own[root] = min(own.get(root, 1 << 62), k)
+    root_homes = collections.Counter()
+    for (o, city), hu in origins.items():
+        root_homes[f(o)] += hu
+    by_id = collections.defaultdict(list)
+    for root, r in rep.items():
+        by_id[r].append(root)
+    for r, roots in by_id.items():
+        if len(roots) > 1:
+            roots.sort(key=lambda x: (-root_homes[x], -(x in own), own.get(x, 1 << 62)))
+            for x in roots[1:]:
+                rep[x] = own[x] if x in own else -seg[x]
+    clash = len(rep) - len(set(rep.values()))
+    if clash:
+        print(f"[{tier}] warning: {clash} islands still share an id (no node of their own)")
+    return lambda k: rep[f(k)]
+
+
 def write_streets(ws):
     """data/streets.json: every named street in the map frame, by city, with its extent, for the
     page's street search. Same-named streets in different cities stay separate.
@@ -302,40 +340,7 @@ def main():
             if round(g0) != round(g1):
                 print(f"[{tier}] {st}: trimmed fix w{wid} connects {g1:.0f} homes, the whole way {g0:.0f}")
         whys = {}
-        # stable island ids: smallest raw OSM node id in the island. A barrier node has a copy on each
-        # side, so two islands can share that smallest id; then the one with the most homes keeps it
-        # (share links stay put) and the others take their smallest node that isn't a barrier copy,
-        # which belongs to one island only.
-        # An island made only of barrier copies (a short piece between two busy crossings) has no node of its
-        # own; it takes minus its first segment (way id * 10,000 + index), as every segment is in one island.
-        rep, own, seg = {}, {}, {}
-        for w, r, _, low in ws:
-            if not low:
-                continue
-            ns = w["nodes"]
-            for i in range(len(ns) - 1):
-                sr = f(key(ns[i], w["id"], i, "out"))
-                seg[sr] = min(seg.get(sr, 1 << 62), w["id"] * 10_000 + i)
-                for k in (key(ns[i], w["id"], i, "out"), key(ns[i + 1], w["id"], i + 1, "in")):
-                    root = f(k)
-                    rep[root] = min(rep.get(root, 1 << 62), base(k))
-                    if not isinstance(k, tuple):
-                        own[root] = min(own.get(root, 1 << 62), k)
-        root_homes = collections.Counter()
-        for (o, city), hu in origins.items():
-            root_homes[f(o)] += hu
-        by_id = collections.defaultdict(list)
-        for root, r in rep.items():
-            by_id[r].append(root)
-        for r, roots in by_id.items():
-            if len(roots) > 1:
-                roots.sort(key=lambda x: (-root_homes[x], -(x in own), own.get(x, 1 << 62)))
-                for x in roots[1:]:
-                    rep[x] = own[x] if x in own else -seg[x]
-        clash = len(rep) - len(set(rep.values()))
-        if clash:
-            print(f"[{tier}] warning: {clash} islands still share an id (no node of their own)")
-        iid = lambda k: rep[f(k)]
+        iid = island_ids(ws, f, key, origins, tier)
 
         lines = []
         node_ix = {}

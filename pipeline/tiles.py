@@ -90,6 +90,14 @@ def main():
         for key, lines in tiles.items():
             json.dump({"lines": lines}, open(os.path.join(tdir, tier, f"{key}.json"), "w"), separators=(",", ":"))
         out = {k: v for k, v in T.items() if k != "lines"}
+        # everyday places (pipeline/places.py --export): each island's "From here" lists and fix line, as "pl"
+        pf = os.path.join(DATA, f"places_{tier}.json")
+        if os.path.exists(pf):
+            for i, e in json.load(open(pf))["islands"].items():
+                if i in out["islands"]:
+                    out["islands"][i]["pl"] = e
+        else:
+            print(f"{tier}: no {pf}; run pipeline/places.py --export for the islands' places")
         out.update(packed=overview, origin=[oy, ox], tiles=sorted(tiles), tile_size=[TILE_LAT, TILE_LON])
         json.dump(out, open(os.path.join(DATA, f"overview_{tier}.json"), "w"), separators=(",", ":"))
         full = os.path.getsize(os.path.join(DATA, f"map_{tier}.json"))

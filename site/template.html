@@ -92,6 +92,13 @@
   ol.br li.hot { background: var(--card); }
   ol.br .joins { display:block; font-size:13px; color:var(--grey); }
   ol.br .joins::before { content:""; display:inline-block; width:14px; height:0; border-top:3px solid #5f87b5; vertical-align:middle; margin-right:6px; }
+  .door { margin:12px 0 6px; }
+  .door h3 { font-size:15px; font-weight:600; color:var(--ink); margin:10px 0 2px; font-family:var(--font-sans); }
+  .door ul { margin:0; padding-left:18px; font-size:14px; }
+  .door li { margin:2px 0; }
+  .door a { color:inherit; }
+  .door .out li::marker { color:var(--copper); }
+  .door .fixline { margin:10px 0 0; padding:10px 12px; background:var(--card); border-left:3px solid var(--copper); font-size:14px; color:var(--ink); }
   .need { display:block; font-size:13.5px; color:var(--ink); margin-top:2px; }
   .need b { font-weight:600; }
   details.fixwhy { font-size:13px; color:var(--grey); margin-top:2px; }
@@ -753,6 +760,31 @@ function headline() {
     `Quiet streets form islands, cut off from each other by busy streets and crossings. Pick who's riding, then ${COARSE ? "tap" : "click"} near home to see your island: the schools and Caltrain stations it reaches, and the fixes that would connect it.`;
 }
 
+// "From here": everyday places most homes on this island near each one can bike to, the nearest they can't,
+// and the one fix that would let the most homes here bike to more of the places with their own page
+// (pipeline/places.py; homes within a 1-mile ride of each place).
+const DOOR_WHO = {strict: "Kids", standard: "Experienced riders"};
+const DOOR_CAT = {grocery: "grocery store", park: "park", library: "library", downtown: "downtown"};
+const placeLink = (n, slug) => slug ? `<a href="places/${slug}/">${n}</a>` : n;
+function doorBlock(I) {
+  const P = I.pl;
+  if (!P) return "";
+  let h = `<div class="door"><h2 style="margin-top:14px">From here</h2>`;
+  if ((P.on || []).length) h += `<h3>${DOOR_WHO[tier]} here can bike to</h3><ul>` +
+    P.on.map(([c, n, , slug]) => `<li>${placeLink(n, slug)} <span class="muted">${DOOR_CAT[c]}</span></li>`).join("") + `</ul>`;
+  else h += `<p class="answer">No grocery store, park, library or downtown within a mile that most homes here can bike to.</p>`;
+  if ((P.out || []).length) h += `<h3>Close, but not on a ${tier === "strict" ? "kid-safe" : "low-stress"} route</h3><ul class="out">` +
+    P.out.map(([c, n, , slug]) => `<li>${placeLink(n, slug)} <span class="muted">${DOOR_CAT[c]}</span></li>`).join("") + `</ul>`;
+  const F = P.fix;
+  if (F) {
+    const what = F.kind === "cross" ? `A safe ${F.where.replace(/^the /, "")}` : `Making ${F.where} safe for ${tier === "strict" ? "kids" : "experienced riders"}`;
+    const pl = F.places.map(([slug, n]) => `<a href="places/${slug}/">${n}</a>`);
+    h += `<p class="fixline"><strong>${what}</strong> would let ${pl.length > 1 ? "up to " : ""}${fmt(F.homes)} more homes here bike to ${andList(pl)}.` +
+      (F.need && F.need.length ? `<span class="need">It would need ${orList(F.need)}.</span>` : "") + `</p>`;
+  }
+  return h + `</div>`;
+}
+
 function panel() {
   const T = DATA[tier], el = document.getElementById("panel");
   if (!sel) {
@@ -767,7 +799,7 @@ function panel() {
     return;
   }
   const I = T.islands[sel] || {homes: 0, ok: {}, near: {}, bridges: []};
-  let h = `<h2>This island</h2><div><span class="big">${fmt(I.homes)}</span> homes</div>` + schoolBlock(T, I);
+  let h = `<h2>This island</h2><div><span class="big">${fmt(I.homes)}</span> homes</div>` + doorBlock(I) + schoolBlock(T, I);
   // The answer first: the stations this island reaches get a block each (share, minutes, why not the rest);
   // the ones within 2 miles it doesn't reach share one line; the ones farther away, one muted line.
   const far = [], cut = [], reached = [];

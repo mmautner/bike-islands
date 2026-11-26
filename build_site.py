@@ -4,6 +4,8 @@
 
 Reads data/map_strict.json and data/map_standard.json (from pipeline/export.py). Writes:
   index.html              the map page (site/template.html with the data inlined)
+  places/<slug>/          a page per curated place (site/place.html, data/places/strict/<slug>.json from
+                          pipeline/places.py --export), and places/index.html listing them
   methodology/index.html  sources and methods (site/methodology.html)
   img/                    quiz photos (site/img/, not in git)
 Head tags, the maxmautner.com header and the footer are shared, as in ../san-mateo-speeds.
@@ -108,7 +110,7 @@ def footer():
   <p>Streets: OpenStreetMap contributors. Speed limits: City of San Mateo 2026 speed survey, obtained through a public records request. Homes and kids: 2020 Census. Schools: California School Directory. <a href="{BASE}methodology/">How this was made</a>.</p>
   <p>Made by <a href="/about/">Max Mautner</a>. <a href="{e(CFG['repo_url'])}">The data and code are public</a>, so anyone can check how each number was reached. <a href="{e(issue)}">Report an error</a>.</p>
   <p>Updated {updated.strftime('%B')} {updated.day}, {updated.year}.</p>
-  <p><a href="/tools/">More tools from public data</a></p>
+  <p><a href="{BASE}places/">Who can bike to the places kids go</a> · <a href="/tools/">More tools from public data</a></p>
 </footer>"""
 
 
@@ -295,6 +297,160 @@ def share_page(ent):
             + f'<body><p><a href="{html.escape(t)}">{html.escape(ent["title"])}: open the bike islands map</a></p></body>\n</html>\n')
 
 
+# --- place pages (pipeline/places.py --export): one per curated place, kids' map ----------------------------
+PLACE_CAT = {"park": "Parks", "library": "Libraries", "downtown": "Downtown", "grocery": "Grocery stores"}
+
+
+def in_rings(lon, lat, rings):
+    c = False
+    for r in rings:
+        for (x1, y1), (x2, y2) in zip(r, r[1:]):
+            if (y1 > lat) != (y2 > lat) and lon < (x2 - x1) * (lat - y1) / (y2 - y1) + x1:
+                c = not c
+    return c
+
+
+def pct(a, b):
+    return f"{round(100 * a / b)}%" if b else "0%"
+
+
+def fix_title(f):
+    if f["kind"] == "cross":
+        return "A safe " + short(f["where"]).replace("the crossing", "crossing")
+    return f"Make {short(f['where'])} safe for kids"
+
+
+def place_body(P, civ):
+    t, tot, ok = P["title"], P["total"], P["ok"]
+    k, kok = tot["kids"], ok["kids"]
+    cant = k - kok
+    fixes = [f for f in P["fixes"] if f["kids"] > 0][:4]
+    h = [f'<p class="crumb"><a href="{BASE}">Bike islands</a> · <a href="{BASE}places/">Places</a> · {PLACE_CAT[P["category"]]}</p>',
+         f'<h1>Who can bike to {e(t)}?</h1>', '<div class="top"><div>',
+         f'<p class="lede"><strong>{k:,} kids</strong> live within a 1-mile ride of {e(t)}. '
+         f'{"Only " if kok < k / 2 else ""}<strong>{kok:,}</strong> of them can get there without riding on a busy street.</p>',
+         f'<div class="bar" role="img" aria-label="{pct(kok, k)} can bike there safely, {pct(cant, k)} can\'t"><i style="width:{100 * kok / max(k, 1):.1f}%"></i></div>',
+         f'<div class="barlab"><span class="c"><b>{pct(kok, k)}</b> can bike there</span><span class="x"><b>{pct(cant, k)}</b> can\'t</span></div>',
+         f'<p class="note">This is the map for kids and cautious riders: paths and quiet streets only, never on busy streets, never across '
+         f'El Camino. Of the {tot["homes"]:,} homes within a mile, {ok["homes"]:,} have a route like that.</p>',
+         '<p class="note">Each dot is a block, sized by how many kids live there. Green blocks have a route; copper blocks don\'t.</p>',
+         '</div><div class="mapwrap"><p class="hint" id="hint">Tap a block' + (' or a numbered fix' if fixes else '') + '.</p>',
+         f'<canvas id="map" aria-label="Map of blocks within a mile of {e(t)}, colored by whether a kid can bike there on quiet streets"></canvas>',
+         '<div class="pop" id="pop" hidden role="status"></div><div class="legend">'
+         '<span><i class="sw" style="background:var(--can)"></i>Can bike there</span>'
+         '<span><i class="sw" style="background:var(--copper)"></i>Can\'t</span>'
+         '<span><i class="ln" style="background:var(--ink)"></i>Busy street</span>'
+         '<span><i class="ln" style="background:var(--quiet)"></i>Quiet street</span>' +
+         ('<span><i class="num" style="margin-right:0;width:18px;height:18px;font-size:11px">1</i>Fixes, numbered as in the list below</span>' if fixes else '') +
+         '</div></div></div>']
+    if fixes:
+        h.append('<section><h2>What would change it</h2><p class="intro">We tested each busy stretch and crossing that cuts kids off from '
+                 f'{e(t)}, one at a time, treating just the part their routes use as safe for kids. These would help the most. '
+                 'Tap one to see it on the map.</p><div class="fixes">')
+        for n, f in enumerate(fixes, 1):
+            size = f" ({feet_or_miles(f['len'])})" if f["len"] else ""
+            need = f'<p class="need">It would need {e("; or ".join(f["need"]))}.</p>' if f["need"] else ""
+            h.append(f'<button class="fix" data-fix="{e(f["id"])}" aria-pressed="false"><div class="gain">+{f["kids"]:,}<small>kids</small></div>'
+                     f'<div><h3><span class="num">{n}</span>{e(fix_title(f))}</h3><p>Now: {e(f["is"])}{size}.</p>{need}</div></button>')
+        h.append('</div>')
+        ids = {f["id"]: f for f in fixes}
+        best = next((p for p in P["pairs"] if all(i in ids for i in p["ids"])), None)
+        if best and best["kids"] > max(f["kids"] for f in fixes):
+            a, b = (ids[i] for i in best["ids"])
+            h.append(f'<div class="together"><strong>Fixes {fixes.index(a) + 1} and {fixes.index(b) + 1} together: +{best["kids"]:,} kids.</strong> '
+                     f'That would take the share who can bike to {e(t)} from {pct(kok, k)} to {pct(kok + best["kids"], k)}.</div>')
+        h.append('</section>')
+    else:
+        h.append('<section><h2>What would change it</h2><p class="intro">No single stretch or crossing we tested would let more kids bike here. '
+                 'What cuts them off is spread over many streets.</p></section>')
+    # what you can do
+    url = f"{CFG['site_url']}{BASE}places/{P['slug']}/"
+    h.append('<section><h2>What you can do</h2><div class="act-grid">'
+             '<div class="act-item"><h3>Tell a neighbor</h3><p>Send this page to a neighbor, a parent group or a school newsletter.</p>'
+             '<button type="button" class="btn" id="share">Share link</button> <span class="muted" id="copied"></span></div>')
+    sm = CFG["cities"]["San Mateo"]
+    if fixes:
+        f = fixes[0]
+        req = (f"Please consider making {short(f['where'])} safe for kids to bike"
+               + (f": {f['need'][0]}" if f["need"] else "") + f". {k:,} kids live within a mile of {t}, "
+               f"but only {kok:,} can bike there without riding on a busy street. This change would let {f['kids']:,} more. "
+               f"Details: {url}")
+        h.append(f'<div class="act-item"><h3>Ask the city</h3><p>Copy this into the city\'s service request form:</p>'
+                 f'<div class="ask-req" id="askreq">{e(req)}</div>'
+                 '<p><button type="button" class="btn" id="askcopy">Copy request</button> <span class="muted" id="askcopied"></span></p>'
+                 f'<p><a href="{e(sm["service_request"])}">Open San Mateo\'s service request form</a>, or '
+                 f'<a href="{e(sm["traffic_calming"])}">request a traffic calming study</a>.</p></div>')
+    lat, lon = P["center"]
+    district = next((d for d, rings in civ["districts"] if in_rings(lon, lat, rings)), None)
+    m = civ["council"].get(str(district)) if district else None
+    if civ["email_card"] and m:
+        body = (f"Dear {m['salutation']},\n\n{k:,} kids live within a 1-mile ride of {t}, but only {kok:,} of them can get there "
+                f"without riding on a busy street.\n\n" +
+                (f"{fix_title(fixes[0])} would let {fixes[0]['kids']:,} more kids bike there. Could the city consider it?\n\n" if fixes else "") +
+                f"[Add a sentence about you]\n\n{url}\n\nThank you,")
+        href = f"mailto:{m['email']}?" + urllib.parse.urlencode({"subject": f"Kids biking to {t}", "body": body}, quote_via=urllib.parse.quote)
+        h.append(f'<div class="act-item"><h3>Email your council member</h3><p>{e(t)} is in City Council District {district}, represented by '
+                 f'{e(m["title"])} {e(m["name"])}. If you live in another district, the <a href="{BASE}">map</a> finds yours.</p>'
+                 f'<a class="btn" href="{e(href)}">Email {e(m["salutation"])}</a></div>')
+    h.append('</div></section>')
+    h.append('<div class="how"><h2>How this is counted</h2>'
+             f'<p>A kid can bike to {e(t)} when a route on paths and quiet streets reaches it and is no more than 25% longer than the '
+             'shortest ride on any street. Parks are reached at their edge; shops and libraries within about a block, walking the bike the rest. '
+             'Kids are people under 18 in the 2020 Census, by block. "Within a mile" means a 1-mile ride on any street.</p>'
+             '<p>Speeds and traffic counts come from the City of San Mateo\'s 2026 speed survey where it covers a street, and OpenStreetMap otherwise. '
+             'A fix is tested by treating just the stretch the routes use as safe for kids, then counting again. What each fix would need comes from the '
+             f'same rating rules as the rest of the map (<a href="{BASE}methodology/">how it rates streets</a>); engineers may find a better fix.</p></div>')
+    return "\n".join(h)
+
+
+def place_pages(civ):
+    pf = os.path.join(HERE, "data", "places_strict.json")
+    if not os.path.exists(pf):
+        print("no data/places_strict.json: run pipeline/places.py --export for the place pages")
+        return 0
+    summary = json.load(open(pf))["places"]
+    tmpl = open(os.path.join(HERE, "site", "place.html")).read()
+    rows = []
+    for S in summary:
+        P = json.load(open(os.path.join(HERE, "data", "places", "strict", f"{S['slug']}.json")))
+        d = os.path.join(OUT, "places", P["slug"])
+        os.makedirs(d, exist_ok=True)
+        raw = open(os.path.join(HERE, "data", "places", "strict", f"{S['slug']}.json")).read()
+        open(os.path.join(d, "data.json"), "w").write(raw)
+        k, kok = P["total"]["kids"], P["ok"]["kids"]
+        title = f"Who can bike to {P['title']}?"
+        cant = round(10 * (k - kok) / k) if k else 0
+        desc = (f"{cant} in 10 kids who live within a mile of {P['title']} can't bike there without riding on a busy street. "
+                "See what's in the way, and the fixes that would help most.")
+        path = f"{BASE}places/{P['slug']}/"
+        page = (tmpl.replace("/*HEAD*/", head(title, desc, path, image=f"og/places/{P['slug']}.png"))
+                    .replace("/*HEADER*/", HEADER).replace("/*FOOTER*/", footer())
+                    .replace("/*BODY*/", place_body(P, civ))
+                    .replace("/*PLACE*/", json.dumps(P["title"][:1].upper() + P["title"][1:] if P["title"].startswith("the ") else P["title"]))
+                    .replace("/*DATAURL*/", json.dumps(f"{path}data.json?v={hashlib.sha1(raw.encode()).hexdigest()[:10]}")))
+        open(os.path.join(d, "index.html"), "w").write(page)
+        rows.append((P, k, kok))
+    # the index: every place, the ones where the most kids are cut off first
+    rows.sort(key=lambda r: -(r[1] - r[2]))
+    items = "\n".join(
+        f'<tr><td><a href="{BASE}places/{P["slug"]}/">{e(P["title"][:1].upper() + P["title"][1:])}</a></td><td>{PLACE_CAT[P["category"]]}</td>'
+        f'<td class="n">{k:,}</td><td class="n">{pct(kok, k)}</td></tr>' for P, k, kok in rows)
+    title = "Who can bike to the places San Mateo kids go?"
+    desc = "Parks, libraries, grocery stores and downtown: how many kids within a mile of each can bike there on quiet streets."
+    idx = (head(title, desc, f"{BASE}places/") + "\n" + METHOD_CSS +
+           "<style>table.pl{border-collapse:collapse;width:100%;font-size:15px;font-variant-numeric:tabular-nums}"
+           "table.pl th,table.pl td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--surface-sunken)}"
+           "table.pl td.n,table.pl th.n{text-align:right}table.pl a{color:var(--accent)}.tw{overflow-x:auto}</style>"
+           "\n</head>\n<body>\n<main role=\"main\" class=\"bi bi-method\">\n" + HEADER +
+           f'\n<p class="bi-eyebrow"><a href="{BASE}">Bike islands</a></p><h1>{e(title)}</h1>'
+           f'<p>For each place, the kids who live within a 1-mile ride of it, and the share who can bike there on paths and quiet streets, '
+           f'without riding on a busy street. San Mateo for now; Burlingame waits on its speed survey.</p>'
+           f'<div class="tw"><table class="pl"><thead><tr><th>Place</th><th>Kind</th><th class="n">Kids within a mile</th>'
+           f'<th class="n">Can bike there</th></tr></thead><tbody>{items}</tbody></table></div>\n' + footer() + "\n</main>\n</body>\n</html>\n")
+    open(os.path.join(OUT, "places", "index.html"), "w").write(idx)
+    return len(rows)
+
+
 def main():
     if os.path.exists(OUT):
         shutil.rmtree(OUT)
@@ -340,6 +496,7 @@ def main():
         + "\n" + METHOD_CSS + "\n</head>\n<body>\n<main role=\"main\" class=\"bi\">\n" + HEADER + "\n" + method
         + "\n</main>\n</body>\n</html>\n")
 
+    print(f"{place_pages(civic())} place pages")
     img = os.path.join(HERE, "site", "img")
     if os.path.isdir(img):
         shutil.copytree(img, os.path.join(OUT, "img"))
