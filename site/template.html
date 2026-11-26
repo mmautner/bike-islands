@@ -3,6 +3,7 @@
   /* page colors map onto maxmautner.com's tokens (site.css), so the dark-mode toggle works */
   :root { --ink: var(--text); --body: var(--text-2); --grey: var(--text-3); --light: var(--surface-sunken); --copper: var(--accent); --card: var(--surface); }
   html, body { overflow-x: hidden; }
+  main.bi [hidden] { display: none !important; }   /* .legend's display:flex would otherwise beat the hidden attribute */
   main.bi { max-width: 1100px; margin: 0 auto; padding: 0 20px 40px; font-family: var(--font-sans); color: var(--body); }
   main.bi > header { margin-bottom: 18px; }
   main.bi h1 { font-family:'Newsreader', Georgia, serif; font-weight:600; color:var(--ink); font-size: clamp(26px, 4vw, 38px); line-height:1.15; margin:0 0 8px; }
@@ -65,6 +66,17 @@
   .big { font-family:'Newsreader', Georgia, serif; font-size:44px; color:var(--copper); line-height:1; }
   .stat { margin: 12px 0; }
   .stat .lbl { font-size:14px; margin-top:4px; }
+  .gapbox { margin:12px 0 8px; padding:10px 12px; border-left:3px solid #b4442c; background:var(--card); }
+  .gapbox h3 { font-size:15px; font-weight:600; color:var(--ink); margin:0 0 2px; font-family:var(--font-sans); }
+  .gapbox p { margin:0 0 6px; font-size:13px; }
+  ul.gaps { margin:0; padding-left:18px; font-size:14px; }
+  ul.gaps li { margin:3px 0 3px -6px; padding:2px 6px; border-radius:6px; }
+  ul.gaps li.hot, ul.gaps li.focus { background:var(--bg); }
+  ul.gaps li.focus { box-shadow: inset 3px 0 0 #b4442c; }
+  a.gaplink { color:var(--ink); text-decoration: underline dotted #b4442c; text-underline-offset:3px; }
+  a.gaplink:hover { text-decoration-style: solid; }
+  .answer { font-size:16px; color:var(--ink); margin:10px 0 6px; }
+  .cutline { font-size:14px; margin:10px 0 4px; }
   .sthead { display:flex; justify-content:space-between; align-items:baseline; font-size:15px; }
   .sthead strong { color:var(--ink); font-weight:600; }
   .stpct { font-family:'Newsreader', Georgia, serif; font-size:24px; color:var(--copper); line-height:1; }
@@ -149,6 +161,7 @@
       <div class="legend">
         <span id="lg-island"><i style="border-color:var(--copper)"></i>Your island</span>
         <span id="lg-other"><i style="border-color:var(--grey)"></i>Other low-stress streets</span>
+        <span id="lg-gap" hidden><i style="border-color:#b4442c"></i>In the way: stressful pieces on the best route</span>
         <span id="lg-join" hidden><i style="border-color:#5f87b5"></i>Islands the fix would join to yours</span>
         <span><i style="border-color:var(--ink); border-top-width:2px"></i>Stressful streets</span>
         <span>&#9312; Fix that would connect your island (numbered as in the list; click or tap one to find it there)</span>
@@ -467,6 +480,19 @@ function draw() {
     }
     ctx.globalAlpha = 1;
   }
+  const GP = sel && (T.islands[sel] || {}).gaps;
+  document.getElementById("lg-gap").hidden = !GP;
+  if (GP) GP.items.forEach((g, k) => {
+    const hot = k === (hotGap ?? focusGap), w = (hot ? 6 : 3.5) * z;
+    ctx.globalAlpha = hot || (hotGap ?? focusGap) === null ? 1 : 0.55;
+    for (const L of gapLines(g)) stroke(L, GAP_COLOR, w);
+    for (const p of g.pts || []) {
+      const [x, y] = px(p[0], p[1]);
+      ctx.strokeStyle = GAP_COLOR; ctx.lineWidth = hot ? 4 : 3; ctx.fillStyle = PAPER;
+      ctx.beginPath(); ctx.arc(x, y, hot ? 8 : 6, 0, 7); ctx.fill(); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  });
   if (heat && clickPt && heatFrom === "where you clicked") {   // mark the start
     const [x, y] = px(clickPt[0], clickPt[1]);
     ctx.fillStyle = COPPER; ctx.strokeStyle = PAPER; ctx.lineWidth = 2;
@@ -512,7 +538,37 @@ function draw() {
 }
 
 const fixWhat = B => B.kind === "x" ? `Make the crossing ${B.name.includes(" at ") ? "of" : "at"} ${B.name} safe` : `Make ${ftmi(B.len)} of ${B.name} low-stress`;
-const JOIN_COLOR = "#5f87b5";
+const JOIN_COLOR = "#5f87b5", GAP_COLOR = "#b4442c";
+// --- what's in the way: for an island that reaches no station, the stressful pieces on the best route of most
+// of its homes to the nearest one (from the export's "gaps"). Drawn whenever the island is picked; the one
+// hovered or chosen in the list, thicker ---
+let hotGap = null, focusGap = null;
+function gapText(g) {
+  const nm = n => n === "(unnamed)" ? "an unnamed street" : n;
+  if (g.kind === "w") return `Riding ${ftmi(g.len)} of ${nm(g.name)}`;
+  const at = g.name.indexOf(" at ");
+  return at > 0 ? `Crossing ${g.name.slice(0, at)} at ${g.name.slice(at + 4)}` : `Crossing ${nm(g.name)}`;
+}
+const gapLines = g => g._lines || (g._lines = (g.p || []).map(a => decodePts(a)));
+function gapPoint(g) { const L = gapLines(g)[0]; return L ? L[Math.floor(L.length / 2)] : g.pts[0]; }
+function setHotGap(k) {
+  if (k === hotGap) return;
+  hotGap = k;
+  document.querySelectorAll("#panel li[data-gap]").forEach(li => li.classList.toggle("hot", Number(li.dataset.gap) === k));
+  draw();
+}
+function selectGap(k) {
+  focusGap = focusGap === k ? null : k;
+  const G = (DATA[tier].islands[sel] || {}).gaps;
+  if (focusGap !== null && G) {      // bring it into view if it's off the map
+    const [x, y] = px(...gapPoint(G.items[focusGap]));
+    if (x < 30 || x > W - 30 || y < 30 || y > H - 30) { ox -= x - W / 2; oy -= y - H / 2; }
+  }
+  track("gap_selected", {standard: tier});
+  render();
+  const a = document.querySelector(`#panel li[data-gap="${k}"] .gaplink`);
+  if (a) a.focus({preventScroll: true});
+}
 function fixJoins(B) {        // the other islands this fix would join to the selected one, and all their homes together
   const T = DATA[tier], others = (B.joins || []).filter(j => j !== sel);
   const total = (B.joins || []).reduce((a, j) => a + ((T.islands[j] || {}).homes || 0), 0);
@@ -569,7 +625,14 @@ function selectFix(id, from) {
   }
 }
 
+// Fixes that connect fewer than 2% of an island's homes stay out of the list and off the map, except one
+// opened from a link (a fix's share page lands on it). The panel says how many it left out.
+const MINOR_FIX = 0.02;
 function topBridges(T, id) {
+  const homes = (T.islands[id] || {}).homes || 0;
+  return allFixes(T, id).filter(e => e.max >= MINOR_FIX * homes || T.bridges[e.bid].id === focusFix).slice(0, 5);
+}
+function allFixes(T, id) {
   // one entry per fix, with homes gained for each station it helps
   const by = {};
   (T.islands[id] || {bridges: []}).bridges.forEach(([bid, hu]) => {
@@ -579,7 +642,7 @@ function topBridges(T, id) {
   });
   return Object.values(by)
     .map(e => ({...e, max: Math.max(...Object.values(e.per))}))
-    .sort((a, b) => b.max - a.max).slice(0, 5);
+    .sort((a, b) => b.max - a.max);
 }
 
 function share(T, st) {
@@ -610,17 +673,19 @@ function panel() {
     return;
   }
   const I = T.islands[sel] || {homes: 0, ok: {}, near: {}, bridges: []};
-  let km = 0;
-  for (const L of T.lines) if (L.i === sel) for (let k = 1; k < L.pts.length; k++) {
-    const a = L.pts[k - 1], b = L.pts[k];
-    km += Math.hypot((b[0] - a[0]) * 111, (b[1] - a[1]) * 111 * K);
-  }
-  let h = `<h2>This island</h2><div><span class="big">${fmt(I.homes)}</span> homes</div><div class="muted">${km.toFixed(1)} km of low-stress streets and paths</div>`;
-  // one block per station within a 2-mile ride: the share up front, the detail behind "Why not the rest?"
-  const far = [];
+  let h = `<h2>This island</h2><div><span class="big">${fmt(I.homes)}</span> homes</div>`;
+  // The answer first: the stations this island reaches get a block each (share, minutes, why not the rest);
+  // the ones within 2 miles it doesn't reach share one line; the ones farther away, one muted line.
+  const far = [], cut = [], reached = [];
   for (const st of Object.keys(T.stations)) {
+    const n = (I.near || {})[st] || 0;
+    if (!n) far.push(st);
+    else if ((I.ok || {})[st] || (((I.det || {})[st] || [])[0])) reached.push(st);
+    else cut.push(st);
+  }
+  if (!reached.length) h += `<p class="answer">${cut.length ? "This island has no low-stress route to Caltrain." : "This island is more than a 2-mile ride from Caltrain."}</p>`;
+  for (const st of reached) {
     const n = (I.near || {})[st] || 0, o = (I.ok || {})[st] || 0;
-    if (!n) { far.push(st); continue; }
     const det = (I.det || {})[st], none = (I.none || {})[st] || 0;
     const m = minsTo(T, st);
     const mins = m ? (m > 25 ? ` Only by a long detour: about ${m} min from where you clicked.` : ` <strong>About ${m} min</strong> from where you clicked.`) : "";
@@ -629,11 +694,22 @@ function panel() {
     if (none) why.push(`${fmt(none)} have no low-stress route at all.`);
     h += `<div class="stat"><div class="sthead"><strong>To ${st} Caltrain</strong><span class="stpct">${pct(o, n)}</span></div>` +
          `<div class="bar"><i style="width:${100 * o / n}%"></i></div>` +
-         `<div class="lbl">${o ? `${fmt(o)} of ${fmt(n)} homes` : `None of the ${fmt(n)} homes`} within 2 miles have a low-stress route.${mins}</div>` +
+         `<div class="lbl">${o ? `<strong>${fmt(o)}</strong> of the ${fmt(n)} homes here within 2 miles of it have a low-stress route.`
+                                : `None of the ${fmt(n)} homes here within 2 miles of it have a direct enough low-stress route.`}${mins}</div>` +
          (o < n ? `<details class="why"><summary>Why not the rest?</summary>${why.join(" ")}</details>` : "") + `</div>`;
   }
+  if (reached.length && cut.length) h += `<p class="cutline">No low-stress route to ${cut.join(" or ")} Caltrain.</p>`;
+  if (I.gaps) {
+    const G = I.gaps;
+    h += `<div class="gapbox"><h3>What's in the way to ${G.st} Caltrain</h3>` +
+      `<p class="muted">Stressful streets and crossings on the best route from most homes here:</p><ul class="gaps">` +
+      G.items.map((g, k) => `<li data-gap="${k}"${k === focusGap ? ' class="focus"' : ""}><a class="gaplink" role="button" href="#" aria-pressed="${k === focusGap}">${gapText(g)}</a>` +
+        (g.share < 0.9 ? ` <span class="muted">(routes from ${Math.round(g.share * 100)}% of homes)</span>` : "") + `</li>`).join("") +
+      `</ul></div>`;
+  }
   if (far.length) h += `<p class="muted">${far.join(" and ")} Caltrain: more than a 2-mile ride.</p>`;
-  const list = topBridges(T, sel);
+  const list = topBridges(T, sel), minor = allFixes(T, sel).length - list.length;
+  const minorNote = minor ? `<p class="muted">${minor === 1 ? "1 smaller fix" : `${minor} smaller fixes`}, each connecting under 2% of this island's homes, ${minor === 1 ? "isn't" : "aren't"} shown.</p>` : "";
   const fixText = B => B.kind === "x" ? `a safe crossing ${B.name.includes(" at ") ? "of" : "at"} ${B.name}` : `making ${ftmi(B.len)} of ${B.name} low-stress`;
   if (list.length) {
     h += `<h2 style="margin-top:16px">Fixes that would help</h2><ol class="br">`;
@@ -646,7 +722,9 @@ function panel() {
            (sp ? ` <a class="sharefix" href="${sp}" data-share="${sp}">Share</a>` : "") +
            (joinText(B) ? `<span class="joins">${joinText(B)}</span>` : "") + `</li>`;
     }
-    h += `</ol>`;
+    h += `</ol>` + minorNote;
+  } else if (minor) {
+    h += `<p class="muted" style="margin-top:12px">No single fix tested would connect 2% or more of this island's homes.</p>`;
   } else {
     h += `<p class="muted" style="margin-top:12px">None of the single fixes tested would connect more homes on this island.</p>`;
   }
@@ -742,7 +820,9 @@ function actionCards(T, I, list, fixText) {
          `<p>${intro} The email starts with this island's numbers${top ? " and its top fix" : ""}; add a sentence of your own.</p>` +
          `<a class="btn btn-primary" href="${href}" data-act="email_clicked" data-city="${city}">Email ${salutation}</a></div>`;
   }
-  const askWhat = top ? (top.kind === "x" ? `the crossing ${top.name.includes(" at ") ? "of" : "at"} ${top.name}` : top.name) : "this neighborhood";
+  const gap0 = !top && I.gaps && I.gaps.items[0];
+  const askWhat = top ? (top.kind === "x" ? `the crossing ${top.name.includes(" at ") ? "of" : "at"} ${top.name}` : top.name)
+    : gap0 ? gapText(gap0).replace(/^Riding [^ ]+ [^ ]+ of /, "").replace(/^Crossing /, "crossing ") : "this neighborhood";
   if (city === "San Mateo" && cityCfg.service_request) {
     h += `<div class="act-item"><h3>Ask the city to look at ${askWhat}</h3><p><a href="${cityCfg.service_request}" data-act="city_concern_clicked" data-city="${city}">Report a concern</a> to the city, or <a href="${cityCfg.traffic_calming}" data-act="calming_request_clicked" data-city="${city}">request a traffic calming study</a> for your street.</p></div>`;
   } else if (city === "Burlingame" && cityCfg.service_request) {
@@ -824,7 +904,7 @@ function hint() {
 }
 function render() {
   document.getElementById("clear").hidden = !sel;
-  hover = null; hotFix = null; tip.hidden = true;   // a click, search or new standard: the preview starts over on the next move
+  hover = null; hotFix = null; hotGap = null; tip.hidden = true;   // a click, search or new standard: the preview starts over on the next move
   computeHeat();
   hint();
   const hl = document.getElementById("heatlegend");
@@ -1011,7 +1091,7 @@ cv.addEventListener("pointermove", e => {
 // Pick an island (from the map, a search or your location), or let go of it with id null.
 function selectIsland(id, pt, how) {
   const changed = id !== sel;
-  sel = id; clickPt = id ? pt : null; focusFix = null;
+  sel = id; clickPt = id ? pt : null; focusFix = null; focusGap = null;
   if (id) {
     const h = (DATA[tier].islands[id] || {}).homes || 0;
     track("island_selected", {standard: tier, how, island_homes: h < 500 ? "under 500" : h <= 5000 ? "500-5000" : "over 5000"});
@@ -1098,7 +1178,7 @@ document.querySelectorAll(".seg button[data-tier]").forEach(b => b.onclick = asy
       return;
     }
   }
-  tier = want; focusFix = null;    // fixes differ between standards
+  tier = want; focusFix = null; focusGap = null;    // fixes differ between standards
   if (prev) {
     const m = clickPt || prev.pts[Math.floor(prev.pts.length / 2)], [x, y] = px(m[0], m[1]);
     sel = pick(x, y);
@@ -1178,12 +1258,15 @@ panelEl.addEventListener("click", e => {
   if (e.target.closest(".askquiz")) openQuiz("panel");
   const fl = e.target.closest(".fixlink");
   if (fl) { e.preventDefault(); selectFix(fl.closest("li").dataset.fix, "list"); }
+  const gl = e.target.closest(".gaplink");
+  if (gl) { e.preventDefault(); selectGap(Number(gl.closest("li").dataset.gap)); }
 });
+const liGap = e => { const li = e.target.closest && e.target.closest("li[data-gap]"); return li ? Number(li.dataset.gap) : null; };
 const liFix = e => { const li = e.target.closest && e.target.closest("li[data-fix]"); return li ? li.dataset.fix : null; };
-panelEl.addEventListener("mouseover", e => setHotFix(liFix(e)));
-panelEl.addEventListener("mouseleave", () => setHotFix(null));
-panelEl.addEventListener("focusin", e => setHotFix(liFix(e)));
-panelEl.addEventListener("focusout", () => setHotFix(null));
+panelEl.addEventListener("mouseover", e => { setHotFix(liFix(e)); setHotGap(liGap(e)); });
+panelEl.addEventListener("mouseleave", () => { setHotFix(null); setHotGap(null); });
+panelEl.addEventListener("focusin", e => { setHotFix(liFix(e)); setHotGap(liGap(e)); });
+panelEl.addEventListener("focusout", () => { setHotFix(null); setHotGap(null); });
 dlg.addEventListener("close", () => {
   if (!quizDone) track("quiz_abandoned", {last_question: step + 1});
   riderSource = "card";
