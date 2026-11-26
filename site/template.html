@@ -64,7 +64,11 @@
   .bar { height:8px; background:var(--light); margin-top:4px; }
   .bar i { display:block; height:100%; background:var(--copper); }
   ol.br { padding-left: 20px; margin: 6px 0; }
-  ol.br li { margin: 6px 0; }
+  ol.br li { margin: 2px 0 2px -6px; padding: 4px 6px; border-radius: 8px; }
+  ol.br li.hot { background: var(--card); }
+  a.fixlink { color:var(--ink); text-decoration: underline dotted var(--copper); text-underline-offset: 3px; }
+  a.fixlink:hover { text-decoration-style: solid; }
+  a.fixlink:focus-visible { outline: 2px solid var(--copper); outline-offset: 2px; }
   .muted { color:var(--grey); font-size:13px; }
   button.share { font:inherit; font-size:14px; padding:6px 12px; border:1px solid var(--copper); color:var(--copper); background:transparent; cursor:pointer; margin-top:8px; }
   .legend { display:flex; gap:16px; flex-wrap:wrap; font-size:13px; margin:10px 0 0; }
@@ -79,7 +83,7 @@
   #locate { font:inherit; font-size:14px; padding:8px 12px; border:1px solid var(--ink); background:transparent; color:var(--ink); cursor:pointer; }
   #findmsg { font-size:13px; }
   .act { margin-top: 22px; }
-  ol.br li.focus { background: var(--card); margin-left: -6px; padding: 4px 6px; border-radius: 8px; }
+  ol.br li.focus { background: var(--card); box-shadow: inset 3px 0 0 var(--copper); }
   a.sharefix { font-size: 13px; color: var(--copper); margin-left: 4px; }
   .act h2 { margin-bottom: 10px; }
   .act-item { background: var(--card); border-radius: 14px; padding: 14px 16px; margin: 0 0 12px; }
@@ -130,7 +134,7 @@
         <span id="lg-island"><i style="border-color:var(--copper)"></i>Your island</span>
         <span id="lg-other"><i style="border-color:var(--grey)"></i>Other low-stress streets</span>
         <span><i style="border-color:var(--ink); border-top-width:2px"></i>Stressful streets</span>
-        <span>&#9312; Fix that would connect your island (numbered as in the list)</span>
+        <span>&#9312; Fix that would connect your island (numbered as in the list; click or tap one to find it there)</span>
       </div>
       <div class="legend heatlegend" id="heatlegend" hidden></div>
     </div>
@@ -155,7 +159,8 @@ const shareURL = () => {
   const p = sel && SHARE.islands[tier][String(sel)];
   return p ? location.origin + p : location.href;
 };
-let focusFix = null;   // a fix id from a share link, marked on the map       // city and council-district outlines, council contacts, city links   // [name, city, [s, w, n, e]] for every named street in the frame
+let focusFix = null;   // the chosen fix (from the list, the map or a share link), marked on the map
+let hotFix = null;     // the fix under the mouse, on the map or in the list       // city and council-district outlines, council contacts, city links   // [name, city, [s, w, n, e]] for every named street in the frame
 const FETCHED = /*FETCHED*/;
 let COPPER, INK, LOWC, FAINT, PAPER;
 function palette() {
@@ -455,14 +460,61 @@ function draw() {
   if (sel && T.islands[sel]) {
     topBridges(T, sel).forEach((e, k) => {
       const B = T.bridges[e.bid];
-      if (B.pts.length > 1) stroke(B.pts, INK, 3 * z);
+      const hot = B.id === focusFix || B.id === hotFix;
+      if (B.pts.length > 1) stroke(B.pts, INK, (hot ? 5 : 3) * z);   // dark even when chosen, so it stands out from the copper island
       const m = B.pts[Math.floor(B.pts.length / 2)], [x, y] = px(m[0], m[1]);
-      const hot = B.id === focusFix;
       ctx.strokeStyle = hot ? COPPER : INK; ctx.lineWidth = hot ? 3 : 2; ctx.fillStyle = PAPER;
       ctx.beginPath(); ctx.arc(x, y, hot ? 13 : 10, 0, 7); ctx.fill(); ctx.stroke();
       ctx.fillStyle = INK; ctx.font = "600 12px 'IBM Plex Sans', sans-serif"; ctx.textAlign = "center";
       ctx.fillText(String(k + 1), x, y + 4); ctx.textAlign = "start";
     });
+  }
+}
+
+const fixWhat = B => B.kind === "x" ? `Make the crossing ${B.name.includes(" at ") ? "of" : "at"} ${B.name} safe` : `Make ${ftmi(B.len)} of ${B.name} low-stress`;
+function fixGain(e) {        // the station a fix helps most, and by how many homes
+  const [st, hu] = Object.entries(e.per).sort((a, b) => b[1] - a[1])[0];
+  return `${fmt(hu)} more homes to ${st} Caltrain`;
+}
+// the selected island's fix markers, where they sit on screen now
+function fixMarks() {
+  const T = DATA[tier];
+  if (!sel || !T.islands[sel]) return [];
+  return topBridges(T, sel).map((e, k) => {
+    const B = T.bridges[e.bid], m = B.pts[Math.floor(B.pts.length / 2)], [x, y] = px(m[0], m[1]);
+    return {e, B, k, x, y};
+  });
+}
+function fixAt(x, y, radius) {
+  let best = null, bd = radius;
+  for (const f of fixMarks()) { const d = Math.hypot(f.x - x, f.y - y); if (d < bd) { bd = d; best = f; } }
+  return best;
+}
+function setHotFix(id) {
+  if (id === hotFix) return;
+  hotFix = id;
+  document.querySelectorAll("#panel li[data-fix]").forEach(li => li.classList.toggle("hot", li.dataset.fix === id));
+  draw();
+}
+// Choose a fix, from its list item or its marker. From the list, bring the marker into view; from the map,
+// bring the list item into view (on a phone, where the list is far below, the summary chip names the fix).
+function selectFix(id, from) {
+  focusFix = from === "map" && focusFix === id ? null : id;     // tapping a chosen marker again lets go
+  track("fix_selected", {standard: tier, from});
+  const f = focusFix && fixMarks().find(f => f.B.id === focusFix);
+  if (f && from === "list") {
+    if (f.x < 30 || f.x > W - 30 || f.y < 30 || f.y > H - 30) { ox -= f.x - W / 2; oy -= f.y - H / 2; }
+    const top = box.getBoundingClientRect().top, my = top + Math.min(Math.max(f.y, 30), H - 30);
+    if (my < 0 || my > innerHeight) box.scrollIntoView({behavior: "smooth", block: "center"});
+  }
+  setHash(); render();
+  if (from === "list") {      // the list was redrawn: put keyboard focus back on the same fix
+    const b = document.querySelector(`#panel li[data-fix="${id}"] .fixlink`);
+    if (b) b.focus({preventScroll: true});
+  }
+  if (f && from === "map" && !NARROW.matches) {
+    const li = document.querySelector("#panel li.focus");
+    if (li) li.scrollIntoView({behavior: "smooth", block: "nearest"});
   }
 }
 
@@ -538,9 +590,8 @@ function panel() {
       const B = T.bridges[e.bid];
       const sts = Object.entries(e.per).sort((a, b) => b[1] - a[1]);
       const gains = sts.map(([st, hu], k) => k === 0 ? `${fmt(hu)} more homes here to ${st} Caltrain` : `${fmt(hu)} to ${st} Caltrain`).join(" and ");
-      const what = B.kind === "x" ? `Make the crossing ${B.name.includes(" at ") ? "of" : "at"} ${B.name} safe` : `Make ${ftmi(B.len)} of ${B.name} low-stress`;
       const sp = SHARE.fixes[tier][B.id];
-      h += `<li${B.id === focusFix ? ' class="focus"' : ""}>${what}: connects ${gains}` +
+      h += `<li data-fix="${B.id}"${B.id === focusFix ? ' class="focus"' : ""}><a class="fixlink" role="button" href="#t=${tier}&i=${sel}&f=${encodeURIComponent(B.id)}" aria-pressed="${B.id === focusFix}">${fixWhat(B)}</a>: connects ${gains}` +
            (sp ? ` <a class="sharefix" href="${sp}" data-share="${sp}">Share</a>` : "") + `</li>`;
     }
     h += `</ol>`;
@@ -630,7 +681,8 @@ function actionCards(T, I, list, fixText) {
 }
 
 function setHash() {
-  history.replaceState(null, "", sel ? `#t=${tier}&i=${sel}` : `#t=${tier}`);
+  const f = sel && focusFix ? `&f=${encodeURIComponent(focusFix)}` : "";
+  history.replaceState(null, "", sel ? `#t=${tier}&i=${sel}${f}` : `#t=${tier}`);
 }
 async function applyHash() {
   const q = new URLSearchParams(location.hash.slice(1));
@@ -669,6 +721,16 @@ function hint() {
   const el = document.getElementById("hint");
   if (!sel) { el.style.display = ""; el.textContent = `${COARSE ? "Tap" : "Click"} near where you live`; return; }
   if (!NARROW.matches) { el.style.display = "none"; return; }
+  const fm = focusFix && fixMarks().find(f => f.B.id === focusFix);
+  if (fm) {
+    el.style.display = "";
+    el.innerHTML = `<button type="button" class="chip"><strong>${fm.k + 1}.</strong> ${fixWhat(fm.B)}: connects ${fixGain(fm.e)} · <u>Details&nbsp;&darr;</u></button>`;
+    el.querySelector("button").onclick = () => {
+      (document.querySelector("#panel li.focus") || document.getElementById("panel")).scrollIntoView({behavior: "smooth", block: "center"});
+      track("details_chip_clicked", {standard: tier, fix: true});
+    };
+    return;
+  }
   const T = DATA[tier], I = T.islands[sel] || {};
   const bits = [`<strong>${fmt(I.homes || 0)} homes</strong>`];
   for (const st of Object.keys(T.stations)) {
@@ -684,7 +746,7 @@ function hint() {
   };
 }
 function render() {
-  hover = null; tip.hidden = true;   // a click, search or new standard: the preview starts over on the next move
+  hover = null; hotFix = null; tip.hidden = true;   // a click, search or new standard: the preview starts over on the next move
   computeHeat();
   hint();
   const hl = document.getElementById("heatlegend");
@@ -791,6 +853,18 @@ cv.addEventListener("pointerdown", e => {
 // --- hover preview (mouse only): light up the island a click would pick, with a one-line summary ---
 let hover = null, hoverAt = null, hoverFrame = 0;
 const tip = document.getElementById("tip");
+function placeTip(x, y) {
+  tip.hidden = false;
+  // beside the pointer, flipped to stay inside the map
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  tip.style.left = (x + 16 + w > W ? x - 16 - w : x + 16) + "px";
+  tip.style.top = (y + 16 + h > H ? y - 16 - h : y + 16) + "px";
+}
+function fixTip(f, x, y) {
+  tip.innerHTML = `<strong>${f.k + 1}. ${fixWhat(f.B)}</strong><br>Connects ${fixGain(f.e)}` +
+    `<br><span class="muted">${f.B.id === focusFix ? "Click to let go" : NARROW.matches ? "Click to choose it" : "Click to find it in the list"}</span>`;
+  placeTip(x, y);
+}
 function hoverTip(id, x, y) {
   if (!id || id === sel) { tip.hidden = true; return; }
   const T = DATA[tier], I = T.islands[id] || {};
@@ -801,22 +875,21 @@ function hoverTip(id, x, y) {
         : o ? `<br>${pct(o, n)} of homes within 2 miles of ${st} Caltrain have a low-stress route there`
         : `<br>No low-stress route to ${st} Caltrain`) +
     `<br><span class="muted">Click to see this island</span>`;
-  tip.hidden = false;
-  // beside the pointer, flipped to stay inside the map
-  const w = tip.offsetWidth, h = tip.offsetHeight;
-  tip.style.left = (x + 16 + w > W ? x - 16 - w : x + 16) + "px";
-  tip.style.top = (y + 16 + h > H ? y - 16 - h : y + 16) + "px";
+  placeTip(x, y);
 }
 function setHover(id) {
   if (id !== hover) { hover = id; cv.style.cursor = id ? "pointer" : ""; draw(); }
 }
-function clearHover() { cancelAnimationFrame(hoverFrame); hoverFrame = 0; tip.hidden = true; setHover(null); }
+function clearHover() { cancelAnimationFrame(hoverFrame); hoverFrame = 0; tip.hidden = true; setHover(null); setHotFix(null); }
 cv.addEventListener("pointermove", e => {
   if (e.pointerType !== "mouse" || pointers.size) return;
   hoverAt = relPt(e);
   if (!hoverFrame) hoverFrame = requestAnimationFrame(() => {     // at most one hit test per frame
     hoverFrame = 0;
-    const [x, y] = hoverAt, id = pick(x, y);
+    const [x, y] = hoverAt, f = fixAt(x, y, 16);
+    setHotFix(f ? f.B.id : null);
+    if (f) { setHover(null); cv.style.cursor = "pointer"; fixTip(f, x, y); return; }
+    const id = pick(x, y);
     setHover(id); hoverTip(id, x, y);
   });
 });
@@ -849,8 +922,11 @@ function endPointer(e, cancelled) {
   }
   if (drag && !moved && !cancelled) {
     const [x, y] = relPt(e);
+    const f = fixAt(x, y, e.pointerType === "mouse" ? 16 : 24);     // a bigger target for a finger
+    if (f) { drag = null; selectFix(f.B.id, "map"); return; }
     sel = pick(x, y);
     clickPt = sel ? unpx(x, y) : null;
+    focusFix = null;
     if (sel) {
       const h = (DATA[tier].islands[sel] || {}).homes || 0;
       track("island_selected", {standard: tier, island_homes: h < 500 ? "under 500" : h <= 5000 ? "500-5000" : "over 5000"});
@@ -886,7 +962,7 @@ document.querySelectorAll(".seg button[data-tier]").forEach(b => b.onclick = asy
       return;
     }
   }
-  tier = want;
+  tier = want; focusFix = null;    // fixes differ between standards
   if (prev) {
     const m = clickPt || prev.pts[Math.floor(prev.pts.length / 2)], [x, y] = px(m[0], m[1]);
     sel = pick(x, y);
@@ -961,7 +1037,17 @@ function qrender() {
 let quizDone = false;
 function openQuiz(source) { step = 0; ans = {}; quizDone = false; qrender(); dlg.showModal(); track("quiz_opened", {source}); }
 document.getElementById("openquiz").onclick = () => openQuiz("card");
-document.getElementById("panel").addEventListener("click", e => { if (e.target.closest(".askquiz")) openQuiz("panel"); });
+const panelEl = document.getElementById("panel");
+panelEl.addEventListener("click", e => {
+  if (e.target.closest(".askquiz")) openQuiz("panel");
+  const fl = e.target.closest(".fixlink");
+  if (fl) { e.preventDefault(); selectFix(fl.closest("li").dataset.fix, "list"); }
+});
+const liFix = e => { const li = e.target.closest && e.target.closest("li[data-fix]"); return li ? li.dataset.fix : null; };
+panelEl.addEventListener("mouseover", e => setHotFix(liFix(e)));
+panelEl.addEventListener("mouseleave", () => setHotFix(null));
+panelEl.addEventListener("focusin", e => setHotFix(liFix(e)));
+panelEl.addEventListener("focusout", () => setHotFix(null));
 dlg.addEventListener("close", () => {
   if (!quizDone) track("quiz_abandoned", {last_question: step + 1});
   riderSource = "card";
@@ -1018,6 +1104,7 @@ function chooseStreet(r) {
   const [x, y] = px(r[3][0], r[3][1]);
   sel = pick(x, y, null, 8);
   clickPt = sel ? r[3] : null;
+  focusFix = null;
   const tap = COARSE ? "Tap" : "Click";
   fMsg.textContent = !sel ? `${r[0]} is a stressful street for ${tier === "strict" ? "kids and cautious riders" : "most adults"}, so it isn't on any island. ${tap} a quiet street near it to see that island.`
     : (e - w) * K + (n - s) > 0.012 ? `Showing the island at the middle of ${r[0]}, ${r[1]}. ${tap} your block if you live elsewhere on it.`
@@ -1047,6 +1134,7 @@ document.getElementById("locate").onclick = () => {
     const [x, y] = px(la, lo);
     sel = pick(x, y);
     clickPt = sel ? [la, lo] : null;
+    focusFix = null;
     fMsg.textContent = sel ? "Your island is lit up. Your location stays in your browser." : "No low-stress street close to you; try clicking one nearby.";
     setHash(); render();
   }, err => {
