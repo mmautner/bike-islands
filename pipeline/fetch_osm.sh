@@ -42,12 +42,13 @@ out body geom;" -o data/raw/osm_schools_$DATE.json
 # California Department of Education public school directory (open public elementary schools)
 curl -s -m 300 -L -A "charts-research/1.0" "https://www.cde.ca.gov/SchoolDirectory/report?rid=dl1&tp=txt" -o data/raw/cde_pubschls.txt
 
-# Everyday places (pipeline/places.py): grocery stores, parks, libraries
+# Everyday places (pipeline/places.py): grocery stores, parks, libraries, city halls
 curl -s -m 300 -A "charts-research/1.0" https://overpass-api.de/api/interpreter --data-urlencode "data=[out:json][timeout:180];
 (
   nwr[\"shop\"=\"supermarket\"]($BBOX);
   nwr[\"shop\"=\"greengrocer\"]($BBOX);
   nwr[\"leisure\"=\"park\"]($BBOX);
   nwr[\"amenity\"=\"library\"]($BBOX);
+  nwr[\"amenity\"=\"townhall\"]($BBOX);
 );
 out body geom;" -o data/raw/osm_places_$DATE.json

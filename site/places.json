@@ -1,5 +1,5 @@
 {
-  "_readme": "Places that get their own page (places/<slug>/) and can be named in the island panel's fix line. Each matches one place in pipeline/places.py by its OpenStreetMap name ('osm'), nearest to 'near' when several share the name. 'name' is what the page says. San Mateo only until Burlingame's speed survey is in (Burlingame streets without a posted speed are assumed 30 mph). Caltrain and schools aren't here: the map already counts them, within 2 miles.",
+  "_readme": "Places that get their own page (places/<slug>/) and can be named in the island panel's fix line. Each matches one place in pipeline/places.py by its OpenStreetMap name ('osm'), nearest to 'near' when several share the name. 'name' is what the page says; 'title' (if given) how a page title reads. Burlingame streets without a posted speed are assumed 30 mph until its speed survey is in, and Burlingame place pages say so. Caltrain pages count kids within 1 mile, like every place page; the map counts homes within 2 miles of a station.",
   "places": [
     {"slug": "central-park", "name": "Central Park", "osm": "San Mateo Central Park", "category": "park"},
     {"slug": "martin-luther-king-park", "name": "Martin Luther King Park", "osm": "Martin Luther King Park", "category": "park"},
@@ -27,6 +27,12 @@
     {"slug": "safeway-delaware", "name": "Safeway on Delaware St", "osm": "Safeway", "near": [37.5804, -122.3331], "category": "grocery"},
     {"slug": "takahashi-market", "name": "Takahashi Market", "osm": "Takahashi Market", "category": "grocery"},
     {"slug": "mi-rancho", "name": "Mi Rancho Supermarket", "osm": "Mi Rancho Supermarket", "near": [37.5687, -122.3255], "category": "grocery"},
-    {"slug": "nijiya-market", "name": "Nijiya Market", "osm": "Nijiya Market", "category": "grocery"}
+    {"slug": "nijiya-market", "name": "Nijiya Market", "osm": "Nijiya Market", "category": "grocery"},
+    {"slug": "san-mateo-city-hall", "name": "San Mateo City Hall", "osm": "San Mateo City Hall", "category": "civic"},
+    {"slug": "burlingame-city-hall", "name": "Burlingame City Hall", "osm": "Burlingame City Hall", "category": "civic"},
+    {"slug": "burlingame-caltrain", "name": "Burlingame Caltrain", "osm": "Burlingame Caltrain", "category": "caltrain"},
+    {"slug": "san-mateo-caltrain", "name": "San Mateo Caltrain", "osm": "San Mateo Caltrain", "category": "caltrain"},
+    {"slug": "hayward-park-caltrain", "name": "Hayward Park Caltrain", "osm": "Hayward Park Caltrain", "category": "caltrain"},
+    {"slug": "hillsdale-caltrain", "name": "Hillsdale Caltrain", "osm": "Hillsdale Caltrain", "category": "caltrain"}
   ]
 }

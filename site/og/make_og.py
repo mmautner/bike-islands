@@ -169,7 +169,7 @@ def place_image(slug):
     img.paste(mimg, (box[0], box[1]))
     shade = Image.new("RGB", (50, H - 10), BG)
     img.paste(shade, (box[0], 0), Image.linear_gradient("L").rotate(90).resize((50, H - 10)))
-    d.text((PAD, PAD - 6), "BIKE ISLANDS · SAN MATEO", font=font("IBMPlexSans.ttf", 20, 600), fill=TEXT3)
+    d.text((PAD, PAD - 6), f"BIKE ISLANDS · {(P.get('city') or 'San Mateo').upper()}", font=font("IBMPlexSans.ttf", 20, 600), fill=TEXT3)
     title = f"Who can bike to {P['title']}?"
     for size in (50, 46, 42, 38, 34):
         f = font("Newsreader.ttf", size, 600)

@@ -1,8 +1,8 @@
 """Where can you go from your door? Everyday places (grocery stores, parks, libraries, downtown) and who can bike
 to each one on a low-stress route.
 
-Places are OpenStreetMap features (data/raw/osm_places_*.json, fetched by pipeline/fetch_osm.sh) plus hand-placed
-downtowns. A home reaches a place by the same rule as the stations and schools: a low-stress route no more than 25%
+Places are OpenStreetMap features (data/raw/osm_places_*.json, fetched by pipeline/fetch_osm.sh), hand-placed
+downtowns, and the Caltrain stations (reached at the platform, as in the station analysis). A home reaches a place by the same rule as the stations and schools: a low-stress route no more than 25%
 longer than the shortest ride on any street (plus 50 m). Everything here counts homes within a 1-mile ride
 (RIDE_M) of the place: these are trips a kid might make on their own. Parks are reached at their edge; shops,
 libraries and downtowns within about a block (LAST_BLOCK_M: walk the bike the rest).
@@ -55,13 +55,15 @@ CATEGORIES = {   # plain-language categories, in the order the panel lists them
     "grocery": ("Grocery stores", lambda t: t.get("shop") in ("supermarket", "greengrocer")),
     "park":    ("Parks", lambda t: t.get("leisure") == "park"),
     "library": ("Libraries", lambda t: t.get("amenity") == "library"),
+    "civic":   ("City halls", lambda t: t.get("amenity") == "townhall"),
 }
 DOWNTOWNS = {  # centers at an OSM intersection on each main street
     "Downtown San Mateo (B Street)": (37.565515, -122.3223967),
     "Burlingame Avenue": (37.5785465, -122.3471),
     "Broadway, Burlingame": (37.5848804, -122.3657521),
 }
-CATS = ["grocery", "park", "library", "downtown"]
+CATS = ["grocery", "park", "library", "downtown"]   # what the island panel lists; city halls and Caltrain
+                                                   # get pages (the panel already counts Caltrain, within 2 miles)
 WEIGHT = {"strict": 1, "standard": 0}   # fixes ranked by kids for kids' map, homes otherwise
 WHO = {"strict": "kids", "standard": "experienced riders"}
 
@@ -118,6 +120,23 @@ def osm_places():
         out.append({"cat": "downtown", "name": name, "p": p, "rings": None,
                     "test": (lambda q: lambda c: dist(c, q) <= LAST_BLOCK_M)(p)})
     return out
+
+
+def station_places(ctx):
+    """The Caltrain stations as places, reached the way the station analysis reaches them (at the platform)."""
+    from connectivity import STATIONS
+    return [{"cat": "caltrain", "name": f"{st} Caltrain", "p": tuple(ctx.stations[st]), "rings": None,
+             "test": (lambda s: lambda c: ctx.reaches(s, c))(st)} for st in STATIONS if st in ctx.stations]
+
+
+def city_of(p):
+    """'San Mateo', 'Burlingame', ... for a point, from the Census place outlines homes.py uses."""
+    from homes import inside as in_place
+    global _PLACES
+    if "_PLACES" not in globals():
+        _PLACES = [(f["attributes"]["BASENAME"], f["geometry"]["rings"])
+                   for f in json.load(open(os.path.join(RAW, "places_2020.json")))["features"]]
+    return next((n for n, r in _PLACES if in_place((p[1], p[0]), r)), None)
 
 
 def curated(places):
@@ -210,6 +229,8 @@ def island_lists(ctx, places, iid, slug_of, name_of=None):
     ok = collections.defaultdict(collections.Counter)
     ride = collections.defaultdict(collections.Counter)
     for pi, pl in enumerate(places):
+        if pl["cat"] not in CATS:
+            continue
         src_all, src_low = ctx.sources(pl)
         if not src_all:
             continue
@@ -387,12 +408,15 @@ def describe(ctx, key, v):
 
 def export(path):
     places = osm_places()
-    cur = curated(places)
-    slug_of = {i: c["slug"] for c, i in cur}
-    name_of = {i: c["name"] for c, i in cur}
+    cur = None
     os.makedirs(os.path.join(ROOT, "data", "places"), exist_ok=True)
     for tier in ("strict", "standard"):
         ctx = Ctx(path, tier)
+        if cur is None:      # stations come from the network build; they're the same for both standards
+            places += station_places(ctx)
+            cur = curated(places)
+            slug_of = {i: c["slug"] for c, i in cur}
+            name_of = {i: c["name"] for c, i in cur}
         iid = ctx.iid()
         lists = island_lists(ctx, places, iid, slug_of, name_of)
         pdir = os.path.join(ROOT, "data", "places", tier)
@@ -404,10 +428,12 @@ def export(path):
         fix_info = {}
         for c, i in cur:
             page, gained, near = place_detail(ctx, places[i])
-            page.update(slug=c["slug"], name=c["name"], title=c.get("title", c["name"]), category=c["category"])
+            page.update(slug=c["slug"], name=c["name"], title=c.get("title", c["name"]), category=c["category"],
+                        city=city_of(places[i]["p"]))
             if tier == "strict":     # pages are for the kids' map; the other standard only feeds the panel's fix line
                 json.dump(page, open(os.path.join(pdir, f"{c['slug']}.json"), "w"), separators=(",", ":"))
             summary.append({"slug": c["slug"], "name": c["name"], "title": page["title"], "category": c["category"],
+                            "city": page["city"],
                             "total": page["total"], "ok": page["ok"],
                             "top": {k: page["fixes"][0][k] for k in ("where", "homes", "kids")} if page["fixes"] else None})
             print(f"[{tier}] {c['slug']}: {page['ok']['kids']:,} of {page['total']['kids']:,} kids, "

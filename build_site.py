@@ -298,7 +298,11 @@ def share_page(ent):
 
 
 # --- place pages (pipeline/places.py --export): one per curated place, kids' map ----------------------------
-PLACE_CAT = {"park": "Parks", "library": "Libraries", "downtown": "Downtown", "grocery": "Grocery stores"}
+PLACE_CAT = {"park": "Parks", "library": "Libraries", "downtown": "Downtown", "grocery": "Grocery stores",
+             "civic": "City halls", "caltrain": "Caltrain"}
+# Burlingame isn't in the speed survey yet: streets with no posted speed in OpenStreetMap are assumed 30 mph there
+ASSUMED_NOTE = {"Burlingame": "Many Burlingame streets have no posted speed in the map's data, so the map assumes 30 mph. "
+                              "Until the city's speed survey is in, these numbers may undercount who can bike here."}
 
 
 def in_rings(lon, lat, rings):
@@ -333,7 +337,10 @@ def place_body(P, civ):
          f'<div class="barlab"><span class="c"><b>{pct(kok, k)}</b> can bike there</span><span class="x"><b>{pct(cant, k)}</b> can\'t</span></div>',
          f'<p class="note">This is the map for kids and cautious riders: paths and quiet streets only, never on busy streets, never across '
          f'El Camino. Of the {tot["homes"]:,} homes within a mile, {ok["homes"]:,} have a route like that.</p>',
-         '<p class="note">Each dot is a block, sized by how many kids live there. Green blocks have a route; copper blocks don\'t.</p>',
+         '<p class="note">Each dot is a block, sized by how many kids live there. Green blocks have a route; copper blocks don\'t.</p>' +
+         (f'<p class="note">The main map counts homes within 2 miles of each station; this page counts kids within 1 mile.</p>'
+          if P["category"] == "caltrain" else "") +
+         (f'<p class="note">{ASSUMED_NOTE[P.get("city")]}</p>' if P.get("city") in ASSUMED_NOTE else ""),
          '</div><div class="mapwrap"><p class="hint" id="hint">Tap a block' + (' or a numbered fix' if fixes else '') + '.</p>',
          f'<canvas id="map" aria-label="Map of blocks within a mile of {e(t)}, colored by whether a kid can bike there on quiet streets"></canvas>',
          '<div class="pop" id="pop" hidden role="status"></div><div class="legend">'
@@ -368,8 +375,9 @@ def place_body(P, civ):
     h.append('<section><h2>What you can do</h2><div class="act-grid">'
              '<div class="act-item"><h3>Tell a neighbor</h3><p>Send this page to a neighbor, a parent group or a school newsletter.</p>'
              '<button type="button" class="btn" id="share">Share link</button> <span class="muted" id="copied"></span></div>')
-    sm = CFG["cities"]["San Mateo"]
-    if fixes:
+    city = P.get("city") or "San Mateo"
+    cc = CFG["cities"].get(city, {})
+    if fixes and cc.get("service_request"):
         f = fixes[0]
         req = (f"Please consider making {short(f['where'])} safe for kids to bike"
                + (f": {f['need'][0]}" if f["need"] else "") + f". {k:,} kids live within a mile of {t}, "
@@ -378,19 +386,24 @@ def place_body(P, civ):
         h.append(f'<div class="act-item"><h3>Ask the city</h3><p>Copy this into the city\'s service request form:</p>'
                  f'<div class="ask-req" id="askreq">{e(req)}</div>'
                  '<p><button type="button" class="btn" id="askcopy">Copy request</button> <span class="muted" id="askcopied"></span></p>'
-                 f'<p><a href="{e(sm["service_request"])}">Open San Mateo\'s service request form</a>, or '
-                 f'<a href="{e(sm["traffic_calming"])}">request a traffic calming study</a>.</p></div>')
+                 f'<p><a href="{e(cc["service_request"])}">Open {city}\'s service request form</a>' +
+                 (f', or <a href="{e(cc["traffic_calming"])}">request a traffic calming study</a>' if cc.get("traffic_calming") else "") +
+                 '.</p></div>')
     lat, lon = P["center"]
-    district = next((d for d, rings in civ["districts"] if in_rings(lon, lat, rings)), None)
+    district = next((d for d, rings in civ["districts"] if in_rings(lon, lat, rings)), None) if city == "San Mateo" else None
     m = civ["council"].get(str(district)) if district else None
+    if city == "Burlingame" and cc.get("council_email"):    # elected citywide: the email goes to the whole council
+        m = {"salutation": "Burlingame City Council", "email": cc["council_email"]}
     if civ["email_card"] and m:
         body = (f"Dear {m['salutation']},\n\n{k:,} kids live within a 1-mile ride of {t}, but only {kok:,} of them can get there "
                 f"without riding on a busy street.\n\n" +
                 (f"{fix_title(fixes[0])} would let {fixes[0]['kids']:,} more kids bike there. Could the city consider it?\n\n" if fixes else "") +
                 f"[Add a sentence about you]\n\n{url}\n\nThank you,")
         href = f"mailto:{m['email']}?" + urllib.parse.urlencode({"subject": f"Kids biking to {t}", "body": body}, quote_via=urllib.parse.quote)
-        h.append(f'<div class="act-item"><h3>Email your council member</h3><p>{e(t)} is in City Council District {district}, represented by '
-                 f'{e(m["title"])} {e(m["name"])}. If you live in another district, the <a href="{BASE}">map</a> finds yours.</p>'
+        who = (f'{e(t)} is in City Council District {district}, represented by {e(m["title"])} {e(m["name"])}. If you live in '
+               f'another district, the <a href="{BASE}">map</a> finds yours.' if district else
+               "Burlingame's council is elected citywide, so the email goes to the whole council.")
+        h.append(f'<div class="act-item"><h3>Email {"your council member" if district else "the city council"}</h3><p>{who}</p>'
                  f'<a class="btn" href="{e(href)}">Email {e(m["salutation"])}</a></div>')
     h.append('</div></section>')
     h.append('<div class="how"><h2>How this is counted</h2>'
@@ -434,9 +447,11 @@ def place_pages(civ):
     rows.sort(key=lambda r: -(r[1] - r[2]))
     items = "\n".join(
         f'<tr><td><a href="{BASE}places/{P["slug"]}/">{e(P["title"][:1].upper() + P["title"][1:])}</a></td><td>{PLACE_CAT[P["category"]]}</td>'
+        f'<td>{e(P.get("city") or "")}</td>'
         f'<td class="n">{k:,}</td><td class="n">{pct(kok, k)}</td></tr>' for P, k, kok in rows)
-    title = "Who can bike to the places San Mateo kids go?"
-    desc = "Parks, libraries, grocery stores and downtown: how many kids within a mile of each can bike there on quiet streets."
+    title = "Who can bike to the places kids go?"
+    desc = ("Parks, libraries, grocery stores, downtown, city hall and Caltrain in San Mateo and Burlingame: how many kids within "
+            "a mile of each can bike there on quiet streets.")
     idx = (head(title, desc, f"{BASE}places/") + "\n" + METHOD_CSS +
            "<style>table.pl{border-collapse:collapse;width:100%;font-size:15px;font-variant-numeric:tabular-nums}"
            "table.pl th,table.pl td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--surface-sunken)}"
@@ -444,8 +459,9 @@ def place_pages(civ):
            "\n</head>\n<body>\n<main role=\"main\" class=\"bi bi-method\">\n" + HEADER +
            f'\n<p class="bi-eyebrow"><a href="{BASE}">Bike islands</a></p><h1>{e(title)}</h1>'
            f'<p>For each place, the kids who live within a 1-mile ride of it, and the share who can bike there on paths and quiet streets, '
-           f'without riding on a busy street. San Mateo for now; Burlingame waits on its speed survey.</p>'
-           f'<div class="tw"><table class="pl"><thead><tr><th>Place</th><th>Kind</th><th class="n">Kids within a mile</th>'
+           f'without riding on a busy street. Many Burlingame streets have no posted speed in the map\'s data and are assumed 30 mph, '
+           f'so Burlingame numbers may undercount until its speed survey is in.</p>'
+           f'<div class="tw"><table class="pl"><thead><tr><th>Place</th><th>Kind</th><th>City</th><th class="n">Kids within a mile</th>'
            f'<th class="n">Can bike there</th></tr></thead><tbody>{items}</tbody></table></div>\n' + footer() + "\n</main>\n</body>\n</html>\n")
     open(os.path.join(OUT, "places", "index.html"), "w").write(idx)
     return len(rows)
