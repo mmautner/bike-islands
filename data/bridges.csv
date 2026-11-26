@@ -1,42 +1,42 @@
 tier,station,rank,gain_homes,share_of_near,kind,osm_id,label
-standard,Burlingame,1,2362.0,0.105,x,65449979,crossing: Arundel Road & Peninsula Avenue & Woodside Way (node 65449979)
-standard,Burlingame,2,569.0,0.025,w,130726875,"North El Camino Real: 246 m segment (40 mph assumed, 4 lanes)"
-standard,Burlingame,3,525.0,0.023,x,252338806,crossing: North Humboldt Street & Peninsula Avenue (node 252338806)
-standard,Burlingame,4,388.0,0.017,w,780554153,"North El Camino Real: 526 m segment (35 mph posted, 4 lanes)"
+standard,Burlingame,1,2249.0,0.1,x,65449979,crossing: Arundel Road & Peninsula Avenue & Woodside Way (node 65449979)
+standard,Burlingame,2,603.0,0.027,w,130726875,"North El Camino Real: 246 m segment (40 mph assumed, 4 lanes)"
+standard,Burlingame,3,422.0,0.019,w,780554153,"North El Camino Real: 526 m segment (35 mph posted, 4 lanes)"
+standard,Burlingame,4,341.0,0.015,x,252338806,crossing: North Humboldt Street & Peninsula Avenue (node 252338806)
 standard,Burlingame,5,298.0,0.013,x,65447088,crossing: Broadway & Laguna Avenue (node 65447088)
-standard,Burlingame,6,216.0,0.01,w,417328080,"North El Camino Real: 481 m segment (40 mph assumed, 4 lanes)"
-standard,Burlingame,7,171.0,0.008,w,573494053,"North San Mateo Drive: 53 m segment (25 mph posted, 3 lanes)"
-standard,Burlingame,8,160.0,0.007,x,65432994,crossing: Broadway & Paloma Avenue (node 65432994)
-standard,Burlingame,9,113.0,0.005,w,150556073,"North Bayshore Boulevard: 576 m segment (35 mph posted, 2 lanes)"
+standard,Burlingame,6,243.0,0.011,w,8928075,"North San Mateo Drive: 103 m segment (25 mph posted, 2 lanes)"
+standard,Burlingame,7,216.0,0.01,w,417328080,"North El Camino Real: 481 m segment (40 mph assumed, 4 lanes)"
+standard,Burlingame,8,214.0,0.009,w,829790748,"South Grant Street: 22 m segment (25 mph posted, 2 lanes)"
+standard,Burlingame,9,160.0,0.007,x,65432994,crossing: Broadway & Paloma Avenue (node 65432994)
+standard,Burlingame,10,113.0,0.005,w,150556073,"North Bayshore Boulevard: 576 m segment (35 mph posted, 2 lanes)"
 standard,San Mateo,1,1272.0,0.047,x,65464063,crossing: Clarendon Road & North Claremont Street & Peninsula Avenue (node 65464063)
-standard,San Mateo,2,968.0,0.036,x,65449979,crossing: Arundel Road & Peninsula Avenue & Woodside Way (node 65449979)
-standard,San Mateo,3,484.0,0.018,w,417328079,"South El Camino Real: 75 m segment (40 mph assumed, 4 lanes)"
-standard,San Mateo,4,305.0,0.011,w,150556073,"North Bayshore Boulevard: 576 m segment (35 mph posted, 2 lanes)"
-standard,San Mateo,5,293.0,0.011,w,449671496,"El Camino Real: 274 m segment (40 mph assumed, 4 lanes)"
-standard,San Mateo,6,227.0,0.008,w,417328080,"North El Camino Real: 481 m segment (40 mph assumed, 4 lanes)"
-standard,San Mateo,7,220.0,0.008,x,427846551,crossing: South Delaware Street (node 427846551)
-standard,San Mateo,8,202.0,0.008,x,65431829,crossing: Monte Diablo Avenue & North El Camino Real (node 65431829)
-standard,San Mateo,9,201.0,0.007,x,252338806,crossing: North Humboldt Street & Peninsula Avenue (node 252338806)
-standard,San Mateo,10,24.0,0.001,w,1388964482,"East Poplar Avenue: 37 m segment (25 mph posted, 3 lanes)"
+standard,San Mateo,2,1005.0,0.037,w,8937955,"North Delaware Street: 595 m segment (25 mph posted, 2 lanes)"
+standard,San Mateo,3,968.0,0.036,x,65449979,crossing: Arundel Road & Peninsula Avenue & Woodside Way (node 65449979)
+standard,San Mateo,4,341.0,0.013,w,1388964482,"East Poplar Avenue: 37 m segment (25 mph posted, 3 lanes)"
+standard,San Mateo,5,305.0,0.011,w,150556073,"North Bayshore Boulevard: 576 m segment (35 mph posted, 2 lanes)"
+standard,San Mateo,6,293.0,0.011,w,449671496,"El Camino Real: 274 m segment (40 mph assumed, 4 lanes)"
+standard,San Mateo,7,227.0,0.008,w,8933479,"Pacific Boulevard: 605 m segment (25 mph posted, 2 lanes)"
+standard,San Mateo,8,227.0,0.008,w,417328080,"North El Camino Real: 481 m segment (40 mph assumed, 4 lanes)"
+standard,San Mateo,9,216.0,0.008,w,1381682462,"2nd Avenue: 88 m segment (25 mph posted, 2 lanes)"
+standard,San Mateo,10,203.0,0.008,w,518502061,"9th Avenue: 29 m segment (25 mph posted, 3 lanes)"
+standard,San Mateo,11,202.0,0.008,x,65431829,crossing: Monte Diablo Avenue & North El Camino Real (node 65431829)
+standard,San Mateo,12,78.0,0.003,x,427846551,crossing: South Delaware Street (node 427846551)
 standard,Hayward Park,1,647.0,0.023,x,427846551,crossing: South Delaware Street (node 427846551)
-standard,Hillsdale,1,475.0,0.021,x,65427884,crossing: Edison Street & West Hillsdale Boulevard (node 65427884)
+standard,Hillsdale,1,3865.0,0.172,w,1387073683,"28th Avenue: 119 m segment (25 mph posted, 2 lanes)"
 strict,Burlingame,1,1067.0,0.047,w,51398192,"Howard Avenue: 1045 m segment (30 mph assumed, 2 lanes)"
 strict,Burlingame,2,884.0,0.039,x,65402832,crossing: El Camino Real & Floribunda Avenue (node 65402832)
-strict,Burlingame,3,884.0,0.039,w,449671496,"El Camino Real: 274 m segment (40 mph assumed, 4 lanes)"
-strict,Burlingame,4,769.0,0.034,x,65402846,crossing: Bayswater Avenue & Carol Avenue & Cypress Avenue & El Camino Real & Primrose Road (node 65402846)
-strict,Burlingame,5,219.0,0.01,x,65392821,crossing: Howard Avenue & Lorton Avenue (node 65392821)
-strict,Burlingame,6,69.0,0.003,w,573412102,"Oak Grove Avenue: 416 m segment (25 mph posted, 2 lanes)"
+strict,Burlingame,3,729.0,0.032,x,65402846,crossing: Bayswater Avenue & Carol Avenue & Cypress Avenue & El Camino Real & Primrose Road (node 65402846)
+strict,Burlingame,4,219.0,0.01,x,65392821,crossing: Howard Avenue & Lorton Avenue (node 65392821)
+strict,Burlingame,5,69.0,0.003,w,573412102,"Oak Grove Avenue: 416 m segment (25 mph posted, 2 lanes)"
 strict,San Mateo,1,1371.0,0.051,x,65415873,crossing: Lorton Avenue & Peninsula Avenue & Prospect Row (node 65415873)
 strict,San Mateo,2,1076.0,0.04,x,65432065,crossing: East Bellevue Avenue & North El Camino Real & West Bellevue Avenue (node 65432065)
 strict,San Mateo,3,1005.0,0.037,w,8937955,"North Delaware Street: 595 m segment (25 mph posted, 2 lanes)"
-strict,San Mateo,4,979.0,0.036,x,65442074,crossing: 2nd Avenue & South Delaware Street (node 65442074)
-strict,San Mateo,5,410.0,0.015,w,47416812,"North San Mateo Drive: 585 m segment (30 mph posted, 2 lanes)"
-strict,San Mateo,6,362.0,0.013,x,65464063,crossing: Clarendon Road & North Claremont Street & Peninsula Avenue (node 65464063)
-strict,San Mateo,7,255.0,0.009,x,65449979,crossing: Arundel Road & Peninsula Avenue & Woodside Way (node 65449979)
-strict,San Mateo,8,208.0,0.008,x,65403261,crossing: El Cerrito Avenue & North El Camino Real & Tilton Avenue (node 65403261)
-strict,San Mateo,9,13.0,0.0,x,65412515,crossing: East 3rd Avenue & South Claremont Street (node 65412515)
-strict,Hayward Park,1,647.0,0.023,x,427846551,crossing: South Delaware Street (node 427846551)
-strict,Hayward Park,2,157.0,0.006,w,44418611,"9th Avenue: 243 m segment (25 mph posted, 2 lanes)"
+strict,San Mateo,4,362.0,0.013,x,65464063,crossing: Clarendon Road & North Claremont Street & Peninsula Avenue (node 65464063)
+strict,San Mateo,5,255.0,0.009,x,65449979,crossing: Arundel Road & Peninsula Avenue & Woodside Way (node 65449979)
+strict,San Mateo,6,208.0,0.008,x,65403261,crossing: El Cerrito Avenue & North El Camino Real & Tilton Avenue (node 65403261)
+strict,San Mateo,7,33.0,0.001,w,40600408,"East 3rd Avenue: 124 m segment (25 mph posted, 4 lanes)"
+strict,Hayward Park,1,374.0,0.013,x,427846551,crossing: South Delaware Street (node 427846551)
+strict,Hayward Park,2,147.0,0.005,w,44418611,"9th Avenue: 243 m segment (25 mph posted, 2 lanes)"
 strict,Hayward Park,3,64.0,0.002,x,65441658,crossing: 17th Avenue & Palm Avenue (node 65441658)
 strict,Hayward Park,4,40.0,0.001,x,1635696956,crossing: 19th Avenue & Palm Avenue (node 1635696956)
-strict,Hillsdale,1,2701.0,0.12,w,1387073683,"28th Avenue: 119 m segment (25 mph posted, 2 lanes)"
+strict,Hayward Park,5,13.0,0.0,x,65458533,crossing: East 4th Avenue & South Claremont Street (node 65458533)

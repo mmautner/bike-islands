@@ -57,6 +57,9 @@ python3 build_site.py
     Camino at Bellevue and at Bayswater/Primrose, and on Howard at Park Road.
   - *standard* ("most adults") = LTS 1–2. Crossings are barriers at ≥35 mph or ≥4 lanes; any signal tames one.
   - Short multi-lane pieces of local streets (<60 m) are turn pockets, counted as 2 lanes.
+- **Traffic volume**: where the survey has a daily count (`adt`), mixed-traffic stress is the higher of the speed/lanes
+  rating and the Greater Madison MPO's 2023 volume table (`volume_lts` in `pipeline/islands.py`; one-way streets count
+  1.5x). Crossings don't use volume (neither Furth's criteria nor Madison's do). Toggle with `USE_VOLUME`.
 - **Speeds**: the city survey's posted limits, then OpenStreetMap `maxspeed`, then defaults (residential 25,
   tertiary 30, primary/secondary 40, the PeopleForBikes defaults). 110 of 123 survey segments match; the rest are
   printed by `survey.py`.
@@ -81,8 +84,7 @@ python3 build_site.py
 
 - OpenStreetMap is volunteer-mapped; missing signals (Parrott Dr at Alameda de las Pulgas was one) or wrong lane
   tags change results.
-- No traffic volumes yet. The survey file has daily volume (`adt`) for surveyed segments, unused so far; a 25 mph
-  street with heavy traffic (E Poplar) rates low-stress.
+- Traffic volume is known only for San Mateo's surveyed streets; Burlingame's survey has been requested (`data/records_requests.csv`).
 - Outside San Mateo's survey, many speeds are defaults.
 - Fixes are tested one at a time; combinations can do more than the sum.
 - Not causal: the map shows where routes exist, not whether people would ride them.

@@ -38,6 +38,9 @@ SKIP_SERVICE = {"parking_aisle", "drive-through", "driveway", "emergency_access"
 # "small": only if every barrier street at that intersection is under 35 mph and under
 # 4 lanes, so crossing El Camino Real stays stressful even at a signal.
 SIGNAL_RULE = {"standard": "any", "strict": "small"}
+# Use the speed survey's daily traffic counts, where a street has one, to raise mixed-traffic stress
+# (never lower it). See volume_lts().
+USE_VOLUME = True
 CROSSING_PENALTY_M = 30  # high-stress metres charged for crossing a barrier street
 STATION_RADIUS_M = 150   # fallback: distance from the station point, if no platform is mapped
 PLATFORM_REACH_M = 60    # a street node this close to a station's platform edge reaches it
@@ -100,13 +103,41 @@ def lts(t):
             return 3, "lane"
         return 4, "lane"
     # mixed traffic (includes sharrows)
+    adt = t.get("survey:adt")
+    if adt and USE_VOLUME:
+        return max(mixed_lts(s, n, local), volume_lts(s, n, int(float(adt)), t.get("oneway") == "yes")), "street"
+    return mixed_lts(s, n, local), "street"
+
+
+def volume_lts(s, n, adt, oneway):
+    """Mixed-traffic stress from daily traffic, speed and lanes per direction: Greater Madison MPO's 2023 table
+    (Appendix B, Table 3), which revised Mekuria, Furth & Nixon to align with NACTO and add volume.
+    One-way streets count 1.5x their volume ("effective ADT")."""
+    per_dir = n if oneway else max(1, n // 2)
+    eff = adt * 1.5 if oneway else adt
+    if per_dir >= 3:
+        return 4
+    if per_dir == 2:
+        return 3 if (eff <= 6000 and s <= 30) else 4
+    if s >= 40:
+        return 4
+    if s >= 35:
+        return 3 if eff <= 3000 else 4
+    if eff <= 1500:
+        return 1 if s <= 20 else 2
+    if eff <= 3000:
+        return 2
+    return 3
+
+
+def mixed_lts(s, n, local):
     if s <= 25 and n <= 2:
-        return (1 if local else 2), "street"
+        return 1 if local else 2
     if s <= 30 and n <= 2:
-        return (2 if local else 3), "street"
+        return 2 if local else 3
     if s <= 25 and n <= 4:
-        return 3, "street"
-    return 4, "street"
+        return 3
+    return 4
 
 
 def dist(a, b):
@@ -205,6 +236,8 @@ def apply_overrides(ways):
         if w["id"] in survey:
             w["tags"]["maxspeed"] = survey[w["id"]]["posted_mph"] + " mph"
             w["tags"]["survey:median_mph"] = survey[w["id"]]["median_mph"]
+            if survey[w["id"]].get("adt"):
+                w["tags"]["survey:adt"] = survey[w["id"]]["adt"]
         for r in rows:
             if w["tags"].get("name") == r["name"] and in_bounds(w["geometry"][0], r):
                 w["tags"][r["tag"]] = r["value"]

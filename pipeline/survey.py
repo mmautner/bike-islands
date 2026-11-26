@@ -35,6 +35,12 @@ def norm(name):
     return " ".join(t).lower()
 
 
+# Survey segments whose label's direction doesn't cover all of the street they describe:
+#   56  "S San Mateo Dr, Santa Inez Ave to Baldwin Ave" is North San Mateo Drive (north of Baldwin)
+#   118 "W 25th Ave, Hacienda St to Delaware St" crosses El Camino, so it includes East 25th Avenue
+PREFIX_EXCEPTIONS = {"56": ("North",), "118": ("East",)}
+
+
 def prefix(name):
     t = expand(name).split()
     return t[0] if t and t[0] in ("North", "South", "East", "West") else ""
@@ -73,7 +79,8 @@ def main():
     out, unmatched = [], []
     for r in csv.DictReader(open(os.path.join(HERE, "..", "data", "sources", "ets_2026_segments.csv"))):
         r = {"survey_id": r["segment_no"], "street": r["street"], "segment": f'{r["from"]} to {r["to"]}',
-             "posted_mph": r["existing"], "median_mph": r["p50"], "p85_mph": r["p85"], "from": r["from"], "to": r["to"]}
+             "posted_mph": r["existing"], "median_mph": r["p50"], "p85_mph": r["p85"], "adt": r["adt"],
+             "from": r["from"], "to": r["to"]}
         street = norm(r["street"])
         a, b = meet(street, r["from"]), meet(street, r["to"])
         if not by_name[street] or (a is None and b is None):
@@ -93,13 +100,18 @@ def main():
             # ("W 5th Ave" in the survey, "5th Avenue" in OpenStreetMap) is the same street
             if prefix(r["street"]) == "" and prefix(w["tags"]["name"]) != "":
                 continue
+            # "E Poplar Ave" and "West Poplar Avenue" are different streets, except where the survey's own label
+            # doesn't match the street (PREFIX_EXCEPTIONS)
+            if (prefix(r["street"]) and prefix(w["tags"]["name"]) and prefix(r["street"]) != prefix(w["tags"]["name"])
+                    and prefix(w["tags"]["name"]) not in PREFIX_EXCEPTIONS.get(r["survey_id"], ())):
+                continue
             ps = [xy(g["lat"], g["lon"]) for g in w["geometry"]]
             mx, my = ps[len(ps) // 2]
             t = ((mx - ax) * (bx - ax) + (my - ay) * (by - ay)) / L2
             px, py = ax + t * (bx - ax), ay + t * (by - ay)
             if -0.02 <= t <= 1.02 and math.hypot(mx - px, my - py) < 150:
                 out.append({"way_id": w["id"], "osm_name": w["tags"]["name"], "survey_id": r["survey_id"],
-                            "posted_mph": r["posted_mph"], "median_mph": r["median_mph"], "p85_mph": r["p85_mph"],
+                            "posted_mph": r["posted_mph"], "median_mph": r["median_mph"], "p85_mph": r["p85_mph"], "adt": r["adt"],
                             "fit": round(abs(t - 0.5), 3)})
     # a way near a segment boundary can match 2 segments: keep the one it sits most inside
     best = {}
