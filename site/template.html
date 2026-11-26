@@ -73,6 +73,8 @@
   ul.gaps li { margin:3px 0 3px -6px; padding:2px 6px; border-radius:6px; }
   ul.gaps li.hot, ul.gaps li.focus { background:var(--bg); }
   ul.gaps li.focus { box-shadow: inset 3px 0 0 #b4442c; }
+  .gapbox p.combo { margin:8px 0 0; font-size:14px; color:var(--ink); }
+  ul.gaps li.key::marker { content:"\2605  "; color:#b4442c; }
   a.gaplink { color:var(--ink); text-decoration: underline dotted #b4442c; text-underline-offset:3px; }
   a.gaplink:hover { text-decoration-style: solid; }
   .answer { font-size:16px; color:var(--ink); margin:10px 0 6px; }
@@ -549,6 +551,23 @@ function gapText(g) {
   const at = g.name.indexOf(" at ");
   return at > 0 ? `Crossing ${g.name.slice(0, at)} at ${g.name.slice(at + 4)}` : `Crossing ${nm(g.name)}`;
 }
+function gapShort(g) {       // for a sentence: "250 ft of El Camino Real", "the crossing of Howard Ave at Myrtle Rd"
+  const nm = n => n === "(unnamed)" ? "an unnamed street" : n;
+  if (g.kind === "w") return `${ftmi(g.len)} of ${nm(g.name)}`;
+  const at = g.name.indexOf(" at ");
+  return at > 0 ? `the crossing of ${g.name.slice(0, at)} at ${g.name.slice(at + 4)}` : `the crossing of ${nm(g.name)}`;
+}
+// What fixing the pieces together would do (the export tests each alone, each pair and all of them, and keeps
+// the smallest set that gets at least 90% of the way)
+function comboText(G) {
+  const C = G.combo;
+  if (!C) return "";
+  if (!C.all) return `Fixing only these wouldn't be enough: routes from here would still be too roundabout, or meet other busy streets.`;
+  const who = `<strong>${fmt(C.homes)}</strong> of this island's homes to ${G.st} Caltrain` + (C.elsewhere ? `, and ${fmt(C.elsewhere)} more on other islands` : "");
+  if (C.items.length === G.items.length) return `Fixing ${G.items.length > 1 ? "all of these together" : "it"} would connect ${who}.`;
+  const names = C.items.map(k => gapShort(G.items[k]));
+  return `Fixing just ${names.length > 1 ? names.slice(0, -1).join(", ") + " and " + names[names.length - 1] : names[0]} would connect ${who}.`;
+}
 const gapLines = g => g._lines || (g._lines = (g.p || []).map(a => decodePts(a)));
 function gapPoint(g) { const L = gapLines(g)[0]; return L ? L[Math.floor(L.length / 2)] : g.pts[0]; }
 function setHotGap(k) {
@@ -630,7 +649,20 @@ function selectFix(id, from) {
 const MINOR_FIX = 0.02;
 function topBridges(T, id) {
   const homes = (T.islands[id] || {}).homes || 0;
-  return allFixes(T, id).filter(e => e.max >= MINOR_FIX * homes || T.bridges[e.bid].id === focusFix).slice(0, 5);
+  // The same bottleneck often shows up twice, as a stretch of a busy street and as a crossing of it, connecting
+  // the same number of homes: keep one (the crossing, else the shortest stretch), unless the other came from a link.
+  const street = B => B.kind === "x" ? B.name.split(" at ")[0] : B.name;
+  const all = allFixes(T, id), seen = new Map();
+  for (const e of all) {
+    const B = T.bridges[e.bid], key = street(B) + "|" + Math.round(e.max);     // same street, same best gain
+    const prev = seen.get(key);
+    const better = !prev || B.id === focusFix ||
+      (T.bridges[prev.bid].id !== focusFix && (B.kind === "x") > (T.bridges[prev.bid].kind === "x")) ||
+      (T.bridges[prev.bid].id !== focusFix && B.kind === T.bridges[prev.bid].kind && B.kind === "w" && B.len < T.bridges[prev.bid].len);
+    if (better) seen.set(key, e);
+  }
+  const kept = new Set(seen.values());
+  return all.filter(e => kept.has(e) && (e.max >= MINOR_FIX * homes || T.bridges[e.bid].id === focusFix)).slice(0, 5);
 }
 function allFixes(T, id) {
   // one entry per fix, with homes gained for each station it helps
@@ -703,9 +735,9 @@ function panel() {
     const G = I.gaps;
     h += `<div class="gapbox"><h3>What's in the way to ${G.st} Caltrain</h3>` +
       `<p class="muted">Stressful streets and crossings on the best route from most homes here:</p><ul class="gaps">` +
-      G.items.map((g, k) => `<li data-gap="${k}"${k === focusGap ? ' class="focus"' : ""}><a class="gaplink" role="button" href="#" aria-pressed="${k === focusGap}">${gapText(g)}</a>` +
+      G.items.map((g, k) => `<li data-gap="${k}" class="${k === focusGap ? "focus" : ""}${G.combo && G.combo.all && G.combo.items.length < G.items.length && G.combo.items.includes(k) ? " key" : ""}"><a class="gaplink" role="button" href="#" aria-pressed="${k === focusGap}">${gapText(g)}</a>` +
         (g.share < 0.9 ? ` <span class="muted">(routes from ${Math.round(g.share * 100)}% of homes)</span>` : "") + `</li>`).join("") +
-      `</ul></div>`;
+      `</ul>` + (comboText(G) ? `<p class="combo">${comboText(G)}</p>` : "") + `</div>`;
   }
   if (far.length) h += `<p class="muted">${far.join(" and ")} Caltrain: more than a 2-mile ride.</p>`;
   const list = topBridges(T, sel), minor = allFixes(T, sel).length - list.length;
