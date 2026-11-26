@@ -50,6 +50,10 @@
   .zoom button { font:inherit; width:32px; height:32px; border:1px solid var(--grey); background:var(--bg); color:var(--ink); cursor:pointer; font-size:18px; }
   .zoom button + button { border-top:none; }
   .hint { position:absolute; left:10px; bottom:10px; font-size:13px; background:var(--bg); color:var(--body); padding:4px 8px; opacity:.92; }
+  .hint:has(.chip) { right:10px; padding:0; opacity:1; background:none; }
+  .hint .chip { font:inherit; font-size:14px; text-align:left; width:100%; padding:9px 12px; border:1px solid var(--copper); background:var(--bg); color:var(--ink); cursor:pointer; box-shadow:0 2px 10px rgba(0,0,0,.15); }
+  .hint .chip strong { color:var(--copper); }
+  .hint .chip u { color:var(--copper); white-space:nowrap; }
   aside { font-size:15px; line-height:1.45; }
   aside h2 { font-family:'Newsreader', Georgia, serif; font-weight:600; color:var(--ink); font-size:22px; margin:0 0 6px; }
   .big { font-family:'Newsreader', Georgia, serif; font-size:44px; color:var(--copper); line-height:1; }
@@ -116,7 +120,7 @@
       <div id="mapbox">
         <canvas id="bimap" aria-label="Map of San Mateo and Burlingame streets. Click a street to see its bike island."></canvas>
         <div class="zoom"><button id="zin" aria-label="Zoom in">+</button><button id="zout" aria-label="Zoom out">&minus;</button></div>
-        <div class="hint" id="hint">Click near where you live</div>
+        <div class="hint" id="hint"></div>
       </div>
       <div class="mapnote" id="mapnote" aria-live="polite"></div>
       <div class="legend">
@@ -335,6 +339,8 @@ function islandColors(T) {
 }
 
 let tier = "strict", sel = null;
+const COARSE = matchMedia("(pointer: coarse)").matches;     // touch screen: say "tap", not "click"
+const NARROW = matchMedia("(max-width: 820px)");            // the panel stacks below the map (see .wrap)
 const cv = document.getElementById("bimap")  /* not "map": site.css sizes #map to 600px for the blog photo maps */, ctx = cv.getContext("2d");
 const box = document.getElementById("mapbox");
 const V = DATA.strict.view; // [s, w, n, e]
@@ -471,7 +477,7 @@ function headline() {
   document.getElementById("title").textContent =
     `Only 1 in ${n} homes within 2 miles of San Mateo's Caltrain station has a bike route there that feels safe for kids and cautious riders`;
   document.getElementById("subtitle").textContent =
-    "Quiet streets form islands, cut off from each other by busy streets and crossings. Pick who's riding, then click near home to see your island and the fixes that would connect it to Caltrain.";
+    `Quiet streets form islands, cut off from each other by busy streets and crossings. Pick who's riding, then ${COARSE ? "tap" : "click"} near home to see your island and the fixes that would connect it to Caltrain.`;
 }
 
 function panel() {
@@ -637,9 +643,35 @@ async function applyHash() {
   }
   render();
 }
+// minutes by low-stress streets from the click to a station, or null without a click or a route
+function minsTo(T, st) {
+  if (!heat || heatFrom !== "where you clicked") return null;
+  const sn = stationNode(T, sel, st);
+  return sn && heat.has(sn.n) ? Math.max(1, Math.round((heat.get(sn.n) + sn.d) / M_PER_MIN)) : null;
+}
+// The hint in the map's corner. Once an island is picked on a phone, where the panel sits below the map,
+// it becomes a summary that jumps to the panel; on a wide screen the panel is beside the map, so it hides.
+function hint() {
+  const el = document.getElementById("hint");
+  if (!sel) { el.style.display = ""; el.textContent = `${COARSE ? "Tap" : "Click"} near where you live`; return; }
+  if (!NARROW.matches) { el.style.display = "none"; return; }
+  const T = DATA[tier], I = T.islands[sel] || {};
+  const bits = [`<strong>${fmt(I.homes || 0)} homes</strong>`];
+  for (const st of Object.keys(T.stations)) {
+    const m = (I.near || {})[st] ? minsTo(T, st) : null;
+    if (m && m <= 25) bits.push(`${st} Caltrain ${m} min`);
+  }
+  if (!Object.values(I.ok || {}).some(Boolean)) bits.push("no low-stress route to Caltrain");
+  el.style.display = "";
+  el.innerHTML = `<button type="button" class="chip">${bits.join(" · ")} · <u>Details&nbsp;&darr;</u></button>`;
+  el.querySelector("button").onclick = () => {
+    document.getElementById("panel").scrollIntoView({behavior: "smooth", block: "start"});
+    track("details_chip_clicked", {standard: tier});
+  };
+}
 function render() {
-  document.getElementById("hint").style.display = sel ? "none" : "";
   computeHeat();
+  hint();
   const hl = document.getElementById("heatlegend");
   hl.hidden = !heat;
   if (heat) {
@@ -669,7 +701,7 @@ function mapnote() {
     '<i style="border-color:var(--grey)"></i>Small islands';
   if (!sel) {
     el.innerHTML = `Each color is an island: quiet streets you can ride between without riding on, or crossing, a stressful street. ` +
-      `The dark lines between them are the stressful streets and crossings. <strong>Click near home to see yours.</strong>`;
+      `The dark lines between them are the stressful streets and crossings. <strong>${COARSE ? "Tap" : "Click"} near home to see yours.</strong>`;
     return;
   }
   const I = T.islands[sel] || {};
@@ -692,9 +724,9 @@ function mapnote() {
   el.innerHTML = h;
 }
 
-function pick(cx, cy, T) {
+function pick(cx, cy, T, radius) {
   T = T || DATA[tier];
-  let best = null, bd = 30;
+  let best = null, bd = radius || 30;
   for (const L of T.lines) {
     if (L.i === undefined) continue;
     for (let k = 1; k < L.pts.length; k++) {
@@ -708,33 +740,65 @@ function pick(cx, cy, T) {
   return best;
 }
 
-// interaction: drag to pan, wheel or buttons to zoom, click to pick
-let drag = null, moved = false;
-// While dragging, slide a snapshot of the map instead of redrawing every street on every move;
-// the full redraw happens once, on release. Keeps panning smooth on phones as the map grows.
+// interaction: drag to pan, pinch, wheel or buttons to zoom, click to pick
+let drag = null, moved = false, pinch = null;
+const pointers = new Map();          // pointerId -> [x, y] relative to the canvas
+// While dragging or pinching, slide and scale a snapshot of the map instead of redrawing every street on
+// every move; the full redraw happens once, on release. Keeps panning smooth on phones as the map grows.
 const snap = document.createElement("canvas"), snapCtx = snap.getContext("2d");
+const takeSnap = () => { snap.width = cv.width; snap.height = cv.height; snapCtx.drawImage(cv, 0, 0); };
+function showSnap(k, dx, dy) {       // the snapshot scaled by k, then moved by (dx, dy), in CSS pixels
+  const dpr = window.devicePixelRatio || 1;
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = PAPER; ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.drawImage(snap, dx * dpr, dy * dpr, snap.width * k, snap.height * k);
+  ctx.restore();
+}
+const relPt = e => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+const pinchGeom = () => {
+  const [a, b] = [...pointers.values()];
+  return {d: Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, m: [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]};
+};
 cv.addEventListener("pointerdown", e => {
-  drag = [e.clientX, e.clientY, ox, oy]; moved = false; cv.setPointerCapture(e.pointerId);
-  snap.width = cv.width; snap.height = cv.height; snapCtx.drawImage(cv, 0, 0);
+  pointers.set(e.pointerId, relPt(e)); cv.setPointerCapture(e.pointerId);
+  if (pointers.size === 1) { drag = [e.clientX, e.clientY, ox, oy]; moved = false; takeSnap(); return; }
+  if (pointers.size === 2) {
+    // a second finger: a pinch, which also cancels the tap. Start from where the pan has got to.
+    if (drag && moved) draw();
+    drag = null; moved = true; takeSnap();
+    pinch = {...pinchGeom(), scale, ox, oy};
+  }
 });
 cv.addEventListener("pointermove", e => {
+  if (!pointers.has(e.pointerId)) return;
+  pointers.set(e.pointerId, relPt(e));
+  if (pinch && pointers.size >= 2) {
+    // keep the map point under the starting midpoint under the current midpoint, scaled by the spread
+    const {d, m} = pinchGeom();
+    const ns = Math.max(1, Math.min(12, pinch.scale * d / pinch.d)), k = ns / pinch.scale;
+    scale = ns;
+    ox = m[0] + (W / 2 + pinch.ox - pinch.m[0]) * k - W / 2;
+    oy = m[1] + (H / 2 + pinch.oy - pinch.m[1]) * k - H / 2;
+    showSnap(k, m[0] - pinch.m[0] * k, m[1] - pinch.m[1] * k);
+    return;
+  }
   if (!drag) return;
   const dx = e.clientX - drag[0], dy = e.clientY - drag[1];
   if (Math.abs(dx) + Math.abs(dy) > 4) moved = true;
   ox = drag[2] + dx; oy = drag[3] + dy;
-  if (!moved) return;
-  const dpr = window.devicePixelRatio || 1;
-  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.fillStyle = PAPER; ctx.fillRect(0, 0, cv.width, cv.height);
-  ctx.drawImage(snap, dx * dpr, dy * dpr);
-  ctx.restore();
+  if (moved) showSnap(1, dx, dy);
 });
-cv.addEventListener("pointerup", e => {
-  if (drag && !moved) {
-    const r = cv.getBoundingClientRect();
-    sel = pick(e.clientX - r.left, e.clientY - r.top);
-    clickPt = sel ? unpx(e.clientX - r.left, e.clientY - r.top) : null;
-    document.getElementById("hint").style.display = sel ? "none" : "";
+function endPointer(e, cancelled) {
+  if (!pointers.delete(e.pointerId)) return;
+  if (pinch) {
+    // the pinch ends when a finger lifts; the other finger is ignored until it lifts too
+    if (pointers.size < 2) { pinch = null; draw(); }
+    return;
+  }
+  if (drag && !moved && !cancelled) {
+    const [x, y] = relPt(e);
+    sel = pick(x, y);
+    clickPt = sel ? unpx(x, y) : null;
     if (sel) {
       const h = (DATA[tier].islands[sel] || {}).homes || 0;
       track("island_selected", {standard: tier, island_homes: h < 500 ? "under 500" : h <= 5000 ? "500-5000" : "over 5000"});
@@ -742,7 +806,10 @@ cv.addEventListener("pointerup", e => {
     setHash(); render();
   } else if (drag && moved) draw();
   drag = null;
-});
+}
+cv.addEventListener("pointerup", e => endPointer(e, false));
+cv.addEventListener("pointercancel", e => endPointer(e, true));
+cv.addEventListener("dblclick", e => { const [x, y] = relPt(e); zoomAt(2, x, y); });
 function zoomAt(f, cx, cy) {
   const ns = Math.max(1, Math.min(12, scale * f)); f = ns / scale;
   ox = cx - W / 2 - (cx - W / 2 - ox) * f; oy = cy - H / 2 - (cy - H / 2 - oy) * f;
@@ -894,8 +961,17 @@ function chooseStreet(r) {
   sIn.value = r[0]; sHits = []; showList();
   const [s, w, n, e] = r[2];
   zoomTo(s, w, n, e);
-  fMsg.textContent = `Showing ${r[0]}, ${r[1]}. Click your block to see your island.`;
-  track("street_searched", {standard: tier});     // the street itself is never sent
+  // light up the island at a point on the street (r[3]). A tight radius, so a busy street doesn't
+  // borrow the island of a quiet one beside it.
+  const [x, y] = px(r[3][0], r[3][1]);
+  sel = pick(x, y, null, 8);
+  clickPt = sel ? r[3] : null;
+  const tap = COARSE ? "Tap" : "Click";
+  fMsg.textContent = !sel ? `${r[0]} is a stressful street for ${tier === "strict" ? "kids and cautious riders" : "most adults"}, so it isn't on any island. ${tap} a quiet street near it to see that island.`
+    : (e - w) * K + (n - s) > 0.012 ? `Showing the island at the middle of ${r[0]}, ${r[1]}. ${tap} your block if you live elsewhere on it.`
+    : `Showing ${r[0]}, ${r[1]}, and its island. ${tap} another street to see its island.`;
+  track("street_searched", {standard: tier, on_island: !!sel});     // the street itself is never sent
+  setHash(); render();
 }
 sIn.addEventListener("input", () => { sHits = matchStreets(sIn.value); sIdx = sHits.length ? 0 : -1; showList(); });
 sIn.addEventListener("keydown", e => {
@@ -927,6 +1003,7 @@ document.getElementById("locate").onclick = () => {
 };
 
 window.addEventListener("resize", fit);
+NARROW.addEventListener("change", hint);
 new MutationObserver(() => { palette(); draw(); }).observe(document.documentElement, {attributes: true, attributeFilter: ["data-theme"]});
 window.addEventListener("hashchange", applyHash);
 fit(); applyHash();

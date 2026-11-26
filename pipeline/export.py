@@ -48,10 +48,12 @@ def inview(c):
 
 def write_streets(ws):
     """data/streets.json: every named street in the map frame, by city, with its extent, for the
-    page's street search. Same-named streets in different cities stay separate."""
+    page's street search. Same-named streets in different cities stay separate.
+    Each entry: [name, city, [s, w, n, e], [lat, lon]], the last a point on the street (the middle of the
+    segment nearest the extent's center, never an intersection), where the page picks the island."""
     places = _json.load(open(os.path.join(DATA, "raw", "places_2020.json")))["features"]
     shapes = [(p["attributes"]["BASENAME"], p["geometry"]["rings"]) for p in places]
-    box = {}
+    box, mids = {}, {}
     for w, r, kind, low in ws:
         name = w["tags"].get("name")
         if not name or w["tags"].get("highway") in ("footway", "path", "cycleway", "service"):
@@ -66,7 +68,13 @@ def write_streets(ws):
         b = box.setdefault((name, city), [90, 180, -90, -180])
         for p in g:
             b[0] = min(b[0], p["lat"]); b[1] = min(b[1], p["lon"]); b[2] = max(b[2], p["lat"]); b[3] = max(b[3], p["lon"])
-    out = sorted([n, c, [round(x, 5) for x in b]] for (n, c), b in box.items())
+        mids.setdefault((name, city), []).extend(
+            ((a["lat"] + z["lat"]) / 2, (a["lon"] + z["lon"]) / 2) for a, z in zip(g, g[1:]))
+    out = []
+    for k, b in sorted(box.items()):
+        cy, cx = (b[0] + b[2]) / 2, (b[1] + b[3]) / 2
+        m = min(mids[k], key=lambda p: (p[0] - cy) ** 2 + ((p[1] - cx) * 0.79) ** 2)
+        out.append([k[0], k[1], [round(x, 5) for x in b], [round(m[0], 5), round(m[1], 5)]])
     _json.dump(out, open(os.path.join(DATA, "streets.json"), "w"), separators=(",", ":"))
     print(len(out), "streets in the search index")
 
