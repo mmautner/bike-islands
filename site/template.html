@@ -50,6 +50,8 @@
   .zoom button { font:inherit; width:32px; height:32px; border:1px solid var(--grey); background:var(--bg); color:var(--ink); cursor:pointer; font-size:18px; }
   .zoom button + button { border-top:none; }
   .hint { position:absolute; left:10px; bottom:10px; font-size:13px; background:var(--bg); color:var(--body); padding:4px 8px; opacity:.92; }
+  .tip { position:absolute; z-index:2; pointer-events:none; max-width:240px; font-size:13px; line-height:1.4; padding:7px 10px; background:var(--bg); color:var(--body); border:1px solid var(--light); box-shadow:0 4px 14px rgba(0,0,0,.15); }
+  .tip strong { color:var(--ink); font-size:14px; }
   .hint:has(.chip) { right:10px; padding:0; opacity:1; background:none; }
   .hint .chip { font:inherit; font-size:14px; text-align:left; width:100%; padding:9px 12px; border:1px solid var(--copper); background:var(--bg); color:var(--ink); cursor:pointer; box-shadow:0 2px 10px rgba(0,0,0,.15); }
   .hint .chip strong { color:var(--copper); }
@@ -121,6 +123,7 @@
         <canvas id="bimap" aria-label="Map of San Mateo and Burlingame streets. Click a street to see its bike island."></canvas>
         <div class="zoom"><button id="zin" aria-label="Zoom in">+</button><button id="zout" aria-label="Zoom out">&minus;</button></div>
         <div class="hint" id="hint"></div>
+        <div class="tip" id="tip" hidden></div>
       </div>
       <div class="mapnote" id="mapnote" aria-live="polite"></div>
       <div class="legend">
@@ -180,6 +183,11 @@ function decodeTier(t) {
     if (r[1]) L.i = r[1];
     const m = pts[Math.floor(pts.length / 2)];
     L.t = tileKey(m[0], m[1], t);       // the tile holding this street's full detail
+    if (r[1]) {                         // extent, so pick() can skip streets far from the pointer
+      const bb = [90, 180, -90, -180];
+      for (const p of pts) { bb[0] = Math.min(bb[0], p[0]); bb[1] = Math.min(bb[1], p[1]); bb[2] = Math.max(bb[2], p[0]); bb[3] = Math.max(bb[3], p[1]); }
+      L.bb = bb;
+    }
     return L;
   });
   delete t.packed;
@@ -402,6 +410,12 @@ function draw() {
     const col = islandColors(T);
     for (const L of base) if (L.i !== undefined && !col.has(L.i)) stroke(L.pts, LOWC, 1.1 * z);
     for (const L of base) if (col.has(L.i)) stroke(L.pts, ISLAND_HUES[col.get(L.i)], 1.7 * z);
+  }
+  // the island under the mouse: what a click would pick. Fainter than a picked island, so the two never mix up.
+  if (hover && hover !== sel) {
+    ctx.globalAlpha = sel ? 0.5 : 0.85;
+    for (const L of base) if (L.i === hover) stroke(L.pts, COPPER, (sel ? 2.2 : 2.4) * z);
+    ctx.globalAlpha = 1;
   }
   const selLines = sel && heat ? detailLines(T, sel) : (sel ? T.lines.filter(L => L.i === sel) : []);
   for (const L of selLines) {
@@ -670,6 +684,7 @@ function hint() {
   };
 }
 function render() {
+  hover = null; tip.hidden = true;   // a click, search or new standard: the preview starts over on the next move
   computeHeat();
   hint();
   const hl = document.getElementById("heatlegend");
@@ -727,8 +742,11 @@ function mapnote() {
 function pick(cx, cy, T, radius) {
   T = T || DATA[tier];
   let best = null, bd = radius || 30;
+  const [pla, plo] = unpx(cx, cy), rla = bd / (base * scale), rlo = rla / K;   // the radius in degrees
   for (const L of T.lines) {
     if (L.i === undefined) continue;
+    const b = L.bb;
+    if (pla < b[0] - rla || pla > b[2] + rla || plo < b[1] - rlo || plo > b[3] + rlo) continue;
     for (let k = 1; k < L.pts.length; k++) {
       const [x1, y1] = px(...L.pts[k - 1]), [x2, y2] = px(...L.pts[k]);
       const dx = x2 - x1, dy = y2 - y1, l2 = dx * dx + dy * dy;
@@ -760,6 +778,7 @@ const pinchGeom = () => {
   return {d: Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, m: [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]};
 };
 cv.addEventListener("pointerdown", e => {
+  clearHover();      // before the snapshot, so a drag doesn't carry the preview along
   pointers.set(e.pointerId, relPt(e)); cv.setPointerCapture(e.pointerId);
   if (pointers.size === 1) { drag = [e.clientX, e.clientY, ox, oy]; moved = false; takeSnap(); return; }
   if (pointers.size === 2) {
@@ -769,6 +788,39 @@ cv.addEventListener("pointerdown", e => {
     pinch = {...pinchGeom(), scale, ox, oy};
   }
 });
+// --- hover preview (mouse only): light up the island a click would pick, with a one-line summary ---
+let hover = null, hoverAt = null, hoverFrame = 0;
+const tip = document.getElementById("tip");
+function hoverTip(id, x, y) {
+  if (!id || id === sel) { tip.hidden = true; return; }
+  const T = DATA[tier], I = T.islands[id] || {};
+  const st = Object.keys(T.stations).sort((a, b) => ((I.near || {})[b] || 0) - ((I.near || {})[a] || 0))[0];
+  const n = (I.near || {})[st] || 0, o = (I.ok || {})[st] || 0;
+  tip.innerHTML = `<strong>${fmt(I.homes || 0)} homes</strong>` +
+    (!n ? "<br>More than a 2-mile ride to Caltrain"
+        : o ? `<br>${pct(o, n)} of homes within 2 miles of ${st} Caltrain have a low-stress route there`
+        : `<br>No low-stress route to ${st} Caltrain`) +
+    `<br><span class="muted">Click to see this island</span>`;
+  tip.hidden = false;
+  // beside the pointer, flipped to stay inside the map
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  tip.style.left = (x + 16 + w > W ? x - 16 - w : x + 16) + "px";
+  tip.style.top = (y + 16 + h > H ? y - 16 - h : y + 16) + "px";
+}
+function setHover(id) {
+  if (id !== hover) { hover = id; cv.style.cursor = id ? "pointer" : ""; draw(); }
+}
+function clearHover() { cancelAnimationFrame(hoverFrame); hoverFrame = 0; tip.hidden = true; setHover(null); }
+cv.addEventListener("pointermove", e => {
+  if (e.pointerType !== "mouse" || pointers.size) return;
+  hoverAt = relPt(e);
+  if (!hoverFrame) hoverFrame = requestAnimationFrame(() => {     // at most one hit test per frame
+    hoverFrame = 0;
+    const [x, y] = hoverAt, id = pick(x, y);
+    setHover(id); hoverTip(id, x, y);
+  });
+});
+cv.addEventListener("pointerleave", clearHover);
 cv.addEventListener("pointermove", e => {
   if (!pointers.has(e.pointerId)) return;
   pointers.set(e.pointerId, relPt(e));

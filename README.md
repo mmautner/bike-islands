@@ -2,7 +2,7 @@
 
 Which homes in San Mateo and Burlingame have a low-stress bike route to Caltrain, which low-stress
 "islands" they sit on, and which single fixes would connect the most homes. Served at
-[maxmautner.com/bike-islands/](https://maxmautner.com/bike-islands/). Not yet deployed (2026-11-25).
+[maxmautner.com/bike-islands/](https://maxmautner.com/bike-islands/). Deployed with `./deploy.sh`.
 
 ## Layout
 
