@@ -92,6 +92,11 @@
   ol.br li.hot { background: var(--card); }
   ol.br .joins { display:block; font-size:13px; color:var(--grey); }
   ol.br .joins::before { content:""; display:inline-block; width:14px; height:0; border-top:3px solid #5f87b5; vertical-align:middle; margin-right:6px; }
+  .need { display:block; font-size:13.5px; color:var(--ink); margin-top:2px; }
+  .need b { font-weight:600; }
+  details.fixwhy { font-size:13px; color:var(--grey); margin-top:2px; }
+  details.fixwhy summary { cursor:pointer; color:var(--copper); width:max-content; }
+  details.fixwhy p { margin:3px 0; font-size:13px; }
   a.fixlink { color:var(--ink); text-decoration: underline dotted var(--copper); text-underline-offset: 3px; }
   a.fixlink:hover { text-decoration-style: solid; }
   a.fixlink:focus-visible { outline: 2px solid var(--copper); outline-offset: 2px; }
@@ -121,7 +126,10 @@
   .act-item p:last-child { margin-bottom: 0; }
   .act-item a { color: var(--copper); }
   .btn { display:inline-block; font:inherit; font-size:15px; padding:9px 16px; border-radius:9px; border:1px solid var(--light); background:var(--bg); color:var(--ink); cursor:pointer; text-decoration:none; }
-  .act-item a.btn-primary { background: var(--copper); border-color: var(--copper); color: var(--accent-ink); font-weight: 500; }
+  .act-item .btn-primary { background: var(--copper); border-color: var(--copper); color: var(--accent-ink); font-weight: 500; }
+  .act-item.ask { grid-column: 1 / -1; }
+  .ask-req { background: var(--bg); border: 1px solid var(--light); border-radius: 10px; padding: 10px 12px; font-size: 14.5px; line-height: 1.5; margin: 0 0 10px; max-width: 75ch; }
+  .act-item p.ask-note { font-size: 13px; color: var(--grey); max-width: 75ch; }
   .mapnote { font-size:15px; line-height:1.45; color:var(--ink); margin:10px 0 0; }
   .mapnote .muted { font-size:14px; }
   .heatlegend b { display:inline-block; width:22px; height:6px; background:var(--copper); vertical-align:middle; margin-right:5px; }
@@ -539,7 +547,40 @@ function draw() {
   }
 }
 
-const fixWhat = B => B.kind === "x" ? `Make the crossing ${B.name.includes(" at ") ? "of" : "at"} ${B.name} safe` : `Make ${ftmi(B.len)} of ${B.name} low-stress`;
+// A fix by place: a crossing, or the stretch of street its connecting routes use, named by its cross streets.
+// A street fix those routes only cross (a stretch of one node) is that crossing.
+const fixCrossing = B => B.kind === "x" ? B.name : B.at;
+const fixWhat = B => {
+  const x = fixCrossing(B);
+  if (x) return `Make the crossing ${x.includes(" at ") ? "of" : "at"} ${x} safe`;
+  const where = B.between ? ` between ${B.between[0]} and ${B.between[1]}` : B.near ? ` near ${B.near}` : "";
+  return `Make ${B.name}${where} low-stress (${ftmi(Math.max(B.len, 15))})`;
+};
+// What this map's rating would need there, from pipeline/treatments.py: options, then why it's rated stressful now.
+const WHO_KIDS = {strict: "kids", standard: "most adults"};
+const whyOf = o => (DATA[tier].why || {})[o && o.why];
+const orList = xs => xs.length > 1 ? xs.slice(0, -1).join("; ") + "; or " + xs[xs.length - 1] : xs[0];
+function needText(o, t = tier) {      // "Would count for kids with a protected bike lane; or a 25 mph limit, ..."
+  const W = whyOf(o), opts = W && W.need[t];
+  if (!W) return "";
+  if (!opts.length) return `Already counts for ${WHO_KIDS[t]}.`;
+  return `Would count for ${WHO_KIDS[t]} with ${orList(opts)}.`;
+}
+function needShort(o) {               // the first option only, for the marker label and the phone chip
+  const W = whyOf(o), opts = W && W.need[tier];
+  return opts && opts.length ? `Would count for ${WHO_KIDS[tier]} with ${opts[0]}${opts.length > 1 ? `, or ${opts.length - 1} other way${opts.length > 2 ? "s" : ""}` : ""}` : "";
+}
+function whyBlock(o) {
+  const W = whyOf(o);
+  if (!W) return "";
+  const other = tier === "strict" ? "standard" : "strict", cap = x => x[0].toUpperCase() + x.slice(1);
+  const bits = [`<p>Rated stressful now: ${W.is}${W.part ? ` (on ${Math.round(W.part * 100)}% of it; the rest differs)` : ""}.</p>`];
+  if ((W.note || {})[tier]) bits.push(`<p>${cap(W.note[tier])}.</p>`);
+  bits.push(`<p>${needText(o, other)}</p>`);
+  if (W.assumed.length) bits.push(`<p>Assumed: ${W.assumed.join("; ")}.</p>`);
+  bits.push(`<p>These options come from the ratings this map uses. Engineers may find a better fix.</p>`);
+  return `<details class="fixwhy"><summary>Why, and what's assumed</summary>${bits.join("")}</details>`;
+}
 const JOIN_COLOR = "#5f87b5", GAP_COLOR = "#b4442c";
 // --- what's in the way: for an island that reaches no station, the stressful pieces on the best route of most
 // of its homes to the nearest one (from the export's "gaps"). Drawn whenever the island is picked; the one
@@ -651,13 +692,13 @@ function topBridges(T, id) {
   const homes = (T.islands[id] || {}).homes || 0;
   // The same bottleneck often shows up twice, as a stretch of a busy street and as a crossing of it, connecting
   // the same number of homes: keep one (the crossing, else the shortest stretch), unless the other came from a link.
-  const street = B => B.kind === "x" ? B.name.split(" at ")[0] : B.name;
+  const street = B => fixCrossing(B) ? fixCrossing(B).split(" at ")[0] : B.name;
   const all = allFixes(T, id), seen = new Map();
   for (const e of all) {
     const B = T.bridges[e.bid], key = street(B) + "|" + Math.round(e.max);     // same street, same best gain
     const prev = seen.get(key);
     const better = !prev || B.id === focusFix ||
-      (T.bridges[prev.bid].id !== focusFix && (B.kind === "x") > (T.bridges[prev.bid].kind === "x")) ||
+      (T.bridges[prev.bid].id !== focusFix && !!fixCrossing(B) > !!fixCrossing(T.bridges[prev.bid])) ||
       (T.bridges[prev.bid].id !== focusFix && B.kind === T.bridges[prev.bid].kind && B.kind === "w" && B.len < T.bridges[prev.bid].len);
     if (better) seen.set(key, e);
   }
@@ -736,13 +777,14 @@ function panel() {
     h += `<div class="gapbox"><h3>What's in the way to ${G.st} Caltrain</h3>` +
       `<p class="muted">Stressful streets and crossings on the best route from most homes here:</p><ul class="gaps">` +
       G.items.map((g, k) => `<li data-gap="${k}" class="${k === focusGap ? "focus" : ""}${G.combo && G.combo.all && G.combo.items.length < G.items.length && G.combo.items.includes(k) ? " key" : ""}"><a class="gaplink" role="button" href="#" aria-pressed="${k === focusGap}">${gapText(g)}</a>` +
-        (g.share < 0.9 ? ` <span class="muted">(routes from ${Math.round(g.share * 100)}% of homes)</span>` : "") + `</li>`).join("") +
+        (g.share < 0.9 ? ` <span class="muted">(routes from ${Math.round(g.share * 100)}% of homes)</span>` : "") +
+        (needText(g) ? `<span class="need">${needText(g)}</span>` + whyBlock(g) : "") + `</li>`).join("") +
       `</ul>` + (comboText(G) ? `<p class="combo">${comboText(G)}</p>` : "") + `</div>`;
   }
   if (far.length) h += `<p class="muted">${far.join(" and ")} Caltrain: more than a 2-mile ride.</p>`;
   const list = topBridges(T, sel), minor = allFixes(T, sel).length - list.length;
   const minorNote = minor ? `<p class="muted">${minor === 1 ? "1 smaller fix" : `${minor} smaller fixes`}, each connecting under 2% of this island's homes, ${minor === 1 ? "isn't" : "aren't"} shown.</p>` : "";
-  const fixText = B => B.kind === "x" ? `a safe crossing ${B.name.includes(" at ") ? "of" : "at"} ${B.name}` : `making ${ftmi(B.len)} of ${B.name} low-stress`;
+  const fixText = B => fixWhat(B).replace(/^Make /, "making ").replace(/^making the crossing (.*) safe$/, "a safe crossing $1");
   if (list.length) {
     h += `<h2 style="margin-top:16px">Fixes that would help</h2><ol class="br">`;
     for (const e of list) {
@@ -752,7 +794,8 @@ function panel() {
       const sp = SHARE.fixes[tier][B.id];
       h += `<li data-fix="${B.id}"${B.id === focusFix ? ' class="focus"' : ""}><a class="fixlink" role="button" href="#t=${tier}&i=${sel}&f=${encodeURIComponent(B.id)}" aria-pressed="${B.id === focusFix}">${fixWhat(B)}</a>: connects ${gains}` +
            (sp ? ` <a class="sharefix" href="${sp}" data-share="${sp}">Share</a>` : "") +
-           (joinText(B) ? `<span class="joins">${joinText(B)}</span>` : "") + `</li>`;
+           (joinText(B) ? `<span class="joins">${joinText(B)}</span>` : "") +
+           (needText(B) ? `<span class="need">${needText(B)}</span>` + whyBlock(B) : "") + `</li>`;
     }
     h += `</ol>` + minorNote;
   } else if (minor) {
@@ -764,6 +807,13 @@ function panel() {
   el.innerHTML = h;
   const act = document.getElementById("actions");
   act.innerHTML = actionCards(T, I, list, fixText); act.hidden = false;
+  const askcopy = document.getElementById("askcopy");
+  if (askcopy) askcopy.onclick = async () => {
+    const msg = document.getElementById("askcopied");
+    try { await navigator.clipboard.writeText(document.getElementById("askreq").textContent); msg.textContent = "Copied"; }
+    catch (err) { getSelection().selectAllChildren(document.getElementById("askreq")); msg.textContent = "Selected; copy it with your keyboard"; }
+    track("city_request_copied", {standard: tier});
+  };
   document.getElementById("share").onclick = async () => {
     const how = await shareOrCopy(shareURL(), document.title, document.getElementById("copied"));
     track("share_copied", {standard: tier, method: how});
@@ -852,15 +902,73 @@ function actionCards(T, I, list, fixText) {
          `<p>${intro} The email starts with this island's numbers${top ? " and its top fix" : ""}; add a sentence of your own.</p>` +
          `<a class="btn btn-primary" href="${href}" data-act="email_clicked" data-city="${city}">Email ${salutation}</a></div>`;
   }
-  const gap0 = !top && I.gaps && I.gaps.items[0];
-  const askWhat = top ? (top.kind === "x" ? `the crossing ${top.name.includes(" at ") ? "of" : "at"} ${top.name}` : top.name)
-    : gap0 ? gapText(gap0).replace(/^Riding [^ ]+ [^ ]+ of /, "").replace(/^Crossing /, "crossing ") : "this neighborhood";
-  if (city === "San Mateo" && cityCfg.service_request) {
-    h += `<div class="act-item"><h3>Ask the city to look at ${askWhat}</h3><p><a href="${cityCfg.service_request}" data-act="city_concern_clicked" data-city="${city}">Report a concern</a> to the city, or <a href="${cityCfg.traffic_calming}" data-act="calming_request_clicked" data-city="${city}">request a traffic calming study</a> for your street.</p></div>`;
-  } else if (city === "Burlingame" && cityCfg.service_request) {
-    h += `<div class="act-item"><h3>Ask the city to look at ${askWhat}</h3><p><a href="${cityCfg.service_request}" data-act="city_concern_clicked" data-city="${city}">Create a service request</a> with the city.</p></div>`;
+  // the request is about the chosen fix, else the top one, and goes to the city it's in
+  const askE = list.find(e => T.bridges[e.bid].id === focusFix) || list[0];
+  const askB = askE && T.bridges[askE.bid];
+  const askCityName = askB ? whereIs(askB.pts[Math.floor(askB.pts.length / 2)]).city || city : city;
+  const askCfg = (CIVIC.links || {})[askCityName] || {};
+  if ((askCityName === "San Mateo" || askCityName === "Burlingame") && askCfg.service_request) {
+    const ask = askCity(T, I, askE);
+    const c = askCityName;
+    const form = `<a href="${askCfg.service_request}" data-act="city_concern_clicked" data-city="${c}">Open ${c}'s service request form</a>` +
+      (c === "San Mateo" && askCfg.traffic_calming ? `, or <a href="${askCfg.traffic_calming}" data-act="calming_request_clicked" data-city="${c}">request a traffic calming study</a> for your street` : "");
+    h += `<div class="act-item ask"><h3>Ask the city about ${ask.place}</h3>`;
+    if (ask.text) {
+      h += `<p>Copy this into the city's service request form:</p><div class="ask-req" id="askreq">${ask.text}</div>` +
+           `<p><button type="button" class="btn btn-primary" id="askcopy">Copy request</button> <span class="muted" id="askcopied"></span></p>` +
+           `<p>${form}.</p>` + (ask.assumed ? `<p class="ask-note">${ask.assumed}</p>` : "") +
+           `<p class="ask-note">These options come from the ratings this map uses (<a href="${TILE_BASE.replace(/data\/tiles\/$/, "")}methodology/#low-stress">how it rates streets</a>). Engineers may find a better fix.</p>`;
+    } else {
+      h += `<p>${form}.</p>`;
+    }
+    h += `</div>`;
   }
   return h + `</div>`;
+}
+
+// The "Ask the city" request: plain words for city staff, who won't know this map. What's hard to bike, for
+// whom, how many homes it cuts off from which station, and the first two ways the rating would count it.
+function askCity(T, I, top) {
+  const B = top && T.bridges[top.bid];
+  const gap = !B && I.gaps && I.gaps.items[0];
+  const o = B || gap;
+  if (!o) return {place: "this neighborhood"};
+  const who = tier === "strict" ? "kids and cautious riders" : "most adults on bikes";
+  const crossOf = x => `the crossing ${x.includes(" at ") ? "of" : "at"} ${x}`;
+  let place, how, homes, st, tail;
+  if (B) {
+    const x = fixCrossing(B);
+    const one = s => s.split(" & ")[0];      // "between Anita Road and Clarendon Road", not "... and Clarendon Road & North Claremont Street"
+    place = x ? crossOf(x) : `${B.name}${B.between ? ` between ${one(B.between[0])} and ${one(B.between[1])}` : B.near ? ` near ${one(B.near)}` : ""}`;
+    how = x ? "across" : "along";
+    st = B.st; homes = top.per[B.st] || top.max;
+    tail = `it's what keeps about ${fmt(homes)} nearby homes from a low-stress bike route to ${st} Caltrain`;
+  } else {
+    place = gap.kind === "x" ? crossOf(gap.name) : gap.name;
+    how = gap.kind === "x" ? "across" : "along";
+    st = I.gaps.st; homes = (I.near || {})[st] || 0;
+    tail = `it's on the way from about ${fmt(homes)} nearby homes to ${st} Caltrain`;
+  }
+  const W = whyOf(o), opts = ((W && W.need[tier]) || []).slice(0, 2)
+    .map(s => s.replace(/; where routes cross it \(at (.*)\): (.*)$/, ", plus $2 where bike routes cross it at $1"));
+  const cap = s => s[0].toUpperCase() + s.slice(1);
+  const plain = place.replace(/ & /g, " and ");
+  const parts = [`Please look at making ${plain} comfortable to bike ${how}.`,
+    `Rated by Level of Traffic Stress, it's too stressful for ${who}, and ${tail}.`];
+  if (opts.length > 1) parts.push(`Either of these would bring it to a low-stress rating: ${opts.join("; or ")}.`);
+  else if (opts.length) parts.push(`${cap(opts[0])} would bring it to a low-stress rating.`);
+  parts.push("I'm not suggesting a specific design; the city knows best what fits here.");
+  // what the rating assumed because it isn't mapped: "The map assumes Howard Avenue is 30 mph and 2 lanes, since neither is mapped."
+  const by = {};
+  for (const a of (W && W.assumed) || []) {
+    const m = a.match(/^(.*): no .* is mapped, so (.*) (?:is|are) assumed$/);
+    if (m) (by[m[1]] = by[m[1]] || []).push(m[2]);
+  }
+  const E = Object.entries(by), n = E.reduce((k, [, vs]) => k + vs.length, 0);
+  const assumed = E.length ? `The map assumes ${E.map(([nm, vs]) => `${nm} is ${vs.join(" and ")}`).join(", and ")}, since ` +
+    (n === 1 ? "it isn't mapped." : n === 2 && E.length === 1 ? "neither is mapped." : "these aren't mapped.") : "";
+  return {place, text: parts.join(" "),
+          assumed: assumed && `${assumed} If you know otherwise, edit the request before sending it.`};
 }
 
 // Picking or clearing an island adds a history entry, so Back returns to the island before; other changes
@@ -1052,7 +1160,7 @@ function placeTip(x, y) {
 }
 function fixTip(f, x, y) {
   tip.innerHTML = `<strong>${f.k + 1}. ${fixWhat(f.B)}</strong><br>Connects ${fixGain(f.e)}` +
-    (joinText(f.B) ? `<br>${joinText(f.B)}` : "") +
+    (joinText(f.B) ? `<br>${joinText(f.B)}` : "") + (needShort(f.B) ? `<br>${needShort(f.B)}` : "") +
     `<br><span class="muted">${f.B.id === focusFix ? "Click to let go" : NARROW.matches ? "Click to choose it" : "Click to find it in the list"}</span>`;
   placeTip(x, y);
 }

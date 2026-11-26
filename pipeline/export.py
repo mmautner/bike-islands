@@ -17,6 +17,7 @@ from multiprocessing import Pool
 from connectivity import bridges, setup, base, low_adj, score, Overlay, CITIES, STATIONS
 from islands import islands as mk_islands, platforms, dist, PLATFORM_REACH_M, STATION_RADIUS_M
 from homes import inside
+from fixes import Network, trim, describe, label as fix_label, where_text, gap_why
 import json as _json
 
 HERE = os.path.dirname(__file__)
@@ -59,7 +60,17 @@ GAP_SHARE = 0.5   # a stressful piece is "in the way" if the routes of at least 
 GAP_GROUPS = 5    # streets and crossings listed per island and station
 
 
-def write_gaps(isl, iid, r, near, coord, st):
+def why_key(why, table):
+    """Explanations go once in the export's "why" table; fixes and gaps point to them by key."""
+    k = str(len(table))
+    for kk, v in table.items():
+        if v == why:
+            return kk
+    table[k] = why
+    return k
+
+
+def write_gaps(isl, iid, r, near, coord, st, net, whys):
     """What's in the way, for each island that doesn't reach station st: the stressful pieces (busy segments
     ridden, barrier crossings) on the best route of at least GAP_SHARE of its homes, by housing units, each
     route being connectivity.bridges' cheapest one with stressful metres weighted (the one fix candidates come
@@ -77,7 +88,7 @@ def write_gaps(isl, iid, r, near, coord, st):
         if I["ok"].get(st) or (I.get("det") or {}).get(st):
             continue
         groups, segs = {}, collections.defaultdict(list)
-        for pc, x in PW[i].items():
+        for pc, x in sorted(PW[i].items()):      # sorted: route pieces come from sets
             if x < GAP_SHARE * w:
                 continue
             if pc[0] == "x":
@@ -112,9 +123,10 @@ def write_gaps(isl, iid, r, near, coord, st):
                         u, v = v, more[0]
                     lines.append(enc([coord[n] for n in line]))
             groups[k]["p"] = lines
-        out = sorted(groups.values(), key=lambda g: (-g["w"], g["name"]))[:GAP_GROUPS]
+        out = sorted(groups.values(), key=lambda g: (-g["w"], g["name"], g["kind"]))[:GAP_GROUPS]
         for g in out:
             g["share"] = round(g.pop("w") / w, 2)
+            g["why"] = why_key(gap_why(g, g["_pc"], net), whys)
             if g["kind"] == "w":
                 g["len"] = round(g["len"])
         if out:
@@ -231,8 +243,15 @@ def main():
     byk = {(t, s): r for t, s, r in res}
     acc_rows, br_rows = [], []
     for tier in TIERS:
-        ws, coord, bn, stations, adj_all, low_edges, high_edges, origins, _, reaches = setup(path, tier)
+        detail = {}
+        ws, coord, bn, stations, adj_all, low_edges, high_edges, origins, _, reaches = setup(path, tier, detail)
         f, key = mk_islands(ws, bn)
+        net = Network(ws, coord, low_edges, reaches, tier, detail)
+        # street fixes, trimmed to the stretch their routes use; the trimmed fix must connect the same homes
+        for st, wid, g0, g1 in trim(byk, tier, net):
+            if round(g0) != round(g1):
+                print(f"[{tier}] {st}: trimmed fix w{wid} connects {g1:.0f} homes, the whole way {g0:.0f}")
+        whys = {}
         # stable island ids: smallest raw OSM node id in the island. A barrier node has a copy on each
         # side, so two islands can share that smallest id; then the one with the most homes keeps it
         # (share links stay put) and the others take their smallest node that isn't a barrier copy,
@@ -353,19 +372,27 @@ def main():
                     isl[iid(o)]["ok"][st] = isl[iid(o)]["ok"].get(st, 0) + hu
                 isl[iid(o)].setdefault("near", {})
                 isl[iid(o)]["near"][st] = isl[iid(o)]["near"].get(st, 0) + hu
-            write_gaps(isl, iid, r, near, coord, st)
+            write_gaps(isl, iid, r, near, coord, st, net, whys)
             for city in CITIES:
                 acc_rows.append({"tier": tier, "station": st, "city": city,
                                  "homes_within_2mi": tot[city], "homes_low_stress": okc[city],
                                  "share": round(okc[city] / tot[city], 3) if tot[city] else ""})
             for rank, b in enumerate(x for x in r["results"] if x["gain"] > 0):
+                d = describe(b, net)
+                why = d.pop("why")
                 br_rows.append({"tier": tier, "station": st, "rank": rank + 1, "gain_homes": b["gain"],
                                 "share_of_near": round(b["gain"] / sum(tot.values()), 3), "kind": b["kind"],
-                                "osm_id": b["id"], "label": b["label"]})
+                                "osm_id": b["id"], "label": fix_label(b, d, net),
+                                "gain_whole_way": b.get("gain_way", ""), "whole_way_m": b.get("len_way", ""),
+                                "where": where_text(b, d) if b["kind"] == "w" else b["name"],
+                                "now": why["is"], "lts": why.get("lts", ""),
+                                "would_count_strict": " | ".join(why["need"]["strict"]) or "counts",
+                                "would_count_standard": " | ".join(why["need"]["standard"]) or "counts",
+                                "note": " | ".join(why.get("note", {}).values()), "assumed": " | ".join(why["assumed"])})
                 if rank < FIXES_PER_STATION:
                     bid = len(brs)
-                    brs.append({"st": st, "id": f'{b["kind"]}{b["id"]}', "len": b.get("len", 0), "name": b["name"], "label": b["label"], "kind": b["kind"],
-                                "gain": b["gain"], "p": enc(b["geom"]),
+                    brs.append({"st": st, "id": f'{b["kind"]}{b["id"]}', "len": b.get("len", 0), "name": b["name"], "label": fix_label(b, d, net), "kind": b["kind"],
+                                "gain": b["gain"], "p": enc(b["geom"]), **d, "why": why_key(why, whys),
                                 # the islands this fix would join into one (the page lights them up)
                                 "joins": sorted({iid(k) for k in b["touch"]})})
                     per = collections.Counter()
@@ -390,6 +417,7 @@ def main():
         out = {"tier": tier, "view": VIEW, "lines": lines,
                "islands": {str(k): v for k, v in isl.items() if v["homes"] or v["bridges"]},
                "bridges": brs,
+               "why": whys,     # what each fix and gap would need, by standard (pipeline/treatments.py)
                "stations": {s: stations[s] for s in STATIONS},
                "reach": station_reach(path, stations)}
         json.dump(out, open(os.path.join(DATA, f"map_{tier}.json"), "w"), separators=(",", ":"))

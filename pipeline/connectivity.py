@@ -36,12 +36,49 @@ def dj(adj, srcs, cutoff=8000):
     return d
 
 
+def dj_prev(adj, srcs, cutoff=8000):
+    """dj, also returning each node's predecessor on its shortest route, to trace routes back."""
+    d = {s: 0.0 for s in srcs}
+    prev = {}
+    h = [(0.0, i, s) for i, s in enumerate(srcs)]
+    c = len(h)
+    while h:
+        x, _, u = heapq.heappop(h)
+        if x > d[u] or x > cutoff:
+            continue
+        for v, w in adj[u]:
+            if x + w < d.get(v, 1e18):
+                d[v] = x + w
+                prev[v] = u
+                c += 1
+                heapq.heappush(h, (x + w, c, v))
+    return d, prev
+
+
+def street_names(ws, tier):
+    """{node: names of streets there}, and of those, the stressful and the low-stress ones."""
+    names_at = collections.defaultdict(set)
+    busy_at, quiet_at = collections.defaultdict(set), collections.defaultdict(set)
+    for w, r, _, _ in ws:
+        for n in w["nodes"]:
+            if w["tags"].get("name"):
+                names_at[n].add(w["tags"]["name"])
+                (busy_at if r > (2 if tier == "standard" else 1) else quiet_at)[n].add(w["tags"]["name"])
+    return names_at, busy_at, quiet_at
+
+
+def crossing_name(x, names_at, busy_at, quiet_at):
+    """A crossing by the busy street being crossed, then up to 2 side streets: 'Peninsula Avenue at Lorton Avenue'."""
+    busy, quiet = sorted(busy_at[x]), sorted(quiet_at[x] - busy_at[x])
+    return (" & ".join(busy) + " at " + " & ".join(quiet[:2])) if busy and quiet else " & ".join(sorted(names_at[x])[:3])
+
+
 def base(n):
     return n[0] if isinstance(n, tuple) else n
 
 
-def setup(path, tier):
-    ws, coord, bn, stations = build(path, tier)
+def setup(path, tier, detail=None):
+    ws, coord, bn, stations = build(path, tier, detail)
     f, key = islands(ws, bn)
     adj_all = collections.defaultdict(list)
     low_edges = []   # (a, b, L, wid)
@@ -100,6 +137,16 @@ class Overlay:
         return self.adj.get(u, []) + e if e else self.adj.get(u, ())
 
 
+def way_extra(ns, coord, copies):
+    """The edges that treat a stretch of street (its node list) as low-stress: its segments, and a link from
+    each of its nodes to the barrier copies there, so quiet streets that meet it can join it."""
+    extra = [(a, b, dist(coord[a], coord[b])) for a, b in zip(ns, ns[1:])]
+    for n in ns:
+        for c in sorted(copies.get(n, ())):     # sorted: set order follows PYTHONHASHSEED
+            extra.append((n, c, 0))
+    return extra
+
+
 def score(adj_low, origins, direct, station_srcs_low):
     dl = dj(adj_low, station_srcs_low)
     ok = 0.0
@@ -145,13 +192,7 @@ def bridges(path, st, tier="standard", n_test=200):
     ws, coord, bn, stations, adj_all, low_edges, high_edges, origins, _, reaches = setup(path, tier)
     f, key = mk_islands(ws, bn)
     wmap = {w["id"]: w for w, _, _, _ in ws}
-    names_at = collections.defaultdict(set)
-    busy_at, quiet_at = collections.defaultdict(set), collections.defaultdict(set)  # stressful vs low-stress streets at a node
-    for w, r, _, _ in ws:
-        for n in w["nodes"]:
-            if w["tags"].get("name"):
-                names_at[n].add(w["tags"]["name"])
-                (busy_at if r > (2 if tier == "standard" else 1) else quiet_at)[n].add(w["tags"]["name"])
+    names_at, busy_at, quiet_at = street_names(ws, tier)   # stressful vs low-stress streets at a node
     copies = collections.defaultdict(set)
     low_keys = {k for a, b, _, _ in low_edges for k in (a, b)}   # every point of the low-stress network
     for a, b, _, _ in low_edges:
@@ -178,7 +219,7 @@ def bridges(path, st, tier="standard", n_test=200):
     for a, b, L, wid in high_edges:
         cg[a].append((b, L * (1 + LAMBDA), wid)); cg[b].append((a, L * (1 + LAMBDA), wid))
     for n, cs in copies.items():
-        for c in cs:
+        for c in sorted(cs):
             pen = 15 * LAMBDA
             cg[c].append((n, pen, None)); cg[n].append((c, pen, None))
     d, prev = {}, {}
@@ -213,13 +254,12 @@ def bridges(path, st, tier="standard", n_test=200):
                 a, b = base(u), base(v)
                 path.add(("s", (min(a, b), max(a, b)), wid))
             u = v
-        for x in used:
+        for x in sorted(used):     # insertion order breaks ties in credit.most_common
             credit[x] += wgt
         route_blocks[(o, city)] = path
     for pc in set().union(*route_blocks.values()) if route_blocks else ():
         if pc[0] == "x" and pc not in piece_names:
-            busy, quiet = sorted(busy_at[pc[1]]), sorted(quiet_at[pc[1]] - busy_at[pc[1]])
-            piece_names[pc] = (" & ".join(busy) + " at " + " & ".join(quiet[:2])) if busy and quiet else " & ".join(sorted(names_at[pc[1]])[:3])
+            piece_names[pc] = crossing_name(pc[1], names_at, busy_at, quiet_at)
         elif pc[0] == "s" and ("w", pc[2]) not in piece_names:
             piece_names[("w", pc[2])] = wmap[pc[2]]["tags"].get("name", "(unnamed)")
     results = []
@@ -227,11 +267,7 @@ def bridges(path, st, tier="standard", n_test=200):
         extra = []
         if kind == "w":
             ns = wmap[x]["nodes"]
-            for a, b in zip(ns, ns[1:]):
-                extra.append((a, b, dist(coord[a], coord[b])))
-            for n in ns:
-                for c in copies.get(n, ()):
-                    extra.append((n, c, 0))
+            extra = way_extra(ns, coord, copies)
             # the low-stress points the fixed street would touch: barrier copies at its nodes, and its nodes
             # that quiet streets already meet; their islands are the ones this fix joins
             touch = [c for n in ns for c in copies.get(n, ())] + [n for n in ns if n in low_keys]
@@ -247,9 +283,7 @@ def bridges(path, st, tier="standard", n_test=200):
             touch = cs
             label = "crossing: " + " & ".join(sorted(names_at[x])) + f" (node {x})"
             geom = [coord[x]]
-            # name a crossing by the busy street being crossed, then up to 2 side streets
-            busy, quiet = sorted(busy_at[x]), sorted(quiet_at[x] - busy_at[x])
-            name = (" & ".join(busy) + " at " + " & ".join(quiet[:2])) if busy and quiet else " & ".join(sorted(names_at[x])[:3])
+            name = crossing_name(x, names_at, busy_at, quiet_at)
         ok, _ = score(Overlay(adj_low, extra), near, direct, srcs_low)
         results.append({"gain": ok - ok0, "label": label, "kind": kind, "id": x, "name": name,
                         "geom": geom, "gained": score.okset - ok0set, "len": round(seglen) if kind == "w" else 0,

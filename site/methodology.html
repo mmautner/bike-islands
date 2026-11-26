@@ -2,7 +2,7 @@
   <p class="bi-eyebrow"><a href="/*BASE*/">Bike islands: San Mateo and Burlingame</a></p>
   <h1>How this was made</h1>
 
-  <h2>What counts as low-stress</h2>
+  <h2 id="low-stress">What counts as low-stress</h2>
   <p>Streets are rated with the Level of Traffic Stress method from the Mineta Transportation Institute (<a href="https://transweb.sjsu.edu/sites/default/files/1005-low-stress-bicycling-network-connectivity.pdf">Mekuria, Furth &amp; Nixon, 2012</a>), simplified to what OpenStreetMap records.</p>
   <ul>
     <li><strong>Kids and cautious riders</strong> counts only paths, protected bike lanes, and quiet streets posted 25 mph or less with no more than 2 lanes. Crossing a street posted 30 mph or more, or with 3 or more lanes, is stressful unless there is a signal or an all-way stop. Crossing a street posted 35 mph or more, or with 4 or more lanes (such as El Camino Real), is stressful even at a signal. That last rule is stricter than Mineta's, which lets any signal make a crossing safe; without it, a few signals on El Camino and Howard Avenue joined neighborhoods across both cities into one island.</li>
@@ -16,6 +16,8 @@
     <li>A home counts as having a low-stress route to a station when one exists that is no more than 25% longer than the shortest ride on any street, for homes within a 2-mile ride of the station's platforms.</li>
     <li>Homes are 2020 Census housing units by block, placed at each block's center and matched to the nearest low-stress street within 150 m.</li>
     <li>Fixes are tested one at a time: each candidate street segment or crossing is treated as low-stress, and the homes it connects are counted. Combinations of fixes can connect more than the sum.</li>
+    <li>Each street fix is trimmed to the stretch the connected homes' routes actually use, and named by its cross streets; the trimmed stretch connects the same homes as the whole street. A fix whose routes only cross the street is shown as that crossing.</li>
+    <li>For each fix and each piece in the way, the map works out what would make it count under its own rules: it changes one thing at a time (speed limit, lanes, a painted or protected bike lane, whether it's a local street, daily traffic) and re-rates the street or crossing, keeping the smallest changes that pass. Where a speed or lane count is assumed rather than posted or mapped, or there's no daily traffic count, it says so. This is what the map's rating would need, not an engineering recommendation; the city chooses the tool.</li>
   </ul>
 
   <h2>Riding times</h2>

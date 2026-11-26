@@ -149,7 +149,11 @@ WHO = {"strict": "kids and cautious riders", "standard": "most adults"}
 
 
 def short(name):
-    return " ".join(ABBR.get(t, t) for t in name.split())
+    """'North El Camino Real' -> 'N El Camino Real'; a direction word stays whole when it is part of the name
+    ('East Lane' -> 'East Ln')."""
+    ts = name.split()
+    return " ".join(t if t in ("North", "South", "East", "West") and len(ts) - i < 3 else ABBR.get(t, t)
+                    for i, t in enumerate(ts))
 
 
 def slugify(text):
@@ -163,20 +167,63 @@ def feet_or_miles(m):
 
 
 MIN_FIX_HOMES = 100  # smaller fixes stay in the panel but get no share page
+# Every share address ever built, and what it opens: {path: [kind, standard, fix id or island id]}. A page
+# keeps its address for as long as it exists, and no address is ever given to a different fix or island, so
+# links already shared keep working. New pages are added when built; pages no longer built are listed.
+SHARE_PATHS = os.path.join(HERE, "data", "share_paths.json")
+WHO_SHORT = {"strict": "kids", "standard": "most adults"}
+
+
+def load_paths():
+    return json.load(open(SHARE_PATHS)) if os.path.exists(SHARE_PATHS) else {}
+
+
+def save_paths(reg):
+    with open(SHARE_PATHS, "w") as fh:
+        fh.write("{\n" + ",\n".join(f"{json.dumps(k)}: {json.dumps(v)}" for k, v in sorted(reg.items())) + "\n}\n")
+
+
+def fix_place(B):
+    """'Peninsula Ave between Park Rd and Highland Ave', or the crossing a one-node stretch really is."""
+    if B["kind"] == "x" or B.get("at"):
+        n = B.get("at") or B["name"]
+        return f"the crossing {'of' if ' at ' in n else 'at'} {short(n)}"
+    if B.get("between"):
+        return f"{short(B['name'])} between {short(B['between'][0])} and {short(B['between'][1])}"
+    if B.get("near"):
+        return f"{short(B['name'])} near {short(B['near'])}"
+    return short(B["name"])
+
+
+def fix_need(T, B, tier):
+    """'For kids, this map would count it with a protected bike lane, or a 25 mph limit, ...' (first 2 options)."""
+    W = T.get("why", {}).get(B.get("why", ""), {})
+    opts = (W.get("need") or {}).get(tier) or []
+    if not opts:
+        return ""
+    return f"For {WHO_SHORT[tier]}, this map would count it with " + ", or ".join(opts[:2]) + "."
 
 
 def share_entries():
     """Pages worth sharing: every island with 150+ homes, and every fix in the export, per standard.
     Returns the entries and the manifest the map page uses to find each view's share link."""
-    entries, used = [], set()
+    entries = []
     manifest = {"islands": {"strict": {}, "standard": {}}, "fixes": {"strict": {}, "standard": {}}}
+    reg = load_paths()
+    have = {tuple(v): k for k, v in reg.items()}
+    used = {k.rstrip("/").rsplit("/", 1)[-1] for k in reg}
 
-    def unique(slug):
+    def unique(slug, kind, tier, target):
+        """The address this page already has, else a new one no page has ever had."""
+        path = have.get((kind, tier, str(target)))
+        if path:
+            return path.rstrip("/").rsplit("/", 1)[-1]
         base, k = slug, 2
         while slug in used:
             slug = f"{base}-{k}"
             k += 1
         used.add(slug)
+        reg[f"{BASE}{kind}/{slug}/"] = [kind, tier, str(target)]
         return slug
 
     for tier in ("strict", "standard"):
@@ -195,7 +242,7 @@ def share_entries():
                         f"of {st} Caltrain {'have' if o_ else 'has'} a low-stress bike route there.")
             else:
                 desc = f"{v['homes']:,} homes share this island of quiet streets, more than a 2-mile ride from Caltrain."
-            slug = unique(slugify(" ".join(v["names"])) + suffix)
+            slug = unique(slugify(" ".join(v["names"])) + suffix, "island", tier, iid)
             path = f"{BASE}island/{slug}/"
             entries.append({"kind": "island", "tier": tier, "slug": slug, "path": path, "title": title, "desc": desc,
                             "island": int(iid), "target": f"{BASE}#t={tier}&i={iid}&z=1"})
@@ -213,17 +260,23 @@ def share_entries():
             if not helped:
                 continue
             island = max(helped)[1]
-            if B["kind"] == "x":
-                what = f"A safe crossing {'of' if ' at ' in B['name'] else 'at'} {short(B['name'])}"
+            place = fix_place(B)
+            if place.startswith("the crossing"):
+                what = "A safe crossing " + place[len("the crossing "):]
             else:
-                what = f"Making {feet_or_miles(B['len'])} of {short(B['name'])} low-stress"
+                what = f"Making {place} low-stress ({feet_or_miles(max(B['len'], 15))})"
             title = f"{what} would connect {round(B['gain']):,} homes to {B['st']} Caltrain"
-            desc = f"For {WHO[tier]}. See the bike islands it would join on the map of San Mateo and Burlingame."
-            slug = unique(slugify(B["name"]) + suffix)
+            need = fix_need(T, B, tier)
+            desc = (need + " " if need else f"For {WHO[tier]}. ") + "See the bike islands it would join on the map of San Mateo and Burlingame."
+            slug = unique(slugify(B["name"]) + suffix, "fix", tier, fid)
             path = f"{BASE}fix/{slug}/"
-            entries.append({"kind": "fix", "tier": tier, "slug": slug, "path": path, "title": title, "desc": desc,
+            entries.append({"kind": "fix", "tier": tier, "slug": slug, "path": path, "title": title, "desc": desc, "sub": (need.split(", or ")[0].rstrip(".") + ".") if need else "See the bike islands it would join.",
                             "island": island, "fix": fid, "st": B["st"], "target": f"{BASE}#t={tier}&i={island}&z=1&f={fid}"})
             manifest["fixes"][tier][fid] = path
+    built = {e["path"] for e in entries}
+    for p in [p for p in reg if p not in built]:
+        print(f"no longer built (the live page stays, still opening {'/'.join(reg[p])}): {p}")
+    save_paths(reg)
     return entries, manifest
 
 

@@ -114,7 +114,7 @@ def share_image(ent):
         d.text((PAD, y), line, font=f, fill=TEXT, anchor="ls"); y += int(size * 1.18)
     small = font("IBMPlexSans.ttf", 22, 400)
     y += 14
-    sub = ent["desc"] if ent["kind"] == "island" else "See the bike islands it would join."
+    sub = ent["desc"] if ent["kind"] == "island" else ent.get("sub", "See the bike islands it would join.")
     for line in wrap(d, sub, small, 470)[:4]:
         d.text((PAD, y), line, font=small, fill=TEXT2, anchor="ls"); y += 31
     d.text((PAD, H - PAD + 26), f"maxmautner.com{B.BASE.rstrip('/')}", font=font("IBMPlexSans.ttf", 22, 400), fill=TEXT3, anchor="ls")

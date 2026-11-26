@@ -68,6 +68,17 @@ python3 build_site.py
   placed at the block's internal point and snapped to the nearest low-stress street within 150 m.
 - **Bridges**: candidates are the high-stress pieces on each unconnected home's route minimizing
   length + 3 × high-stress length; the top 200 per station are each tested alone, and the best 20 kept.
+  A street fix is tested as its whole OpenStreetMap way, then trimmed (`pipeline/fixes.py`) to the span the
+  connected homes' routes use on the fixed network (riding it or crossing it), across every station it helps, and
+  named by its cross streets. Every connecting route stays inside the span, so the trimmed fix connects the same
+  homes; export re-tests each one and warns if not. A span of one node is a crossing and is described as one.
+- **What a fix would need**: `pipeline/treatments.py` edits a piece's tags (speed limit, lanes, painted or
+  protected bike lane, local-street class, daily traffic) and re-asks `lts()`, `barrier()`, `untamable()` and
+  `SIGNAL_RULE` for the least change that counts under each standard, so no threshold is restated. A street fix's
+  options are also checked at the crossings its routes make. Assumed inputs (default speed or lanes, no daily
+  count) are listed. This is what the map's rating would need, not an engineering recommendation.
+- **Share addresses**: `data/share_paths.json` records every share page address and what it opens. A page keeps
+  its address and no address is reused for a different fix or island; `build_site.py` lists pages no longer built.
 - **What's in the way**: for an island that reaches no station, the stressful pieces on the same routes of at
   least half its homes, to the nearest station (shortest average direct ride). Each piece alone, each pair and
   all of them together are tested; the page names the smallest set that gets at least 90% of what all would.

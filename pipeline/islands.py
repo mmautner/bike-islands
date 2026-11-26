@@ -159,6 +159,12 @@ def barrier(t, rating, tier):
     return s >= 35 or n >= 4
 
 
+def untamable(t):
+    """Under SIGNAL_RULE "small", is this street too fast or wide for a signal to make crossing it low-stress?"""
+    hw = t.get("highway", "")
+    return hw.startswith(("motorway", "trunk")) or mph(t, hw) >= 35 or lanes(t, hw) >= 4
+
+
 OVERRIDES = os.path.join(os.path.dirname(__file__), "..", "data", "field_checks", "overrides.csv")
 
 
@@ -235,12 +241,14 @@ def apply_overrides(ways):
     for w in ways:
         if w["id"] in survey:
             w["tags"]["maxspeed"] = survey[w["id"]]["posted_mph"] + " mph"
+            w["tags"]["src:maxspeed"] = "survey"     # where a value came from, for treatments.py's notes
             w["tags"]["survey:median_mph"] = survey[w["id"]]["median_mph"]
             if survey[w["id"]].get("adt"):
                 w["tags"]["survey:adt"] = survey[w["id"]]["adt"]
         for r in rows:
             if w["tags"].get("name") == r["name"] and in_bounds(w["geometry"][0], r):
                 w["tags"][r["tag"]] = r["value"]
+                w["tags"]["src:" + r["tag"]] = "field"
 
 
 def controlled_crossings(ways):
@@ -260,7 +268,9 @@ def controlled_crossings(ways):
     return on, off
 
 
-def build(path, tier):
+def build(path, tier, detail=None):
+    """detail: a dict to fill with what treatments.py needs to explain a rating: the rated ways (tags as
+    adjusted here), the controlled crossing nodes, and the ones field-checked as uncontrolled."""
     els = json.load(open(path))["elements"]
     add_connections(els)
     apply_overrides([e for e in els if e["type"] == "way" and "tags" in e])
@@ -295,7 +305,7 @@ def build(path, tier):
             coord[nid] = (g["lat"], g["lon"])
         if barrier(t, r, tier):
             barrier_nodes.update(w["nodes"])
-            if mph(t, t["highway"]) >= 35 or lanes(t, t["highway"]) >= 4 or t["highway"].startswith(("motorway", "trunk")):
+            if untamable(t):
                 big_crossing.update(w["nodes"])
         if r is None:
             continue
@@ -304,6 +314,8 @@ def build(path, tier):
     if SIGNAL_RULE[tier] == "small":
         tamed -= big_crossing
     barrier_nodes -= tamed
+    if detail is not None:
+        detail.update(ways=ways, controlled=signals | fixed_on, checked_off=fixed_off)
     return ws, coord, barrier_nodes, stations
 
 
