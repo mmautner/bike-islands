@@ -397,6 +397,19 @@ function stationNodes(T, id, st) {
   if (islandReady(T, id)) (T._stn || (T._stn = new Map())).set(key, out);
   return out;
 }
+// An island's "what's in the way" and "From here" places ship in small files (tiles.py's isl_<n>.json, islands bucketed
+// by id), fetched when the island is picked; the panel and the map fill them in when they arrive.
+function islandDetail(T, which, id) {
+  const I = T.islands[id];
+  if (!I || !I.d || I._d) return null;
+  const b = ((Number(id) % T.island_buckets) + T.island_buckets) % T.island_buckets;
+  T._isl = T._isl || new Map();
+  if (!T._isl.has(b)) T._isl.set(b, fetch(`${TILE_BASE}${which}/isl_${b}.json?v=${TILE_V}`)
+    .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(d => { for (const [i, v] of Object.entries(d)) if (T.islands[i]) Object.assign(T.islands[i], v, {_d: 1}); })
+    .catch(err => { T._isl.delete(b); throw err; }));
+  return T._isl.get(b);
+}
 function computeHeat() {
   heat = null; heatFrom = "";
   if (!sel) return;
@@ -1368,6 +1381,10 @@ function hint() {
   };
 }
 function render() {
+  if (sel) {      // the picked island's places and "what's in the way", if they aren't here yet
+    const want = sel, wantTier = tier, p = islandDetail(DATA[tier], tier, sel);
+    if (p) p.then(() => { if (sel === want && tier === wantTier) render(); }).catch(() => {});
+  }
   document.getElementById("clear").hidden = !sel;
   hover = null; hotFix = null; hotGap = null; tip.hidden = true;   // a click, search or new standard: the preview starts over on the next move
   computeHeat();

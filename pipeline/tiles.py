@@ -10,6 +10,7 @@ the island's bounding box, so loading the tiles that cover that box gets the who
 
 Usage: python pipeline/tiles.py     (reads data/map_<tier>.json from pipeline/export.py)
 """
+import collections
 import json
 import math
 import os
@@ -70,6 +71,10 @@ def tile_of(pt):
     return f"{math.floor(la / TILE_LAT)}_{math.floor(lo / TILE_LON)}"
 
 
+DETAIL_FIELDS = ("gaps", "pl")   # island fields the page fetches when an island is picked
+ISLAND_BUCKETS = 64
+
+
 def main():
     tdir = os.path.join(DATA, "tiles")
     if os.path.exists(tdir):
@@ -113,6 +118,17 @@ def main():
                     B["plan"] = Q["fixes"][f'{B["id"]}|{B["st"]}']
         else:
             print(f"{tier}: no {qf}; run pipeline/plan_projects.py for the city's projects")
+        # each island's "what's in the way" and "From here" places, the bulk of the overview and needed only once the
+        # island is picked: moved to small files the page fetches then (tiles/<tier>/isl_<n>.json, ISLAND_BUCKETS of them)
+        buckets = collections.defaultdict(dict)
+        for i, v in out["islands"].items():
+            d = {k: v.pop(k) for k in DETAIL_FIELDS if k in v}
+            if d:
+                buckets[int(i) % ISLAND_BUCKETS][i] = d
+                v["d"] = 1
+        for b, isl in buckets.items():
+            json.dump(isl, open(os.path.join(tdir, tier, f"isl_{b}.json"), "w"), separators=(",", ":"))
+        out["island_buckets"] = ISLAND_BUCKETS
         out.update(packed=overview, origin=[oy, ox], tiles=sorted(tiles), tile_size=[TILE_LAT, TILE_LON])
         json.dump(out, open(os.path.join(DATA, f"overview_{tier}.json"), "w"), separators=(",", ":"))
         full = os.path.getsize(os.path.join(DATA, f"map_{tier}.json"))
