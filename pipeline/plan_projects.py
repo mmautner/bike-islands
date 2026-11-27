@@ -107,6 +107,17 @@ def describe(p, P):
     return {"title": title, "what": "; ".join(segs + xs), "doc": doc, "ref": ref}
 
 
+def cross_names(names):
+    """Street names for the page, short and once each: "East 3rd Avenue", "West 3rd Avenue" -> "3rd Ave"."""
+    out = []
+    for n in names:
+        t = [w for w in n.split() if w not in ("North", "South", "East", "West")]
+        n = " ".join(t).replace(" Avenue", " Ave").replace(" Street", " St").replace(" Boulevard", " Blvd").replace(" Drive", " Dr")
+        if n and n not in out:
+            out.append(n)
+    return out
+
+
 def chains(steps, coord):
     """A plan's steps as polylines: consecutive steps joined."""
     out = []
@@ -151,8 +162,8 @@ def main():
         def page_project(p):
             if p not in pindex:
                 plan = plans[p]
-                cross = sorted({m.wmap[w]["tags"].get("name", "") for w in plan["own"]
-                                if barrier(plan["after"].get(w, m.wmap[w]["tags"]), lts(plan["after"].get(w, m.wmap[w]["tags"])), tier)} - {""})
+                cross = cross_names(sorted({m.wmap[w]["tags"].get("name", "") for w in plan["own"]
+                                if barrier(plan["after"].get(w, m.wmap[w]["tags"]), lts(plan["after"].get(w, m.wmap[w]["tags"])), tier)} - {""}))
                 num = p.split("-", 1)[1] if p.startswith("BMP-") else ""
                 pindex[p] = len(page["projects"])
                 page["projects"].append({"id": p, "num": num, "source": P[p]["source"], "priority": P[p]["priority"],

@@ -3,8 +3,8 @@
   /* One reading column; the map sits beside the headline numbers on wide screens, under them on phones.
      Page colors map onto maxmautner.com's tokens (site.css), as on the map page, so the dark-mode toggle works. */
   :root { --ink: var(--text); --body: var(--text-2); --grey: var(--text-3); --faint: var(--surface-sunken);
-          --copper: var(--accent); --card: var(--surface); --can: #2f7d5b; --fix: #2b59c3; --park: #dcebd9; --quiet: #c9c3b8; }
-  :root[data-theme="dark"] { --can: #5cb98d; --fix: #7c9cf0; --park: #2a3a2a; --quiet: #4a463f; }
+          --copper: var(--accent); --card: var(--surface); --can: #2f7d5b; --fix: #2b59c3; --plan: #2f7f73; --park: #dcebd9; --quiet: #c9c3b8; }
+  :root[data-theme="dark"] { --can: #5cb98d; --fix: #7c9cf0; --plan: #4fb3a4; --park: #2a3a2a; --quiet: #4a463f; }
   html, body { overflow-x: hidden; }
   main.bp { max-width: 1060px; margin: 0 auto; padding: 0 20px 48px; font-family: var(--font-sans); color: var(--body); }
   main.bp [hidden] { display: none !important; }
@@ -49,6 +49,9 @@
   .gain small { display: block; font-family: var(--font-sans); font-size: 12px; color: var(--grey); margin-top: 4px; }
   .fix p { margin: 0; font-size: 15px; line-height: 1.45; }
   .fix .need { margin-top: 6px; font-size: 14px; color: var(--ink); }
+  .fix .planst { margin-top: 6px; font-size: 13px; color: var(--grey); }
+  .fix.plan { border-left: 4px solid var(--plan); }
+  .fix.plan[aria-pressed="true"] { border: 2px solid var(--plan); border-left-width: 4px; }
   .together { margin-top: 18px; padding: 16px 18px; background: var(--card); border-left: 4px solid var(--can); max-width: 70ch; }
   .together strong { color: var(--ink); }
   .act-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
@@ -81,7 +84,12 @@ const DATA_URL = /*DATAURL*/;
   let D;
   try { D = await (await fetch(DATA_URL)).json(); } catch (e) { document.getElementById("hint").textContent = "The map didn't load."; return; }
   const M = D.map, FIX = {};
-  D.fixes.slice(0, 4).forEach((f, k) => { FIX[f.id] = Object.assign({n: k + 1}, f); });
+  D.fixes.filter(f => f.kids > 0).slice(0, 4).forEach((f, k) => { FIX[f.id] = Object.assign({n: k + 1}, f); });
+  // the city's project, when the page leads with it (build_site.py decides): drawn in its own color, no number
+  document.querySelectorAll(".fix.plan").forEach(b => {
+    const p = (D.plans || []).find(x => x.id === b.dataset.fix);
+    if (p && p.map) FIX[p.id] = Object.assign({n: "", isPlan: true}, p);
+  });
   const cv = document.getElementById("map"), ctx = cv.getContext("2d"), pop = document.getElementById("pop");
   const k = Math.cos(D.center[0] * Math.PI / 180);
   const [s, w, n, e] = M.box;
@@ -89,6 +97,7 @@ const DATA_URL = /*DATAURL*/;
   // a badge for each fix: the point of its stretch nearest the stretch's middle
   const badge = {};
   for (const [id, f] of Object.entries(FIX)) {
+    if (f.isPlan) continue;      // the city's project is a line with no badge
     const pts = []; for (const sg of f.map) for (let i = 0; i < sg.length; i += 2) pts.push([sg[i], sg[i + 1]]);
     const m = pts.reduce((a, p) => [a[0] + p[0] / pts.length, a[1] + p[1] / pts.length], [0, 0]);
     badge[id] = pts.reduce((b, p) => Math.hypot(p[0] - m[0], (p[1] - m[1]) * k) < Math.hypot(b[0] - m[0], (b[1] - m[1]) * k) ? p : b);
@@ -99,7 +108,7 @@ const DATA_URL = /*DATAURL*/;
     const sc = Math.min(W / ((e - w) * k), H / (n - s));
     const ox = (W - (e - w) * k * sc) / 2, oy = (H - (n - s) * sc) / 2;
     X = lon => ox + (lon - w) * k * sc; Y = lat => oy + (n - lat) * sc;
-    const card = css("--card"), ink = css("--ink"), fx = css("--fix");
+    const card = css("--card"), ink = css("--ink"), fix = css("--fix"), planc = css("--plan");
     ctx.fillStyle = card; ctx.fillRect(0, 0, W, H);
     const path = a => { ctx.beginPath(); for (let i = 0; i < a.length; i += 2) (i ? ctx.lineTo : ctx.moveTo).call(ctx, X(a[i + 1]), Y(a[i])); };
     const line = (a, col, lw) => { ctx.strokeStyle = col; ctx.lineWidth = lw; path(a); ctx.stroke(); };
@@ -118,7 +127,7 @@ const DATA_URL = /*DATAURL*/;
     }
     ctx.globalAlpha = 1;
     for (const [id, f] of Object.entries(FIX)) {
-      const on = id === active || id === hover;
+      const on = id === active || id === hover, fx = f.isPlan ? planc : fix;
       ctx.globalAlpha = active && !on ? 0.35 : 1;
       // a halo under every piece first, then the line, so the short pieces read as one stretch
       for (const sg of f.map) if (sg.length > 2) line(sg, card, on ? 8 : 5);
@@ -137,7 +146,7 @@ const DATA_URL = /*DATAURL*/;
     for (const [id, [la, lo]] of Object.entries(badge)) {
       const on = id === active || id === hover, r = on ? 13 : 11;
       ctx.globalAlpha = active && !on ? 0.5 : 1;
-      ctx.fillStyle = fx; ctx.strokeStyle = card; ctx.lineWidth = 2;
+      ctx.fillStyle = fix; ctx.strokeStyle = card; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.arc(X(lo), Y(la), r, 0, 7); ctx.fill(); ctx.stroke();
       ctx.fillStyle = card; ctx.font = `600 ${on ? 13 : 12}px sans-serif`;
       ctx.fillText(FIX[id].n, X(lo), Y(la) + 0.5);
@@ -179,9 +188,16 @@ const DATA_URL = /*DATAURL*/;
     draw();
   }
   function showFix(id) {
-    const f = FIX[id], [la, lo] = badge[id];
-    pop.innerHTML = `<button class="x" aria-label="Close">&times;</button><strong>${f.n}. ${document.querySelector(`.fix[data-fix="${CSS.escape(id)}"] h3`).textContent.replace(/^\d+/, "")}</strong>` +
-      `${f.kids.toLocaleString()} more kids could bike here. <a href="#" data-go="1">What it would need</a>`;
+    const f = FIX[id];
+    let [la, lo] = badge[id] || [0, 0];
+    if (!badge[id]) {        // a project has no badge: put the note at the middle of its longest line
+      const L = f.map.reduce((a, b) => b.length > a.length ? b : a, []), i = Math.floor(L.length / 4) * 2;
+      [la, lo] = [L[i], L[i + 1]];
+    }
+    const title = document.querySelector(`.fix[data-fix="${CSS.escape(id)}"] h3`).textContent.replace(/^\d+/, "");
+    pop.innerHTML = `<button class="x" aria-label="Close">&times;</button><strong>${f.n ? f.n + ". " : ""}${title}</strong>` +
+      (f.isPlan ? `` : `${f.kids.toLocaleString()} more kids could bike here. `) +
+      `<a href="#" data-go="1">${f.isPlan ? "More about it" : "What it would need"}</a>`;
     closeBtn();
     pop.querySelector("[data-go]").onclick = ev => { ev.preventDefault();
       document.querySelector(`.fix[data-fix="${CSS.escape(id)}"]`).scrollIntoView({behavior: "smooth", block: "center"}); };

@@ -67,11 +67,12 @@ def treated(t, facility):
 class PlanModel:
     """The rated network for one rider standard, with what's needed to apply plan rows to it."""
 
-    def __init__(self, path, tier):
+    def __init__(self, path, tier, built=None):
+        """built: connectivity.setup's result, when the caller already has it (places.py)."""
         from places import city_of
         self.tier = tier
         (self.ws, self.coord, self.bn, self.stations, self.adj_all, self.low_edges, _, self.origins, _,
-         self.reaches) = setup(path, tier)
+         self.reaches) = built or setup(path, tier)
         self.wmap = {w["id"]: w for w, _, _, _ in self.ws}
         self.adj_low = low_adj(self.low_edges)
         self.copies = collections.defaultdict(set)
@@ -278,9 +279,12 @@ class PlanModel:
         city line (Peninsula Ave) is "San Mateo/Burlingame". San Mateo first when it's one of them."""
         if kind == "w":
             ns = self.wmap[osm_id]["nodes"]
-            la, lo = self.coord[ns[len(ns) // 2]]
-        else:
-            la, lo = self.coord[osm_id]
+            return self.city_near(self.coord[ns[len(ns) // 2]])
+        return self.city_near(self.coord[osm_id])
+
+    def city_near(self, pt):
+        """The city or cities at pt and 30 m to each side, San Mateo first."""
+        la, lo = pt
         d = 0.00027
         cs = {self.city_of(p) for p in ((la, lo), (la + d, lo), (la - d, lo), (la, lo + d), (la, lo - d))} - {None}
         return "/".join(sorted(cs, key=lambda c: (c != "San Mateo", c)))

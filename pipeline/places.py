@@ -35,6 +35,7 @@ from islands import islands as mk_islands, dist
 from connectivity import setup, low_adj, Overlay, dj, dj_prevs, base, DETOUR, CITIES, street_names, crossing_name
 from schools import inside, edge_dist, kid_origins
 from treatments import Explainer
+from plan_model import MODES
 
 HERE = os.path.dirname(__file__)
 ROOT = os.path.join(HERE, "..")
@@ -177,8 +178,9 @@ class Ctx:
     def __init__(self, path, tier):
         self.tier = tier
         self.detail = {}
+        self.built = setup(path, tier, self.detail)     # kept for plan_model.PlanModel
         (self.ws, self.coord, self.bn, self.stations, self.adj_all, self.low_edges, _, self.origins, _,
-         self.reaches) = setup(path, tier, self.detail)
+         self.reaches) = self.built
         self.f, self.key = mk_islands(self.ws, self.bn)
         self.adj_low = low_adj(self.low_edges)
         self.copies = collections.defaultdict(set)    # barrier node -> its copies, one per side
@@ -272,8 +274,9 @@ def island_lists(ctx, places, iid, slug_of, name_of=None):
 
 # --- one place ---------------------------------------------------------------------------------------------
 
-def place_detail(ctx, pl):
-    """What a place page needs, and each tested fix's gained origin keys."""
+def place_detail(ctx, pl, plan=None):
+    """What a place page needs, and each tested fix's gained origin keys. plan (plan_context()): also score the
+    city's plan projects for this place ("plans") and say where each fix stands in them ("plan" on each fix)."""
     wi = WEIGHT[ctx.tier]
     src_all, src_low = ctx.sources(pl)
     d_all, prevs = dj_prevs(ctx.adj_all, src_all, cutoff=RIDE_M * 1.3)   # with one-way streets, there and back
@@ -351,6 +354,40 @@ def place_detail(ctx, pl):
                           "homes": sum(near[k][0] for k in g), "kids": sum(near[k][1] for k in g)})
     pairs.sort(key=lambda p: -(p["kids"], p["homes"])[wi == 0])
 
+    # the city's plan projects: who each would let bike here, as it stands, with safe crossings of its own street,
+    # and with every crossing on it (plan_model's bare, written and generous); only projects that come near
+    plan_got = {}
+    if plan:
+        m = plan["m"]
+        for pid, P in plan["applied"].items():
+            if not (P["steps"] or P["named"]) or not plan_near(m, P, pl["p"]):
+                continue
+            nodes = {n for u, v, _ in P["steps"] for n in (u, v)} | P["named"]
+            srcs = src_low + [n for n in src_all if n in nodes]
+            plan_got[pid] = {k: reach(Overlay(ctx.adj_low, m.extra(P, k)), frozenset(), srcs) - ok0 for k in MODES}
+        # every nearby project at once, for "the plans together"
+        near_p = [plan["applied"][p] for p in plan_got]
+        allP = {"steps": [st for P in near_p for st in P["steps"]], "own": set().union(set(), *(P["own"] for P in near_p)),
+                "named": set().union(set(), *(P["named"] for P in near_p)),
+                "after": {w: t for P in near_p for w, t in P["after"].items()}}
+        all_nodes = {n for u, v, _ in allP["steps"] for n in (u, v)} | allP["named"]
+        all_got = {k: reach(Overlay(ctx.adj_low, m.extra(allP, k)), frozenset(), src_low + [n for n in src_all if n in all_nodes]) - ok0
+                   for k in ("written", "generous")} if near_p else {"written": set(), "generous": set()}
+        for fx in fixes:      # where each fix stands in the plans, by the same buckets as plan_projects.py
+            G = gained[(fx["kind"], fx["street"])]
+            j = wi if sum(near[k][wi] for k in G) else 1 - wi      # kids on the kids' map; homes where it connects none
+            kw = lambda g: sum(near[k][j] for k in g)
+            tot_g = kw(G) or 1
+            share = {k: max(((kw(plan_got[p][k] & G) / tot_g, p) for p in plan_got), default=(0, None)) for k in MODES}
+            city = m.city_near(ctx.coord[next(iter(sorted(nodes_of(items[(fx["kind"], fx["street"])]))))])
+            row = {"city": city, **{f"best_share_{k}": share[k][0] for k in MODES},
+                   "all_plans_share_written": kw(all_got["written"] & G) / tot_g,
+                   "all_plans_share_generous": kw(all_got["generous"] & G) / tot_g}
+            b = plan_bucket(row)
+            mode = "bare" if b == "project" else ("written" if share["written"][0] > 0 else "generous")
+            fx["plan"] = [share[mode][1] if share[mode][0] > 0 else None, b,
+                          round(share["bare"][0], 3), round(share["written"][0], 3)]
+
     # map: streets in a frame around the place, its outline, a dot per snapped block
     lat0, lon0 = pl["p"]
     box = (lat0 - MAP_PAD[0], lon0 - MAP_PAD[1], lat0 + MAP_PAD[0], lon0 + MAP_PAD[1])
@@ -366,13 +403,35 @@ def place_detail(ctx, pl):
         c = ctx.coord[base(k)]
         dots[(round(c[0], 4), round(c[1], 4), k in ok0)][0] += h
         dots[(round(c[0], 4), round(c[1], 4), k in ok0)][1] += kd
+    plans_out = []
+    if plan:
+        ranked = sorted(plan_got, key=lambda p: (-sum(near[k][wi] for k in plan_got[p]["bare"]),
+                                                 -sum(near[k][wi] for k in plan_got[p]["written"]), p))
+        for pid in ranked:
+            g = plan_got[pid]
+            if not g["written"]:
+                continue
+            P = plan["applied"][pid]
+            plans_out.append({"id": f"plan:{pid}", **plan["desc"][pid], "cross": plan["cross"][pid],
+                              "kids": sum(near[k][1] for k in g["bare"]), "homes": sum(near[k][0] for k in g["bare"]),
+                              "kids_crossed": sum(near[k][1] for k in g["written"]),
+                              "homes_crossed": sum(near[k][0] for k in g["written"]),
+                              "map": [[v_ for c in line for v_ in q(c)] for line in plan_lines(P["steps"], ctx.coord)]})
+            if len(plans_out) == PLANS_PER_PAGE:
+                break
+        for fx in fixes:      # the fix's project as an id on this page ("plan:BMP-15"), its words come from "plans"
+            if fx.get("plan") and fx["plan"][0]:
+                pid = fx["plan"][0]
+                if not any(p["id"] == f"plan:{pid}" for p in plans_out):
+                    plans_out.append({"id": f"plan:{pid}", **plan["desc"][pid], "cross": plan["cross"][pid], "listed": False})
+                fx["plan"][0] = f"plan:{pid}"
     for fx in fixes:
         v = items[(fx["kind"], fx["street"])]
         fx["map"] = ([[v_ for p in (ctx.coord[a], ctx.coord[b]) for v_ in q(p)] for a, b in sorted(v["segs"])] +
                      [[v_ for p in (ctx.coord[n],) for v_ in q(p)] for n in sorted(v["nodes"])])
     page = {"tier": ctx.tier, "center": [round(lat0, 6), round(lon0, 6)], "ride_m": RIDE_M,
             "total": {"homes": tot[0], "kids": tot[1]}, "ok": {"homes": okc[0], "kids": okc[1]},
-            "fixes": fixes, "pairs": pairs[:3],
+            "fixes": fixes, "pairs": pairs[:3], "plans": plans_out,
             "map": {"box": [round((box[0] - lat0) * 1e5), round((box[1] - lon0) * 1e5),
                             round((box[2] - lat0) * 1e5), round((box[3] - lon0) * 1e5)],
                     "streets": streets, "rings": [[v for p in r for v in q(p)] for r in (pl["rings"] or [])],
@@ -414,6 +473,48 @@ def describe(ctx, key, v):
             "len": round(sum(L.values()))}
 
 
+# --- the city's plan projects (pipeline/plan_model.py, plan_projects.py) -------------------------------------
+
+PLANS_PER_PAGE = 3      # city projects a place page keeps, best first
+
+
+def nodes_of(v):
+    return v["nodes"] | {n for sg in v["segs"] for n in sg}
+
+
+def plan_near(m, P, p, reach_m=RIDE_M * 1.5):
+    """Whether any piece of a project comes within reach_m of the place (else it can't help anyone get there)."""
+    return any(dist(m.coord[n], p) <= reach_m for u, v, _ in P["steps"] for n in (u, v)) or \
+        any(dist(m.coord[n], p) <= reach_m for n in P["named"])
+
+
+def plan_lines(steps, coord):
+    from plan_projects import chains
+    return chains(steps, coord)
+
+
+def plan_context(path, ctx):
+    """What place_detail needs to score the city's projects: the model on ctx's network, each project applied,
+    its words, and the own streets it would also need to make safe to cross."""
+    from plan_model import PlanModel
+    from plan_projects import projects, describe as plan_describe, cross_names
+    from islands import barrier, lts
+    m = PlanModel(path, ctx.tier, built=ctx.built)
+    Ps = projects()
+    applied = {p: m.apply(v["rows"], p) for p, v in Ps.items()}
+    cross = {p: cross_names(sorted({m.wmap[w]["tags"].get("name", "") for w in a["own"]
+                                    if barrier(a["after"].get(w, m.wmap[w]["tags"]), lts(a["after"].get(w, m.wmap[w]["tags"])), ctx.tier)} - {""}))
+             for p, a in applied.items()}
+    desc = {p: dict(plan_describe(p, v), priority=v["priority"], cost=v["cost"], cost2=v["cost2"],
+                    num=p.split("-", 1)[1] if p.startswith("BMP-") else "") for p, v in Ps.items()}
+    return {"m": m, "applied": applied, "cross": cross, "desc": desc}
+
+
+def plan_bucket(row):
+    from plan_projects import bucket
+    return bucket(row)
+
+
 # --- export ------------------------------------------------------------------------------------------------
 
 def export(path):
@@ -428,6 +529,7 @@ def export(path):
             slug_of = {i: c["slug"] for c, i in cur}
             name_of = {i: c["name"] for c, i in cur}
         iid = ctx.iid()
+        plan = plan_context(path, ctx) if tier == "strict" else None     # place pages are the kids' map
         lists = island_lists(ctx, places, iid, slug_of, name_of)
         pdir = os.path.join(ROOT, "data", "places", tier)
         if tier == "strict":
@@ -437,7 +539,7 @@ def export(path):
         isl_fix = collections.defaultdict(lambda: collections.defaultdict(dict))
         fix_info = {}
         for c, i in cur:
-            page, gained, near = place_detail(ctx, places[i])
+            page, gained, near = place_detail(ctx, places[i], plan)
             page.update(slug=c["slug"], name=c["name"], title=c.get("title", c["name"]), category=c["category"],
                         city=city_of(places[i]["p"]))
             if tier == "strict":     # pages are for the kids' map; the other standard only feeds the panel's fix line

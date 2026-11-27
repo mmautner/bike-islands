@@ -844,7 +844,8 @@ function allPlans(T, id) {
 }
 const capFirst = x => x[0].toUpperCase() + x.slice(1);
 const planRef = P => `${P.ref} of the city's ${P.doc}`;                 // "project 15 of the city's 2020 Bicycle Master Plan"
-const crossList = P => andList(P.cross.map(c => c.replace(/ Avenue$/, " Ave").replace(/ Street$/, " St").replace(/ Boulevard$/, " Blvd")));
+const crossList = P => andList(P.cross);       // already short, once each (plan_projects.cross_names)
+const PRIORITY = {"High": "high", "Med-High": "medium-high", "Med-Low": "medium-low", "Low": "low"};   // the plan's shorthand
 function planCost(P) {
   if (!P.cost) return "";
   return P.cost2 ? `estimated ${P.cost}, or ${P.cost2} built with curbs and planters` : `estimated ${P.cost}`;
@@ -872,7 +873,7 @@ function planItem(T, L) {
   const gain = L.crossed
     ? `It would let ${fmt(hu)} more homes here bike to ${st} Caltrain if it also made crossing ${crossList(P)} safe${asIs ? ` (${fmt(asIs)} as planned)` : ""}.`
     : `It would let ${fmt(hu)} more homes here bike to ${st} Caltrain.`;
-  const meta = [P.priority && P.num ? `${P.priority} priority in the plan` : "", planCost(P)].filter(Boolean).join("; ");
+  const meta = [PRIORITY[P.priority] && P.num ? `${PRIORITY[P.priority]} priority in the plan` : "", planCost(P)].filter(Boolean).join("; ");
   return `<p class="planline"><strong>Finish ${planRef(P)}</strong>${P.what ? `: ${P.what}` : ""}. ${gain}` +
     (meta ? `<span class="need">${capFirst(meta)}.</span>` : "") + `</p>`;
 }

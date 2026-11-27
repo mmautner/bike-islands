@@ -21,7 +21,9 @@ to Caltrain. Served at
     1-mile ride. `--export` writes `data/places_<tier>.json` (each island's "From here" lists and the one fix that
     would let the most homes there bike to more places; `tiles.py` merges it into the overview) and
     `data/places/<tier>/<slug>.json` (a page's data for each place in `site/places.json`: who can bike there, what's in
-    the way, and the fixes that would help most, alone and in pairs). Run alone with `--at "Street, City"` for a report.
+    the way, the fixes that would help most, alone and in pairs, and the city's plan projects that would help, with each
+    fix's place in the plans; `build_site.py` leads a page with a city project under the same 75% rule as the map's
+    panel). Run alone with `--at "Street, City"` for a report.
   - `sensitivity.py`: detour limit × ride radius grid (`data/sensitivity.csv`).
   - `joints.py`: the intersections and segments holding each island together (diagnostic).
   - `tiles.py`: splits each standard's map data into `data/overview_<tier>.json` (every street simplified to
