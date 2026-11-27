@@ -9,7 +9,7 @@
 [standard] BMP-13: B St Railroad Av (West)–Baldwin Av (Bike Blvd): 1 of 11 pieces still wouldn't count
 [standard] BMP-13: Baywood Av City Limit–El Camino Real (Bike Blvd): City Limit taken as where the street ends in San Mateo
 [standard] BMP-13: Ellsworth Av Monte Diablo Av–Baldwin Av (Bike Blvd): 1 of 13 pieces still wouldn't count
-[standard] BMP-15: 3rd Av Dartmouth Rd–El Camino Real (Bike Lane): 13 of 15 pieces still wouldn't count
+[standard] BMP-15: 3rd Av Dartmouth Rd–El Camino Real (Bike Lane): 8 of 15 pieces still wouldn't count
 [standard] BMP-19: O'Farrell St SR-92 Overcrossing–20th Av (Bike Blvd): SR-92 Overcrossing taken as where the street ends in San Mateo
 [standard] BMP-19: SR-92 Overcrossing Bovet Rd–O'Farrell St (Shared-Use Path): not a street in OpenStreetMap (new construction?)
 [standard] BMP-1: Clark Dr Occidental Av–Crescent Av (Bike Blvd): Crescent Av taken as where the street ends in San Mateo
@@ -62,11 +62,10 @@
 [standard] BMP-53: Hillsdale Bl Franklin Pk–City Limit (Separated BL): neither Franklin Pk nor City Limit found on it
 [standard] BMP-54: Norfolk St Ciro Av–La Selva St (Buffered BL): 11 of 33 pieces still wouldn't count
 [standard] BMP-55: Delaware St 28th Av–Pacific Bl (Bike Blvd): 6 of 26 pieces still wouldn't count
-[standard] BMP-55: Delaware St 5th Av–Concar Dr (Buffered BL): 2 of 35 pieces still wouldn't count
 [standard] BMP-56: Saratoga Dr Hillsdale Bl–Santa Clara Wy (Buffered BL): 126 of 126 pieces still wouldn't count
 [standard] BMP-56: Saratoga Dr Hillsdale Bl–Santa Clara Wy (Buffered BL): Santa Clara Wy taken as where the street ends in San Mateo
 [standard] BMP-59: Bermuda Dr Delaware St–Saratoga Dr (Bike Blvd): Saratoga Dr taken as where the street ends in San Mateo
-[standard] BMP-5: San Mateo Dr City Limit–Catalpa St (Bike Lane): 11 of 62 pieces still wouldn't count
+[standard] BMP-5: San Mateo Dr City Limit–Catalpa St (Bike Lane): 8 of 62 pieces still wouldn't count
 [standard] BMP-5: San Mateo Dr City Limit–Catalpa St (Bike Lane): City Limit taken as where the street ends in San Mateo
 [standard] BMP-61: Mariners Island Bl Fashion Island Bl–Winward Wy (Shared-Use Path): Winward Wy taken as where the street ends in San Mateo
 [standard] BMP-62: Bridgepointe Ci Bridgepointe Pk–Chess Dr (Buffered BL): 
@@ -82,7 +81,7 @@
 [standard] BMP-69: Detroit Dr J Hart Clinton Dr–John Lee Dog Park (Bike Blvd): no connected route from J Hart Clinton Dr to John Lee Dog Park
 [standard] BMP-69: Wastewater Treatment Path Detroit Dr–John Lee Dog Park (Shared-Use Path): not a street in OpenStreetMap (new construction?)
 [standard] BMP-6: Delaware St Poplar Av–Indian Av (Bike Lane): 4 of 6 pieces still wouldn't count
-[standard] BMP-6: Poplar Av El Camino Real–Delaware St (Bike Lane): 12 of 38 pieces still wouldn't count
+[standard] BMP-6: Poplar Av El Camino Real–Delaware St (Bike Lane): 10 of 38 pieces still wouldn't count
 [standard] BMP-70: 3rd Av Mariners Island Bl–Bay Trail (Shared-Use Path): no connected route from Mariners Island Bl to Bay Trail
 [standard] BMP-8: Monte Diablo Av San Mateo Dr–US-101 (Bike Blvd): no connected route from San Mateo Dr to US-101
 [standard] BMP-8: Monte Diablo Av US-101–Bay Trail (Bike Blvd): neither US-101 nor Bay Trail found on it

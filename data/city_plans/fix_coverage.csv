@@ -1,58 +1,59 @@
 tier,station,rank,our_fix,homes,city,best_project_bare,best_share_bare,best_project_written,best_share_written,best_project_generous,best_share_generous,all_plans_share_written,all_plans_share_generous,bucket
-standard,Burlingame,1,Peninsula Avenue at Arundel Road & Woodside Way,5081,San Mateo/Burlingame,BMP-14: B St +2 more,0.189,BMP-2: Peninsula Av +1 more,1.0,BMP-2: Peninsula Av +1 more,1.0,1.0,1.0,project_if_its_street_crossed
-standard,Burlingame,2,Peninsula Avenue at Clarendon Road & North Claremont Street,3394,San Mateo/Burlingame,BMP-14: B St +2 more,0.282,BMP-2: Peninsula Av +1 more,1.0,BMP-2: Peninsula Av +1 more,1.0,1.0,1.0,project_if_its_street_crossed
+standard,Burlingame,1,Peninsula Avenue at Arundel Road & Woodside Way,4996,San Mateo/Burlingame,BMP-14: B St +2 more,0.194,BMP-2: Peninsula Av +1 more,1.0,BMP-2: Peninsula Av +1 more,1.0,1.0,1.0,project_if_its_street_crossed
+standard,Burlingame,2,Peninsula Avenue at Clarendon Road & North Claremont Street,3160,San Mateo/Burlingame,BMP-14: B St +2 more,0.303,BMP-2: Peninsula Av +1 more,1.0,BMP-2: Peninsula Av +1 more,1.0,1.0,1.0,project_if_its_street_crossed
 standard,Burlingame,3,Peninsula Avenue between North Humboldt Street and North Idaho Street,3156,San Mateo,BMP-3: Humboldt St +1 more,0.957,BMP-2: Peninsula Av +1 more,1.0,BMP-2: Peninsula Av +1 more,1.0,1.0,1.0,project
 standard,Burlingame,4,Peninsula Avenue at North Humboldt Street,3021,San Mateo,BMP-3: Humboldt St +1 more,1.0,BMP-2: Peninsula Av +1 more,1.0,BMP-2: Peninsula Av +1 more,1.0,1.0,1.0,project
-standard,Burlingame,5,California Drive between Highland Avenue and South Lane,3018,Burlingame,BMP-14: B St +2 more,0.08,BMP-2: Peninsula Av +1 more,0.601,BMP-2: Peninsula Av +1 more,0.601,0.601,0.601,outside
+standard,Burlingame,5,California Drive between Highland Avenue and South Lane,2814,Burlingame,BMP-14: B St +2 more,0.086,BMP-2: Peninsula Av +1 more,0.614,BMP-2: Peninsula Av +1 more,0.614,0.614,0.614,outside
 standard,Burlingame,6,North El Camino Real between Baldwin Avenue & Baywood Avenue and El Cerrito Avenue & Tilton Avenue,1292,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
-standard,Burlingame,7,El Camino Real between Oak Grove Avenue and Sanchez Avenue,822,Burlingame,,0.0,,0.0,,0.0,0.0,0.0,outside
-standard,Burlingame,8,North El Camino Real between Grand Boulevard and Barroilhet Avenue,450,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
-standard,Burlingame,9,North El Camino Real between El Cerrito Avenue & Tilton Avenue and Engle Road,340,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
-standard,Burlingame,10,North San Mateo Drive between East Santa Inez Avenue and East Poplar Avenue,198,San Mateo,,0.0,BMP-2: Peninsula Av +1 more,0.859,BMP-2: Peninsula Av +1 more,0.859,0.859,0.859,project_if_its_street_crossed
-standard,Burlingame,11,Hillside Drive at Balboa Avenue,135,Burlingame,,0.0,,0.0,,0.0,0.0,0.0,outside
-standard,Burlingame,12,South B Street between Baldwin Avenue and 1st Avenue,113,San Mateo,BMP-14: B St +2 more,1.0,BMP-14: B St +2 more,1.0,BMP-14: B St +2 more,1.0,1.0,1.0,project
-standard,Burlingame,13,Crystal Springs Road between Stonehedge Road & West 3rd Avenue and Franklin Street,109,San Mateo/Hillsborough,,0.0,,0.0,,0.0,0.0,0.0,none
-standard,Burlingame,14,1st Avenue between South Delaware Street and South Claremont Street,99,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
-standard,Burlingame,15,North El Camino Real at Monte Diablo Avenue,86,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
-standard,Burlingame,16,Hillside Drive at Bernal Avenue,83,Burlingame,,0.0,,0.0,,0.0,0.0,0.0,outside
-standard,Burlingame,17,Hillside Drive at Drake Avenue,61,Burlingame,,0.0,,0.0,,0.0,0.0,0.0,outside
-standard,Burlingame,18,North San Mateo Drive between Catalpa Street and Monte Diablo Avenue,52,San Mateo,BMP-5: San Mateo Dr,1.0,BMP-5: San Mateo Dr,1.0,BMP-5: San Mateo Dr,1.0,1.0,1.0,project
-standard,Burlingame,19,Rollins Road between Marin Drive and Winchester Place,51,Burlingame,,0.0,,0.0,,0.0,0.0,0.0,outside
-standard,Burlingame,20,2nd Avenue between South Claremont Street and South Delaware Street,44,San Mateo,,0.0,BMP-2: Peninsula Av +1 more,1.0,BMP-2: Peninsula Av +1 more,1.0,1.0,1.0,project_if_its_street_crossed
-standard,Burlingame,21,Dwight Road between Burlingame Avenue and Concord Way,23,Burlingame,,0.0,,0.0,,0.0,0.0,0.0,outside
-standard,Burlingame,22,(unnamed) between Clarendon Road and Vernon Way,19,Burlingame,,0.0,,0.0,,0.0,0.0,0.0,outside
-standard,Burlingame,23,El Camino Real at Bellevue Avenue,17,Burlingame/Hillsborough,,0.0,,0.0,,0.0,0.0,0.0,outside
-standard,Burlingame,24,2nd Avenue between South B Street and South Claremont Street,16,San Mateo,BMP-12: Railroad Av (East) +3 more,1.0,BMP-12: Railroad Av (East) +3 more,1.0,BMP-12: Railroad Av (East) +3 more,1.0,1.0,1.0,project
-standard,Burlingame,25,1st Avenue between South Railroad Avenue and South B Street,15,San Mateo,BMP-14: B St +2 more,1.0,BMP-14: B St +2 more,1.0,BMP-14: B St +2 more,1.0,1.0,1.0,project
-standard,Burlingame,26,North El Camino Real between East Bellevue Avenue & West Bellevue Avenue and Grand Boulevard,15,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
-standard,Burlingame,27,9th Avenue between Palm Avenue and South B Street,8,San Mateo,BMP-14: B St +2 more,1.0,BMP-2: Peninsula Av +1 more,1.0,BMP-2: Peninsula Av +1 more,1.0,1.0,1.0,project
-standard,Burlingame,28,East 3rd Avenue between South Claremont Street and South Railroad Avenue,6,San Mateo,BMP-12: Railroad Av (East) +3 more,0.833,BMP-15: 3rd Av +3 more,1.0,BMP-12: Railroad Av (East) +3 more,1.0,1.0,1.0,project
-standard,Burlingame,29,West Poplar Avenue between Crescent Avenue and Dorchester Road,6,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
-standard,Burlingame,30,West Santa Inez Avenue between Roblar Avenue and El Portal Road,4,Hillsborough,,0.0,,0.0,,0.0,0.0,0.0,outside
-standard,San Mateo,1,Peninsula Avenue between Anita Road and Clarendon Road & North Claremont Street,3896,San Mateo/Burlingame,BMP-3: Humboldt St +1 more,0.331,BMP-2: Peninsula Av +1 more,1.0,BMP-2: Peninsula Av +1 more,1.0,1.0,1.0,project_if_its_street_crossed
-standard,San Mateo,2,Peninsula Avenue at Clarendon Road & North Claremont Street,3882,San Mateo/Burlingame,BMP-3: Humboldt St +1 more,0.332,BMP-2: Peninsula Av +1 more,1.0,BMP-2: Peninsula Av +1 more,1.0,1.0,1.0,project_if_its_street_crossed
-standard,San Mateo,3,Peninsula Avenue at Arundel Road & Woodside Way,3456,San Mateo/Burlingame,BMP-3: Humboldt St +1 more,0.338,BMP-2: Peninsula Av +1 more,1.0,BMP-2: Peninsula Av +1 more,1.0,1.0,1.0,project_if_its_street_crossed
+standard,Burlingame,7,(unnamed) between California Drive and Oak Grove Avenue,1130,Burlingame,,0.0,,0.0,,0.0,0.0,0.0,outside
+standard,Burlingame,8,California Drive,1125,Burlingame,,0.0,,0.0,,0.0,0.0,0.0,outside
+standard,Burlingame,9,El Camino Real between Oak Grove Avenue and Sanchez Avenue,822,Burlingame,,0.0,,0.0,,0.0,0.0,0.0,outside
+standard,Burlingame,10,North El Camino Real between Grand Boulevard and Barroilhet Avenue,450,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
+standard,Burlingame,11,North El Camino Real between El Cerrito Avenue & Tilton Avenue and Engle Road,340,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
+standard,Burlingame,12,Hillside Drive at Balboa Avenue,135,Burlingame,,0.0,,0.0,,0.0,0.0,0.0,outside
+standard,Burlingame,13,South B Street between Baldwin Avenue and 1st Avenue,113,San Mateo,BMP-14: B St +2 more,1.0,BMP-14: B St +2 more,1.0,BMP-14: B St +2 more,1.0,1.0,1.0,project
+standard,Burlingame,14,Crystal Springs Road between Stonehedge Road & West 3rd Avenue and Franklin Street,109,San Mateo/Hillsborough,,0.0,,0.0,,0.0,0.0,0.0,none
+standard,Burlingame,15,1st Avenue between South Delaware Street and South Claremont Street,99,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
+standard,Burlingame,16,North El Camino Real at Monte Diablo Avenue,86,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
+standard,Burlingame,17,Hillside Drive at Bernal Avenue,83,Burlingame,,0.0,,0.0,,0.0,0.0,0.0,outside
+standard,Burlingame,18,Hillside Drive at Drake Avenue,61,Burlingame,,0.0,,0.0,,0.0,0.0,0.0,outside
+standard,Burlingame,19,North San Mateo Drive between Catalpa Street and Monte Diablo Avenue,52,San Mateo,BMP-5: San Mateo Dr,1.0,BMP-5: San Mateo Dr,1.0,BMP-5: San Mateo Dr,1.0,1.0,1.0,project
+standard,Burlingame,20,Rollins Road between Marin Drive and Winchester Place,51,Burlingame,,0.0,,0.0,,0.0,0.0,0.0,outside
+standard,Burlingame,21,2nd Avenue between South Claremont Street and South Delaware Street,44,San Mateo,,0.0,BMP-2: Peninsula Av +1 more,1.0,BMP-2: Peninsula Av +1 more,1.0,1.0,1.0,project_if_its_street_crossed
+standard,Burlingame,22,Dwight Road between Burlingame Avenue and Concord Way,23,Burlingame,,0.0,,0.0,,0.0,0.0,0.0,outside
+standard,Burlingame,23,(unnamed) between Clarendon Road and Vernon Way,19,Burlingame,,0.0,,0.0,,0.0,0.0,0.0,outside
+standard,Burlingame,24,El Camino Real at Bellevue Avenue,17,Burlingame/Hillsborough,,0.0,,0.0,,0.0,0.0,0.0,outside
+standard,Burlingame,25,2nd Avenue between South B Street and South Claremont Street,16,San Mateo,BMP-12: Railroad Av (East) +3 more,1.0,BMP-12: Railroad Av (East) +3 more,1.0,BMP-12: Railroad Av (East) +3 more,1.0,1.0,1.0,project
+standard,Burlingame,26,1st Avenue between South Railroad Avenue and South B Street,15,San Mateo,BMP-14: B St +2 more,1.0,BMP-14: B St +2 more,1.0,BMP-14: B St +2 more,1.0,1.0,1.0,project
+standard,Burlingame,27,North El Camino Real between East Bellevue Avenue & West Bellevue Avenue and Grand Boulevard,15,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
+standard,Burlingame,28,9th Avenue between Palm Avenue and South B Street,8,San Mateo,BMP-14: B St +2 more,1.0,BMP-2: Peninsula Av +1 more,1.0,BMP-2: Peninsula Av +1 more,1.0,1.0,1.0,project
+standard,Burlingame,29,East 3rd Avenue between South Claremont Street and South Railroad Avenue,6,San Mateo,BMP-12: Railroad Av (East) +3 more,0.833,BMP-15: 3rd Av +3 more,1.0,BMP-12: Railroad Av (East) +3 more,1.0,1.0,1.0,project
+standard,Burlingame,30,West Poplar Avenue between Crescent Avenue and Dorchester Road,6,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
+standard,Burlingame,31,West Santa Inez Avenue between Roblar Avenue and El Portal Road,4,Hillsborough,,0.0,,0.0,,0.0,0.0,0.0,outside
+standard,San Mateo,1,Peninsula Avenue between Anita Road and Clarendon Road & North Claremont Street,3818,San Mateo/Burlingame,BMP-3: Humboldt St +1 more,0.338,BMP-2: Peninsula Av +1 more,1.0,BMP-2: Peninsula Av +1 more,1.0,1.0,1.0,project_if_its_street_crossed
+standard,San Mateo,2,Peninsula Avenue at Clarendon Road & North Claremont Street,3804,San Mateo/Burlingame,BMP-3: Humboldt St +1 more,0.339,BMP-2: Peninsula Av +1 more,1.0,BMP-2: Peninsula Av +1 more,1.0,1.0,1.0,project_if_its_street_crossed
+standard,San Mateo,3,Peninsula Avenue at Arundel Road & Woodside Way,3378,San Mateo/Burlingame,BMP-3: Humboldt St +1 more,0.345,BMP-2: Peninsula Av +1 more,1.0,BMP-2: Peninsula Av +1 more,1.0,1.0,1.0,project_if_its_street_crossed
 standard,San Mateo,4,Peninsula Avenue at North Humboldt Street,1402,San Mateo,BMP-3: Humboldt St +1 more,1.0,BMP-2: Peninsula Av +1 more,1.0,BMP-2: Peninsula Av +1 more,1.0,1.0,1.0,project
 standard,San Mateo,5,2nd Avenue between South Claremont Street and South Delaware Street,1167,San Mateo,BMP-15: 3rd Av +3 more,0.558,BMP-15: 3rd Av +3 more,0.558,BMP-15: 3rd Av +3 more,0.558,0.558,0.558,partly
 standard,San Mateo,6,South El Camino Real between West 5th Avenue and Mission Drive,407,San Mateo,BMP-14: B St +2 more,0.391,BMP-14: B St +2 more,0.391,BMP-14: B St +2 more,0.391,0.391,0.391,partly
-standard,San Mateo,7,North El Camino Real between Grand Boulevard and Barroilhet Avenue,243,San Mateo,BMP-1: Occidental Av +6 more,0.144,BMP-1: Occidental Av +6 more,0.144,BMP-1: Occidental Av +6 more,0.144,0.156,0.156,none
-standard,San Mateo,8,South El Camino Real between 11th Avenue & Avila Road and Hayward Avenue,234,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
+standard,San Mateo,7,South El Camino Real between 11th Avenue & Avila Road and Hayward Avenue,234,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
+standard,San Mateo,8,North El Camino Real between Grand Boulevard and Barroilhet Avenue,233,San Mateo,BMP-1: Occidental Av +6 more,0.107,BMP-1: Occidental Av +6 more,0.107,BMP-1: Occidental Av +6 more,0.107,0.142,0.142,none
 standard,San Mateo,9,North San Mateo Drive between Saint Matthew's Avenue and Tilton Avenue,211,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
 standard,San Mateo,10,South El Camino Real between 15th Avenue and Barneson Avenue,211,San Mateo,BMP-14: B St +2 more,0.839,BMP-14: B St +2 more,0.839,BMP-14: B St +2 more,0.839,0.872,0.872,project
-standard,San Mateo,11,North Bayshore Boulevard between Cypress Avenue and Tidal Way,206,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
-standard,San Mateo,12,North El Camino Real between El Cerrito Avenue & Tilton Avenue and Engle Road,154,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
-standard,San Mateo,13,9th Avenue between Palm Avenue and South B Street,100,San Mateo,BMP-14: B St +2 more,1.0,BMP-14: B St +2 more,1.0,BMP-14: B St +2 more,1.0,1.0,1.0,project
-standard,San Mateo,14,Alameda de las Pulgas between Cornell Avenue and Parrott Drive,99,San Mateo,PMP-9: Alameda de las Pulgas,1.0,PMP-9: Alameda de las Pulgas,1.0,PMP-9: Alameda de las Pulgas,1.0,1.0,1.0,project
-standard,San Mateo,15,1st Avenue between South Delaware Street and South Claremont Street,99,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
-standard,San Mateo,16,South B Street between Baldwin Avenue and 1st Avenue,98,San Mateo,BMP-14: B St +2 more,1.0,BMP-14: B St +2 more,1.0,BMP-14: B St +2 more,1.0,1.0,1.0,project
-standard,San Mateo,17,North El Camino Real at Monte Diablo Avenue,86,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
-standard,San Mateo,18,Palm Avenue between East 20th Avenue and 24th Avenue,76,San Mateo,BMP-27: Palm Av +1 more,1.0,BMP-27: Palm Av +1 more,1.0,BMP-27: Palm Av +1 more,1.0,1.0,1.0,project
-standard,San Mateo,19,Alameda de las Pulgas between Notre Dame Avenue and Hobart Avenue,58,San Mateo,PMP-9: Alameda de las Pulgas,1.0,PMP-9: Alameda de las Pulgas,1.0,PMP-9: Alameda de las Pulgas,1.0,1.0,1.0,project
-standard,San Mateo,20,California Drive between Floribunda Avenue and Oak Grove Avenue,58,Burlingame,,0.0,,0.0,,0.0,0.0,0.0,outside
+standard,San Mateo,11,(unnamed) between California Drive and Oak Grove Avenue,207,Burlingame,,0.0,BMP-2: Peninsula Av +1 more,0.749,BMP-2: Peninsula Av +1 more,0.749,0.749,0.749,outside
+standard,San Mateo,12,North Bayshore Boulevard between Cypress Avenue and Tidal Way,206,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
+standard,San Mateo,13,North El Camino Real between El Cerrito Avenue & Tilton Avenue and Engle Road,154,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
+standard,San Mateo,14,9th Avenue between Palm Avenue and South B Street,100,San Mateo,BMP-14: B St +2 more,1.0,BMP-14: B St +2 more,1.0,BMP-14: B St +2 more,1.0,1.0,1.0,project
+standard,San Mateo,15,Alameda de las Pulgas between Cornell Avenue and Parrott Drive,99,San Mateo,PMP-9: Alameda de las Pulgas,1.0,PMP-9: Alameda de las Pulgas,1.0,PMP-9: Alameda de las Pulgas,1.0,1.0,1.0,project
+standard,San Mateo,16,1st Avenue between South Delaware Street and South Claremont Street,99,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
+standard,San Mateo,17,South B Street between Baldwin Avenue and 1st Avenue,98,San Mateo,BMP-14: B St +2 more,1.0,BMP-14: B St +2 more,1.0,BMP-14: B St +2 more,1.0,1.0,1.0,project
+standard,San Mateo,18,North El Camino Real at Monte Diablo Avenue,86,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
+standard,San Mateo,19,Palm Avenue between East 20th Avenue and 24th Avenue,76,San Mateo,BMP-27: Palm Av +1 more,1.0,BMP-27: Palm Av +1 more,1.0,BMP-27: Palm Av +1 more,1.0,1.0,1.0,project
+standard,San Mateo,20,Alameda de las Pulgas between Notre Dame Avenue and Hobart Avenue,58,San Mateo,PMP-9: Alameda de las Pulgas,1.0,PMP-9: Alameda de las Pulgas,1.0,PMP-9: Alameda de las Pulgas,1.0,1.0,1.0,project
 standard,San Mateo,21,Crystal Springs Road between Stonehedge Road & West 3rd Avenue and Franklin Street,53,San Mateo/Hillsborough,BMP-14: B St +2 more,0.717,BMP-14: B St +2 more,0.717,BMP-14: B St +2 more,0.717,0.717,0.717,partly
-standard,San Mateo,22,North El Camino Real between East Bellevue Avenue & West Bellevue Avenue and Grand Boulevard,15,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
-standard,San Mateo,23,Alameda de las Pulgas between Barneson Avenue and Macarthur Avenue,14,San Mateo,PMP-9: Alameda de las Pulgas,1.0,PMP-9: Alameda de las Pulgas,1.0,PMP-9: Alameda de las Pulgas,1.0,1.0,1.0,project
-standard,San Mateo,24,Peninsula Avenue between Park Road and Lorton Avenue & Prospect Row,14,San Mateo/Burlingame,BMP-13: Baywood Av +6 more,0.714,BMP-13: Baywood Av +6 more,0.714,BMP-13: Baywood Av +6 more,0.714,0.714,0.714,partly
+standard,San Mateo,22,California Drive,52,Burlingame,,0.0,,0.0,,0.0,0.0,0.0,outside
+standard,San Mateo,23,North El Camino Real between East Bellevue Avenue & West Bellevue Avenue and Grand Boulevard,15,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
+standard,San Mateo,24,Alameda de las Pulgas between Barneson Avenue and Macarthur Avenue,14,San Mateo,PMP-9: Alameda de las Pulgas,1.0,PMP-9: Alameda de las Pulgas,1.0,PMP-9: Alameda de las Pulgas,1.0,1.0,1.0,project
 standard,San Mateo,25,West Poplar Avenue between Crescent Avenue and Dorchester Road,14,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
 standard,San Mateo,26,South El Camino Real between 14th Avenue and 12th Avenue & Hobart Avenue,13,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
 standard,San Mateo,27,2nd Avenue between South B Street and South Claremont Street,11,San Mateo,BMP-12: Railroad Av (East) +3 more,0.818,BMP-12: Railroad Av (East) +3 more,0.818,BMP-12: Railroad Av (East) +3 more,0.818,1.0,1.0,project
@@ -64,12 +65,13 @@ standard,San Mateo,32,South El Camino Real at 11th Avenue & Avila Road,6,San Mat
 standard,San Mateo,33,East 3rd Avenue between South Claremont Street and South Railroad Avenue,6,San Mateo,BMP-12: Railroad Av (East) +3 more,0.833,BMP-15: 3rd Av +3 more,1.0,BMP-15: 3rd Av +3 more,1.0,1.0,1.0,project
 standard,San Mateo,34,South El Camino Real at 15th Avenue,6,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
 standard,San Mateo,35,South El Camino Real at 16th Avenue,5,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
-standard,San Mateo,36,California Drive between Highland Avenue and South Lane,2,Burlingame,,0.0,,0.0,,0.0,0.0,0.0,outside
-standard,San Mateo,37,California Drive at South Lane,2,Burlingame,,0.0,,0.0,,0.0,0.0,0.0,outside
-standard,San Mateo,38,Peninsula Avenue between Coyote Point Drive and North Bayshore Boulevard,1,San Mateo,BMP-4: Coyote Point Dr +4 more,1.0,BMP-4: Coyote Point Dr +4 more,1.0,BMP-4: Coyote Point Dr +4 more,1.0,1.0,1.0,project
-standard,Hayward Park,1,South El Camino Real between 15th Avenue and Barneson Avenue,958,San Mateo,BMP-20: Borel Av +2 more,0.618,BMP-20: Borel Av +2 more,0.618,BMP-20: Borel Av +2 more,0.618,0.699,0.699,partly
-standard,Hayward Park,2,31st Avenue between Isabelle Avenue and Alameda de las Pulgas,837,San Mateo,BMP-34: Campus Dr +1 more,0.867,BMP-34: Campus Dr +1 more,0.867,BMP-34: Campus Dr +1 more,0.867,0.867,0.867,project
-standard,Hayward Park,3,Concar Drive between Pacific Boulevard and South Delaware Street,488,San Mateo,BMP-58: Concar Dr +1 more,1.0,BMP-58: Concar Dr +1 more,1.0,BMP-58: Concar Dr +1 more,1.0,1.0,1.0,project
+standard,San Mateo,36,Peninsula Avenue between Park Road and Lorton Avenue & Prospect Row,4,San Mateo/Burlingame,BMP-13: Baywood Av +6 more,1.0,BMP-13: Baywood Av +6 more,1.0,BMP-13: Baywood Av +6 more,1.0,1.0,1.0,project
+standard,San Mateo,37,California Drive between Highland Avenue and South Lane,2,Burlingame,,0.0,,0.0,,0.0,0.0,0.0,outside
+standard,San Mateo,38,California Drive at South Lane,2,Burlingame,,0.0,,0.0,,0.0,0.0,0.0,outside
+standard,San Mateo,39,Peninsula Avenue between Coyote Point Drive and North Bayshore Boulevard,1,San Mateo,BMP-4: Coyote Point Dr +4 more,1.0,BMP-4: Coyote Point Dr +4 more,1.0,BMP-4: Coyote Point Dr +4 more,1.0,1.0,1.0,project
+standard,Hayward Park,1,Concar Drive between Pacific Boulevard and South Delaware Street,1509,San Mateo,BMP-58: Concar Dr +1 more,1.0,BMP-58: Concar Dr +1 more,1.0,BMP-58: Concar Dr +1 more,1.0,1.0,1.0,project
+standard,Hayward Park,2,South El Camino Real between 15th Avenue and Barneson Avenue,958,San Mateo,BMP-20: Borel Av +2 more,0.618,BMP-20: Borel Av +2 more,0.618,BMP-20: Borel Av +2 more,0.618,0.699,0.699,partly
+standard,Hayward Park,3,31st Avenue between Isabelle Avenue and Alameda de las Pulgas,836,San Mateo,BMP-34: Campus Dr +1 more,0.867,BMP-34: Campus Dr +1 more,0.867,BMP-34: Campus Dr +1 more,0.867,0.867,0.867,project
 standard,Hayward Park,4,South El Camino Real between 11th Avenue & Avila Road and Hayward Avenue,234,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
 standard,Hayward Park,5,North San Mateo Drive between Saint Matthew's Avenue and Tilton Avenue,211,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
 standard,Hayward Park,6,Palm Avenue between East 20th Avenue and 24th Avenue,188,San Mateo,BMP-27: Palm Av +1 more,1.0,BMP-27: Palm Av +1 more,1.0,BMP-27: Palm Av +1 more,1.0,1.0,1.0,project
@@ -122,7 +124,7 @@ strict,San Mateo,17,South B Street between Baldwin Avenue and 1st Avenue,98,San 
 strict,San Mateo,18,North El Camino Real at Monte Diablo Avenue,86,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
 strict,San Mateo,19,North San Mateo Drive at Villa Terrace,80,San Mateo,BMP-13: Baywood Av +6 more,1.0,BMP-13: Baywood Av +6 more,1.0,BMP-13: Baywood Av +6 more,1.0,1.0,1.0,project
 strict,San Mateo,20,North San Mateo Drive at East Santa Inez Avenue,74,San Mateo,BMP-13: Baywood Av +6 more,1.0,BMP-13: Baywood Av +6 more,1.0,BMP-13: Baywood Av +6 more,1.0,1.0,1.0,project
-strict,Hayward Park,1,Concar Drive between Pacific Boulevard and South Delaware Street,488,San Mateo,BMP-58: Concar Dr +1 more,1.0,BMP-58: Concar Dr +1 more,1.0,BMP-58: Concar Dr +1 more,1.0,1.0,1.0,project
+strict,Hayward Park,1,Concar Drive between Pacific Boulevard and South Delaware Street,1513,San Mateo,BMP-58: Concar Dr +1 more,1.0,BMP-58: Concar Dr +1 more,1.0,BMP-58: Concar Dr +1 more,1.0,1.0,1.0,project
 strict,Hayward Park,2,South Boulevard between Gum Street and 16th Avenue,219,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
 strict,Hayward Park,3,Palm Avenue at 19th Avenue,190,San Mateo,BMP-21: 17th Av +5 more,1.0,BMP-21: 17th Av +5 more,1.0,BMP-21: 17th Av +5 more,1.0,1.0,1.0,project
 strict,Hayward Park,4,South Railroad Avenue between East 5th Avenue and 6th Avenue,190,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none

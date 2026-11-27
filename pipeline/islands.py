@@ -357,6 +357,38 @@ def control_junctions(ways, nodes, reach, direction_key):
     return out
 
 
+def mark_pockets(ways):
+    """A short piece of any street (under TURN_POCKET_M) with more lanes than the same-named street on both sides of
+    it is a turn pocket at an intersection (a center left-turn lane at a signal), not more through lanes: it takes the
+    larger of its neighbours' counts, and is tagged bi:pocket=yes with its own count kept as lanes:pocket. Field-checked
+    lane counts (overrides.csv) are left alone. Confirmed on Street View at 9th Ave and B St, and at E Poplar Ave and
+    N Humboldt St (2026-11-26)."""
+    at = collections.defaultdict(list)       # (node, name) -> ways
+    for w in ways:
+        nm = w["tags"].get("name")
+        if nm:
+            for n in (w["nodes"][0], w["nodes"][-1]):
+                at[(n, nm)].append(w)
+    changed = []
+    for w in ways:
+        t, nm = w["tags"], w["tags"].get("name")
+        if not nm or t.get("src:lanes") == "field" or "lanes" not in t:
+            continue
+        g = w["geometry"]
+        if sum(dist((a["lat"], a["lon"]), (b["lat"], b["lon"])) for a, b in zip(g, g[1:])) >= TURN_POCKET_M:
+            continue
+        hw = t.get("highway", "")
+        n = lanes(t, hw)
+        sides = [[x for x in at[(e, nm)] if x is not w] for e in (w["nodes"][0], w["nodes"][-1])]
+        if not all(sides):
+            continue
+        m = max(lanes(x["tags"], x["tags"].get("highway", "")) for side in sides for x in side)
+        if n > m:
+            t["lanes:pocket"], t["lanes"], t["bi:pocket"] = t["lanes"], str(m), "yes"
+            changed.append(w)
+    return changed
+
+
 def mark_divided(ways):
     """Tag each roadway of a divided arterial (bi:divided=yes) and set its lanes to the street's: its own plus
     the opposite roadway's (its own twice if that one has no count). Its own count is kept as lanes:roadway."""
@@ -417,6 +449,7 @@ def build(path, tier, detail=None):
     fixed_on, fixed_off = controlled_crossings([e for e in els if e["type"] == "way" and "highway" in e.get("tags", {})])
     ways = [e for e in els if e["type"] == "way" and "highway" in e.get("tags", {})]
     mark_divided(ways)
+    mark_pockets(ways)
     # Controlled crossings: signals, signalized crosswalks, and all-way stops, each counted at the intersection
     # it governs (control_junctions) as well as where it's drawn.
     sig = [e for e in els if e["type"] == "node" and e.get("tags", {}).get("highway") == "traffic_signals"]

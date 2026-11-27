@@ -32,6 +32,9 @@ to Caltrain. Served at
     island covers when one is selected, and the tiles in view when zoomed in. A street goes in the tile that holds
     its midpoint, so an island's bounding box always covers all of its streets.
   - `run.sh`: reruns survey, export and sensitivity from `data/raw/`.
+  - `checklist.py`: Street View checks worth doing: where OpenStreetMap and the survey disagree on lanes in a way
+    that changes whether either rider can ride or cross a street, most people's fixes first
+    (`data/field_checks/checklist_auto.md`, run by `run.sh`).
   - `plan_scenarios.py`: tests the city's own routes (`data/city_plans/scenarios.csv`) against our fixes: do they
     connect the same homes? Writes `data/city_plans/scenario_results.csv`.
   - `plan_projects.py`: scores every city plan project for each station, and how much of each of our station fixes
@@ -77,7 +80,9 @@ python3 build_site.py
     make a crossing safe; under that rule one island spanned both cities, held together by signals on El
     Camino at Bellevue and at Bayswater/Primrose, and on Howard at Park Road.
   - *standard* ("experienced riders") = LTS 1–2. Crossings are barriers at ≥35 mph or ≥4 lanes; any signal tames one.
-  - Short multi-lane pieces of local streets (<60 m) are turn pockets, counted as 2 lanes.
+  - Short multi-lane pieces of local streets (<60 m) are turn pockets, counted as 2 lanes. On any street, a piece under
+    60 m with more lanes than the same-named street on both sides of it is a turn pocket and takes its neighbours'
+    count (`mark_pockets`; confirmed at 9th Ave, E Poplar and N Humboldt). Field-checked counts are left alone.
   - **Controls**: signals (`highway=traffic_signals`, `crossing=traffic_signals`) and all-way stops (`highway=stop` +
     `stop=all`, from `data/raw/osm_stops_*.json`) tame a crossing. A control drawn on an approach rather than on the
     intersection counts at the first junction within `SIGNAL_REACH_M` (30 m) or `STOP_REACH_M` (25 m) along its street,
