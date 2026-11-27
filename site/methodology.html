@@ -17,26 +17,26 @@
   <h2 id="schools">Connected to an elementary school</h2>
   <ul>
     <li>Schools are the California Department of Education's open public elementary schools. A school is reached where a low-stress street comes within 40 m of its grounds as OpenStreetMap draws them, or, for the 14 schools with no grounds mapped, within 150 m of the directory's location.</li>
-    <li>A home counts as having a low-stress route to a school when one reaches any public elementary school and is no more than 25% longer than the shortest ride to the nearest one, for homes within a 2-mile ride of a school.</li>
-    <li>Kids are 2020 Census residents under 18 (total population minus adults, by block), placed like homes. The Census doesn't count ages 5 to 10 by block, so teenagers are included.</li>
+    <li>A person counts as having a low-stress route to a school when one reaches any public elementary school and is no more than 25% longer than the shortest ride to the nearest one, for people within a 2-mile ride of a school.</li>
+    <li>Kids are 2020 Census residents under 18 (total population minus adults, by block), placed like everyone else. The Census doesn't count ages 5 to 10 by block, so teenagers are included.</li>
     <li>Attendance areas aren't used: the nearest school may not be the assigned one, and choice and immersion schools count like any other.</li>
-    <li>Fixes are still ranked by the homes they connect to Caltrain, not to schools.</li>
+    <li>Fixes are still ranked by the people they connect to Caltrain, not to schools.</li>
   </ul>
 
   <h2>Connected to Caltrain</h2>
   <ul>
-    <li>A home counts as having a low-stress route to a station when one exists that is no more than 25% longer than the shortest ride on any street, for homes within a 2-mile ride of the station's platforms.</li>
-    <li>Routes follow one-way streets, and a home counts only if it has a low-stress route there and a low-stress route back: the longer of the two rides is compared with the longer of the two shortest legal rides on any street. Alleys and parking aisles count as two-way, as does a one-way street with a contra-flow bike lane. An island is where you can ride from any point to any other and back. The same rule applies to schools and everyday places.</li>
-    <li>Homes are 2020 Census housing units by block, placed at each block's center and matched to the nearest low-stress street within 150 m.</li>
-    <li>Fixes are tested one at a time: each candidate street segment or crossing is treated as low-stress, and the homes it connects are counted. Combinations of fixes can connect more than the sum.</li>
-    <li>Each street fix is trimmed to the stretch the connected homes' routes actually use, and named by its cross streets; the trimmed stretch connects the same homes as the whole street. A fix whose routes only cross the street is shown as that crossing.</li>
+    <li>A person counts as having a low-stress route to a station when one exists that is no more than 25% longer than the shortest ride on any street, for people within a 2-mile ride of the station's platforms.</li>
+    <li>Routes follow one-way streets, and a person counts only if they have a low-stress route there and a low-stress route back: the longer of the two rides is compared with the longer of the two shortest legal rides on any street. Alleys and parking aisles count as two-way, as does a one-way street with a contra-flow bike lane. An island is where you can ride from any point to any other and back. The same rule applies to schools and everyday places.</li>
+    <li>People are 2020 Census residents by block (in blocks with homes), spread along the quiet streets inside each block's outline or running along it, in proportion to street length. A block with no such street is placed at its center, matched to the nearest low-stress street within 150 m.</li>
+    <li>Fixes are tested one at a time: each candidate street segment or crossing is treated as low-stress, and the people it connects are counted. Combinations of fixes can connect more than the sum.</li>
+    <li>Each street fix is trimmed to the stretch the connected people's routes actually use, and named by its cross streets; the trimmed stretch connects the same people as the whole street. A fix whose routes only cross the street is shown as that crossing.</li>
     <li>For each fix and each piece in the way, the map works out what would make it count under its own rules: it changes one thing at a time (speed limit, lanes, a painted or protected bike lane, whether it's a local street, daily traffic) and re-rates the street or crossing, keeping the smallest changes that pass. Where a speed or lane count is assumed rather than posted or mapped, or there's no daily traffic count, it says so. This is what the map's rating would need, not an engineering recommendation; the city chooses the tool.</li>
   </ul>
 
   <h2 id="city-plans">The city's own projects</h2>
   <ul>
     <li>San Mateo has already adopted many fixes: the 70 projects of its 2020 Bicycle Master Plan, and a few bike-related items in its 2012 Pedestrian Master Plan and its 2022 plan for walking to Caltrain. A plan doesn't mean a project is funded or scheduled, but an adopted project is what the city can seek grants for, so it's the easiest thing to ask for.</li>
-    <li>Each project is tested like a fix: its streets get the treatment the plan names (a bike lane, a protected lane or path, a bike boulevard taken as a traffic-calmed 20 mph street, or fewer traffic lanes), and the homes it connects are counted. A piece that still wouldn't count for the rider you've chosen (a painted lane on a street too busy for kids, say) is left out.</li>
+    <li>Each project is tested like a fix: its streets get the treatment the plan names (a bike lane, a protected lane or path, a bike boulevard taken as a traffic-calmed 20 mph street, or fewer traffic lanes), and the people it connects are counted. A piece that still wouldn't count for the rider you've chosen (a painted lane on a street too busy for kids, say) is left out.</li>
     <li>Crossings count only where the project makes them safe. A bike lane along a busy street doesn't make crossing that street any easier, so where a project would help only if crossing its own street were made safe too, the panel says so.</li>
     <li>When a city project would connect at least three-quarters of what this map's best single fix would, the panel leads with the city's project; otherwise it leads with the fix, and says whether that fix is in any of the city's plans. Costs are the plan's 2020 estimates.</li>
   </ul>

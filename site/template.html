@@ -421,7 +421,7 @@ const band = mins => { let b = 0; while (b < BANDS.length && mins >= BANDS[b]) b
 // Before a click, each larger island gets its own muted color so the islands themselves are visible.
 // Neighboring islands are kept apart: greedy coloring by distance between island centers.
 const ISLAND_HUES = ["#5f87b5", "#6e9f68", "#a27aa8", "#b8913f", "#4f9d97", "#b86f5a", "#8484c4", "#7f9c45"];
-const MIN_HOMES_COLORED = 150;
+const MIN_HOMES_COLORED = 350;     // residents (the islands' "homes" count people since 2026-11-26)
 function islandColors(T) {
   if (T._col) return T._col;
   const box = {};                       // bounding box of each island, padded ~300 m
@@ -673,7 +673,7 @@ function comboText(G) {
   const C = G.combo;
   if (!C) return "";
   if (!C.all) return `Fixing only these wouldn't be enough: routes from here would still be too roundabout, or meet other busy streets.`;
-  const who = `<strong>${fmt(C.homes)}</strong> of this island's homes to ${G.st} Caltrain` + (C.elsewhere ? `, and ${fmt(C.elsewhere)} more on other islands` : "");
+  const who = `<strong>${fmt(C.homes)}</strong> of the people on this island to ${G.st} Caltrain` + (C.elsewhere ? `, and ${fmt(C.elsewhere)} more on other islands` : "");
   if (C.items.length === G.items.length) return `Fixing ${G.items.length > 1 ? `the ${G.items.length} pieces below together` : "the piece below"} would connect ${who}.`;
   const names = C.items.map(k => gapShort(G.items[k]));
   return `Fixing just ${names.length > 1 ? names.slice(0, -1).join(", ") + " and " + names[names.length - 1] : names[0]} would connect ${who}.`;
@@ -707,11 +707,11 @@ function fixJoins(B) {        // the other islands this fix would join to the se
 function joinText(B) {
   const {others, total} = fixJoins(B);
   if (!others.length) return "";
-  return `It would also join this island to ${others.length === 1 ? "1 other" : `${others.length} others`}, ${fmt(total)} homes in all.`;
+  return `It would also join this island to ${others.length === 1 ? "1 other" : `${others.length} others`}, ${fmt(total)} people in all.`;
 }
 function fixGain(e) {        // the station a fix helps most, and by how many homes
   const [st, hu] = Object.entries(e.per).sort((a, b) => b[1] - a[1])[0];
-  return `${fmt(hu)} more homes to ${st} Caltrain`;
+  return `${fmt(hu)} more people to ${st} Caltrain`;
 }
 // the selected island's fix markers, where they sit on screen now
 function fixMarks() {
@@ -761,7 +761,7 @@ const MINOR_FIX = 0.02;
 function topBridges(T, id) {
   const homes = (T.islands[id] || {}).homes || 0;
   // The same bottleneck often shows up twice, as a stretch of a busy street and as a crossing of it, connecting
-  // the same number of homes: keep one (the crossing, else the shortest stretch), unless the other came from a link.
+  // the same number of people: keep one (the crossing, else the shortest stretch), unless the other came from a link.
   const street = B => fixCrossing(B) ? fixCrossing(B).split(" at ")[0] : B.name;
   const all = allFixes(T, id), seen = new Map();
   for (const e of all) {
@@ -799,8 +799,8 @@ function schoolTotals(T, city) {
   const cs = city ? [T.school_totals[city]] : Object.values(T.school_totals);
   return {kn: cs.reduce((a, c) => a + c.kn, 0), kok: cs.reduce((a, c) => a + c.kok, 0)};
 }
-const HEADLINE = /*HEADLINE*/;
-const REACH = /*REACH*/;     // places.py: residents within a mile of a grocery store, etc., who can bike to one, by standard     // build_site.py: San Mateo homes and grocery stores, for cautious riders and kids
+const HEADLINE = /*HEADLINE*/;     // build_site.py: San Mateo residents and grocery stores, for cautious riders and kids
+const REACH = /*REACH*/;     // places.py: residents within a mile of a grocery store, etc., who can bike to one, by standard
 function headline() {
   document.getElementById("title").textContent = HEADLINE;
   document.getElementById("subtitle").textContent =
@@ -810,8 +810,8 @@ function headline() {
 const RIDER_NOTE = {strict: "Paths and quiet streets only: never on busy streets, never across El Camino.",
                     standard: "Also painted bike lanes and busier 2-lane streets; any traffic light makes a crossing OK."};
 
-// Everyday places most homes on this island near each one can bike to, the nearest they can't, and the one fix
-// that would let the most homes here bike to more of the places with their own page (pipeline/places.py; homes
+// Everyday places most people on this island near each one can bike to, the nearest they can't, and the one fix
+// that would let the most people here bike to more of the places with their own page (pipeline/places.py; homes
 // within a 1-mile ride of each place).
 const DOOR_WHO = {strict: "Kids", standard: "Experienced riders"};
 const DOOR_CAT = {grocery: "grocery store", park: "park", library: "library", downtown: "downtown"};
@@ -823,7 +823,7 @@ function placeFixWhat(F) {         // "A safe crossing of X at Y", "Making X bet
 }
 function placeFixLine(F) {
   const pl = F.places.map(([slug, n]) => `<a href="places/${slug}/">${n}</a>`);
-  return `<p class="fixline"><strong>${placeFixWhat(F)}</strong> would let ${pl.length > 1 ? "up to " : ""}${fmt(F.homes)} more homes here bike to ${andList(pl)}.` +
+  return `<p class="fixline"><strong>${placeFixWhat(F)}</strong> would let ${pl.length > 1 ? "up to " : ""}${fmt(F.homes)} more people here bike to ${andList(pl)}.` +
     (F.need && F.need.length ? `<span class="need">It would need ${orList(F.need)}.</span>` : "") + `</p>`;
 }
 // --- The city's own plans (pipeline/plan_projects.py) ---
@@ -873,8 +873,8 @@ function planItem(T, L) {
   const P = L.P, [st, hu] = planStation(L);
   const asIs = L.p.per[st] || 0;
   const gain = L.crossed
-    ? `It would let ${fmt(hu)} more homes here bike to ${st} Caltrain if it also made crossing ${crossList(P)} safe${asIs ? ` (${fmt(asIs)} as planned)` : ""}.`
-    : `It would let ${fmt(hu)} more homes here bike to ${st} Caltrain.`;
+    ? `It would let ${fmt(hu)} more people here bike to ${st} Caltrain if it also made crossing ${crossList(P)} safe${asIs ? ` (${fmt(asIs)} as planned)` : ""}.`
+    : `It would let ${fmt(hu)} more people here bike to ${st} Caltrain.`;
   const meta = [PRIORITY[P.priority] && P.num ? `${PRIORITY[P.priority]} priority in the plan` : "", planCost(P)].filter(Boolean).join("; ");
   return `<p class="planline"><strong>Finish ${planRef(P)}</strong>${P.what ? `: ${P.what}` : ""}. ${gain}` +
     (meta ? `<span class="need">${capFirst(meta)}.</span>` : "") + `</p>`;
@@ -888,7 +888,7 @@ function planStatus(T, B) {
   if (bucket === "project" && P) return `In the city's plans: ${planRef(P)} covers it.`;
   if (bucket === "project_if_its_street_crossed" && P) return `${capFirst(planRef(P))} covers it only if it also makes crossing ${crossList(P)} safe.`;
   if ((bucket === "project_with_crossings" || bucket === "plans_together") && P) return `The city's plans would cover it, with safe crossings they don't name yet.`;
-  if (bucket === "partly" && P) return `${capFirst(planRef(P))} reaches about ${Math.round(sw * 100)}% of these homes; the rest isn't in the city's plans.`;
+  if (bucket === "partly" && P) return `${capFirst(planRef(P))} reaches about ${Math.round(sw * 100)}% of these people; the rest isn't in the city's plans.`;
   return "Not in any of the city's plans yet.";
 }
 
@@ -923,7 +923,7 @@ function summaryBlock(T, I) {
     const names = on.map(([, n, , slug]) => placeLink(n, slug));
     row("Places", on.length, on.length
       ? `${DOOR_WHO[tier]} here can bike to ${andList(names.length > 4 ? [...names.slice(0, 3), `${names.length - 3} more places`] : names)}.`
-      : `No grocery store, park, library or downtown within a mile that most homes here can bike to.`);
+      : `No grocery store, park, library or downtown within a mile that most people here can bike to.`);
   }
   const S = I.sch;
   if (S && S.n) {
@@ -933,7 +933,7 @@ function summaryBlock(T, I) {
       const what = names.length ? andList(names.length > 3 ? [...names.slice(0, 2), `${names.length - 2} more`] : names) : "An elementary school";
       const many = names.length > 1;
       const mins = !first ? "" : many ? ` The closest is about ${first.mins} min from where you clicked.` : `, about ${first.mins} min from where you clicked`;
-      row("School", true, (many ? `${what}.${mins}` : `${what}${mins}.`) + `<span class="muted">${pct(S.ok, S.n)} of homes here have a low-stress route to one.</span>`);
+      row("School", true, (many ? `${what}.${mins}` : `${what}${mins}.`) + `<span class="muted">${pct(S.ok, S.n)} of people here have a low-stress route to one.</span>`);
     } else {
       row("School", false, `No low-stress route to an elementary school.${S.near ? ` The nearest is ${S.near}.` : ""}`);
     }
@@ -943,7 +943,7 @@ function summaryBlock(T, I) {
     row("Caltrain", true, reached.map(st => {
       const n = (I.near || {})[st] || 0, o = (I.ok || {})[st] || 0, m = minsTo(T, st);
       const how = !o ? ", but only by a long detour" : m ? (m > 25 ? `, only by a long detour (about ${m} min)` : `, about ${m} min`) : "";
-      return `${st}${how}${o ? ` <span class="muted">${pct(o, n)} of homes here within 2 miles of it have a low-stress route.</span>` : ""}`;
+      return `${st}${how}${o ? ` <span class="muted">${pct(o, n)} of people here within 2 miles of it have a low-stress route.</span>` : ""}`;
     }).join("") + (cut.length ? `<span class="muted">Not ${cut.join(" or ")}.</span>` : ""));
   } else {
     row("Caltrain", false, cut.length ? "No low-stress route to Caltrain." : "More than a 2-mile ride to Caltrain.");
@@ -953,7 +953,7 @@ function summaryBlock(T, I) {
 function fixItem(T, e) {
   const B = T.bridges[e.bid];
   const gains = Object.entries(e.per).sort((a, b) => b[1] - a[1])
-    .map(([st, hu], k) => k === 0 ? `${fmt(hu)} more homes here bike to ${st} Caltrain` : `${fmt(hu)} to ${st} Caltrain`).join(" and ");
+    .map(([st, hu], k) => k === 0 ? `${fmt(hu)} more people here bike to ${st} Caltrain` : `${fmt(hu)} to ${st} Caltrain`).join(" and ");
   const sp = SHARE.fixes[tier][B.id];
   return `<li data-fix="${B.id}"${B.id === focusFix ? ' class="focus"' : ""}><a class="fixlink" role="button" href="#t=${tier}&i=${sel}&f=${encodeURIComponent(B.id)}" aria-pressed="${B.id === focusFix}">${fixPlain(B)}</a> would let ${gains}.` +
     (needPlain(B) ? `<span class="need">${needPlain(B)}</span>` : "") +
@@ -966,9 +966,9 @@ function gapBlock(I) {
   const C = G.combo, lead = C && C.all;     // when fixing them would connect homes, say so first
   return `<div class="gapbox"><h3>What's in the way to ${G.st} Caltrain</h3>` +
     (lead ? `<p class="combo">${comboText(G)}</p>` : "") +
-    `<p class="muted">${G.items.length === 1 ? "The stressful piece" : "Stressful pieces"} on the best route from most homes here:</p><ul class="gaps">` +
+    `<p class="muted">${G.items.length === 1 ? "The stressful piece" : "Stressful pieces"} on the best route from most people here:</p><ul class="gaps">` +
     G.items.map((g, k) => `<li data-gap="${k}" class="${k === focusGap ? "focus" : ""}${C && C.all && C.items.length < G.items.length && C.items.includes(k) ? " key" : ""}"><a class="gaplink" role="button" href="#" aria-pressed="${k === focusGap}">${gapText(g)}</a>` +
-      (g.share < 0.9 ? ` <span class="muted">(routes from ${Math.round(g.share * 100)}% of homes)</span>` : "") +
+      (g.share < 0.9 ? ` <span class="muted">(routes from ${Math.round(g.share * 100)}% of people)</span>` : "") +
       whyBlock(g, [needText(g)], "What it would need") + `</li>`).join("") +
     `</ul>` + (!lead && comboText(G) ? `<p class="combo">${comboText(G)}</p>` : "") + `</div>`;
 }
@@ -977,12 +977,12 @@ function stationBlock(T, I, st) {
   const n = (I.near || {})[st] || 0, o = (I.ok || {})[st] || 0;
   const det = (I.det || {})[st], none = (I.none || {})[st] || 0;
   const why = [`A route counts if it's no more than 25% longer than the direct ride.`];
-  if (det && det[0]) why.push(`${fmt(det[0])} more homes have a low-stress route, but it's too roundabout: typically ${Math.round((det[1] - 1) * 100)}% longer.`);
+  if (det && det[0]) why.push(`${fmt(det[0])} more people have a low-stress route, but it's too roundabout: typically ${Math.round((det[1] - 1) * 100)}% longer.`);
   if (none) why.push(`${fmt(none)} have no low-stress route at all.`);
   return `<div class="stat"><div class="sthead"><strong>To ${st} Caltrain</strong><span class="stpct">${pct(o, n)}</span></div>` +
     `<div class="bar"><i style="width:${100 * o / n}%"></i></div>` +
-    `<div class="lbl">${o ? `<strong>${fmt(o)}</strong> of the ${fmt(n)} homes here within 2 miles of it have a low-stress route.`
-                           : `None of the ${fmt(n)} homes here within 2 miles of it have a direct enough low-stress route.`}</div>` +
+    `<div class="lbl">${o ? `<strong>${fmt(o)}</strong> of the ${fmt(n)} people here within 2 miles of it have a low-stress route.`
+                           : `None of the ${fmt(n)} people here within 2 miles of it have a direct enough low-stress route.`}</div>` +
     (o < n ? `<details class="why"><summary>Why not the rest?</summary>${why.join(" ")}</details>` : "") + `</div>`;
 }
 
@@ -1004,7 +1004,7 @@ function panel() {
     const g = Object.values((REACH[tier] || {}).grocery || {}).reduce((a, c) => [a[0] + c.people[0], a[1] + c.people[1]], [0, 0]);
     const grocery = g[1] ? `<div class="stat"><div class="lbl">Grocery store: <strong>${pct(g[0], g[1])}</strong> of ${fmt(g[1])} people within a mile can bike to one</div><div class="bar"><i style="width:${100 * g[0] / g[1]}%"></i></div></div>` : "";
     const school = `<div class="stat"><div class="lbl">Elementary school: <strong>${pct(ko, kn)}</strong> of ${fmt(kn)} kids have a low-stress route to one</div><div class="bar"><i style="width:${100 * ko / kn}%"></i></div></div>`;
-    const stations = `<div class="stat"><div class="lbl">Caltrain: share of homes within 2 miles of each station with a low-stress route</div><ul class="stlist">` +
+    const stations = `<div class="stat"><div class="lbl">Caltrain: share of people within 2 miles of each station with a low-stress route</div><ul class="stlist">` +
       Object.keys(T.stations).map(st => {
         const [o, n] = share(T, st);
         return `<li><span>${st}</span><b>${pct(o, n)}</b><div class="bar"><i style="width:${100 * o / n}%"></i></div></li>`;
@@ -1016,14 +1016,14 @@ function panel() {
   const P = I.pl || {};
   const list = topBridges(T, sel), minor = allFixes(T, sel).length - list.length;
   const lead = leadFix(T, I, list);
-  let h = `<h2>This island</h2>${staleNote()}<div><span class="big">${fmt(I.homes)}</span> homes</div>` + summaryBlock(T, I);
+  let h = `<h2>This island</h2>${staleNote()}<div><span class="big">${fmt(I.homes)}</span> people</div>` + summaryBlock(T, I);
   // the one fix
   if (lead && lead.kind === "plan") h += `<h3 class="leadh">The city's own project that would help most</h3>${planItem(T, lead.L)}`;
   else if (lead && lead.kind === "bridge") h += `<h3 class="leadh">The fix that would help most</h3><ol class="br lead">${fixItem(T, lead.e)}</ol>`;
   else if (lead && lead.kind === "place") h += `<h3 class="leadh">The fix that would help most</h3>${placeFixLine(lead.F)}`;
   else if (lead && lead.kind === "gap") h += gapBlock(I);
-  else h += `<p class="muted" style="margin-top:12px">${minor ? "No single fix tested would connect 2% or more of this island's homes to Caltrain."
-                                                              : "None of the single fixes tested would connect more homes here to Caltrain."}</p>`;
+  else h += `<p class="muted" style="margin-top:12px">${minor ? "No single fix tested would connect 2% or more of the people on this island to Caltrain."
+                                                              : "None of the single fixes tested would connect more people here to Caltrain."}</p>`;
   // everything else, folded
   const more = [], what = [];
   const on = P.on || [], out = P.out || [];
@@ -1042,7 +1042,7 @@ function panel() {
   const rest = lead && lead.kind === "bridge" ? list.slice(1) : list;     // when a city project leads, every fix is "other"
   if (rest.length) others.push(`<ol class="br" start="${list.length - rest.length + 1}">${rest.map(e => fixItem(T, e)).join("")}</ol>`);
   if (P.fix && lead && lead.kind !== "place") others.push(placeFixLine(P.fix));
-  if (list.length && minor) others.push(`<p class="muted">${minor === 1 ? "1 smaller fix" : `${minor} smaller fixes`}, each connecting under 2% of this island's homes, ${minor === 1 ? "isn't" : "aren't"} shown.</p>`);
+  if (list.length && minor) others.push(`<p class="muted">${minor === 1 ? "1 smaller fix" : `${minor} smaller fixes`}, each connecting under 2% of the people on this island, ${minor === 1 ? "isn't" : "aren't"} shown.</p>`);
   const nOther = rest.length + (P.fix && lead && lead.kind !== "place" ? 1 : 0);
   if (others.length) { more.push(`<h3>${lead && lead.kind === "plan" ? "Fixes this map tested" : "Other fixes"}</h3>` + others.join("")); if (nOther) what.push(nOther === 1 ? "1 other fix" : `${nOther} other fixes`); }
   if (more.length) {
@@ -1114,7 +1114,7 @@ function actionCards(T, I, list, fixText, lead) {
   if (!spot && top) spot = top.pts[Math.floor(top.pts.length / 2)];
   if (!spot) { const L = T.lines.find(L => L.i === sel); spot = L.pts[Math.floor(L.pts.length / 2)]; }
   const {city, district} = whereIs(spot);
-  // the station the email talks about: the lead city project's, else the top fix's, else the one most homes here are near
+  // the station the email talks about: the lead city project's, else the top fix's, else the one most people here are near
   const LP = lead && lead.kind === "plan" ? lead.L : null;
   const st = LP ? planStation(LP)[0] : top ? top.st : Object.keys(T.stations).sort((a, b) => ((I.near || {})[b] || 0) - ((I.near || {})[a] || 0))[0];
   const n = (I.near || {})[st] || 0, o = (I.ok || {})[st] || 0;
@@ -1136,20 +1136,20 @@ function actionCards(T, I, list, fixText, lead) {
   if (toAddr && CIVIC.email_card) {
     const lines = [`Dear ${salutation},`, "",
       `I used the bike islands map (maxmautner.com/bike-islands) to look at my neighborhood in ${city}.` +
-      (n ? (o ? ` For ${WHO[tier]}, ${fmt(o)} of the ${fmt(n)} homes on this island of quiet streets within 2 miles of ${st} Caltrain have a low-stress bike route there.`
-              : ` For ${WHO[tier]}, none of the ${fmt(n)} homes on this island of quiet streets within 2 miles of ${st} Caltrain has a low-stress bike route there.`) : "")];
+      (n ? (o ? ` For ${WHO[tier]}, ${fmt(o)} of the ${fmt(n)} people on this island of quiet streets within 2 miles of ${st} Caltrain have a low-stress bike route there.`
+              : ` For ${WHO[tier]}, none of the ${fmt(n)} people on this island of quiet streets within 2 miles of ${st} Caltrain have a low-stress bike route there.`) : "")];
     const consider = city === "San Mateo" ? "Could the city consider it for the Quick Build Mobility Program?" : "Could the city consider it?";
     if (LP) {
       const [pst, hu] = planStation(LP), P = LP.P;
       lines.push("", `The city's ${P.doc} already includes a fix that would help here: ${P.ref}${P.what ? ` (${P.what})` : ""}. ` +
-        `It would connect ${fmt(hu)} more homes to ${pst} Caltrain` + (LP.crossed ? `, if it also made crossing ${crossList(P)} safe` : "") +
+        `It would connect ${fmt(hu)} more people to ${pst} Caltrain` + (LP.crossed ? `, if it also made crossing ${crossList(P)} safe` : "") +
         `. Could the city fund and build it?`);
     } else if (top) {
       const hu = list[0].per[top.st] || list[0].max;
-      lines.push("", `The single fix that would help most here is ${fixText(top)}, which would connect ${fmt(hu)} more homes to ${top.st} Caltrain. ${consider}`);
+      lines.push("", `The single fix that would help most here is ${fixText(top)}, which would connect ${fmt(hu)} more people to ${top.st} Caltrain. ${consider}`);
     } else if (F) {
       const w = placeFixWhat(F);
-      lines.push("", `The single fix that would help most here is ${w[0].toLowerCase() + w.slice(1)}, which would let ${fmt(F.homes)} more homes bike to ${fixPlaces}. ${consider}`);
+      lines.push("", `The single fix that would help most here is ${w[0].toLowerCase() + w.slice(1)}, which would let ${fmt(F.homes)} more people bike to ${fixPlaces}. ${consider}`);
     } else {
       lines.push("", "What would it take to connect these streets to the rest of the city?");
     }
@@ -1209,12 +1209,12 @@ function askCity(T, I, top) {
     place = x ? crossOf(x) : `${B.name}${B.between ? ` between ${one(B.between[0])} and ${one(B.between[1])}` : B.near ? ` near ${one(B.near)}` : ""}`;
     how = x ? "across" : "along";
     st = B.st; homes = top.per[B.st] || top.max;
-    tail = `it's what keeps about ${fmt(homes)} nearby homes from a low-stress bike route to ${st} Caltrain`;
+    tail = `it's what keeps about ${fmt(homes)} people nearby from a low-stress bike route to ${st} Caltrain`;
   } else {
     place = gap.kind === "x" ? crossOf(gap.name) : gap.name;
     how = gap.kind === "x" ? "across" : "along";
     st = I.gaps.st; homes = (I.near || {})[st] || 0;
-    tail = `it's on the way from about ${fmt(homes)} nearby homes to ${st} Caltrain`;
+    tail = `it's on the way from about ${fmt(homes)} people nearby to ${st} Caltrain`;
   }
   const W = whyOf(o), opts = ((W && W.need[tier]) || []).slice(0, 2)
     .map(s => s.replace(/; where routes cross it \(at (.*)\): (.*)$/, ", plus $2 where bike routes cross it at $1"));
@@ -1242,18 +1242,18 @@ function askCity(T, I, top) {
 function askCityPlan(L) {
   const P = L.P, [st, hu] = planStation(L);
   const parts = [`Please prioritize ${planRef(P)}${P.what ? `: ${P.what}` : ""}.`,
-    `On the bike islands map (maxmautner.com/bike-islands), it would give about ${fmt(hu)} nearby homes a low-stress bike route to ${st} Caltrain` +
+    `On the bike islands map (maxmautner.com/bike-islands), it would give about ${fmt(hu)} people nearby a low-stress bike route to ${st} Caltrain` +
     (L.crossed ? `, if it also made crossing ${crossList(P)} safe for ${WHO[tier]}.` : ` for ${WHO[tier]}.`)];
   return {place: P.ref, text: parts.join(" "), assumed: ""};
 }
 
-// The same request for the fix that would let the most homes here bike to everyday places (no Caltrain fix here)
+// The same request for the fix that would let the most people here bike to everyday places (no Caltrain fix here)
 function askPlaceFix(F) {
   const how = F.kind === "cross" ? "across" : "along", plain = F.where.replace(/ & /g, " and ");
   const opts = (F.need || []).slice(0, 2).map(s => s.replace(/; where routes cross it \(at (.*)\): (.*)$/, ", plus $2 where bike routes cross it at $1"));
   const cap = s => s[0].toUpperCase() + s.slice(1);
   const parts = [`Please look at making ${plain} comfortable to bike ${how}.`,
-    `Rated by Level of Traffic Stress, it's too stressful for ${WHO[tier]}, and it's what keeps about ${fmt(F.homes)} nearby homes from a low-stress bike route to ${andList(F.places.map(([, n]) => n))}.`];
+    `Rated by Level of Traffic Stress, it's too stressful for ${WHO[tier]}, and it's what keeps about ${fmt(F.homes)} people nearby from a low-stress bike route to ${andList(F.places.map(([, n]) => n))}.`];
   if (opts.length > 1) parts.push(`Either of these would bring it to a low-stress rating: ${opts.join("; or ")}.`);
   else if (opts.length) parts.push(`${cap(opts[0])} would bring it to a low-stress rating.`);
   parts.push("I'm not suggesting a specific design; the city knows best what fits here.");
@@ -1315,13 +1315,13 @@ function schoolsOn(T, I) {
   return out.sort((a, b) => (a.mins ?? 1e9) - (b.mins ?? 1e9) || a.name.localeCompare(b.name));
 }
 const andList = xs => xs.length > 2 ? xs.slice(0, -1).join(", ") + " and " + xs[xs.length - 1] : xs.join(" and ");
-// "To an elementary school": the share of this island's homes with a low-stress route to one, and which.
+// "To an elementary school": the share of the people on this island with a low-stress route to one, and which.
 function schoolBlock(T, I) {
   const S = I.sch;
   if (!S || !S.n) return "";
   const on = schoolsOn(T, I), kids = S.kn ? ` That's about ${fmt(S.kok)} of its ${fmt(S.kn)} kids.` : "";
   if (!S.ok) {
-    const how = S.det ? ` ${fmt(S.det)} homes have one only by a long detour.` : "";
+    const how = S.det ? ` ${fmt(S.det)} people have one only by a long detour.` : "";
     return `<p class="answer">No low-stress route to an elementary school.${S.near ? ` The nearest is ${S.near}.` : ""}${how}</p>`;
   }
   const first = on.find(x => x.mins);
@@ -1329,9 +1329,9 @@ function schoolBlock(T, I) {
   const names = on.length ? `: ${andList(on.map(x => x.name))}` : "";
   return `<div class="stat"><div class="sthead"><strong>To an elementary school</strong><span class="stpct">${pct(S.ok, S.n)}</span></div>` +
     `<div class="bar"><i style="width:${100 * S.ok / S.n}%"></i></div>` +
-    `<div class="lbl"><strong>${fmt(S.ok)}</strong> of the ${fmt(S.n)} homes here have a low-stress route to a public elementary school${names}.${kids}${mins}</div>` +
+    `<div class="lbl"><strong>${fmt(S.ok)}</strong> of the ${fmt(S.n)} people here have a low-stress route to a public elementary school${names}.${kids}${mins}</div>` +
     (S.ok < S.n ? `<details class="why"><summary>Why not the rest?</summary>A route counts if it's no more than 25% longer than the direct ride to the nearest school.` +
-      (S.det ? ` ${fmt(S.det)} homes have a low-stress route, but it's too roundabout.` : "") +
+      (S.det ? ` ${fmt(S.det)} people have a low-stress route, but it's too roundabout.` : "") +
       (S.n - S.ok - S.det > 0 ? ` ${fmt(S.n - S.ok - S.det)} have no low-stress route at all.` : "") + `</details>` : "") + `</div>`;
 }
 // The hint in the map's corner. Once an island is picked on a phone, where the panel sits below the map,
@@ -1351,7 +1351,7 @@ function hint() {
     return;
   }
   const T = DATA[tier], I = T.islands[sel] || {};
-  const bits = [`<strong>${fmt(I.homes || 0)} homes</strong>`];
+  const bits = [`<strong>${fmt(I.homes || 0)} people</strong>`];
   const sc = (I.sch || {}).ok ? schoolsOn(T, I).find(x => x.mins) : null;
   if (sc && sc.mins <= 25) bits.push(`${sc.name} ${sc.mins} min`);
   else if (I.sch && I.sch.n && !I.sch.ok) bits.push("no low-stress route to a school");
@@ -1403,8 +1403,8 @@ function mapnote() {
   const I = T.islands[sel] || {};
   let h = `Colored streets are the ones you can reach from ${heatFrom === "where you clicked" ? "where you clicked" : "this island"} without riding on, or crossing, a stressful street.`;
   const o = otherStandardAt();
-  if (o && tier === "standard") h += ` <span class="muted">For cautious riders and kids, this spot's island shrinks to ${fmt(o.homes)} homes.</span>`;
-  if (o && tier === "strict" && o.homes > (I.homes || 0)) h += ` <span class="muted">For experienced riders, it grows to ${fmt(o.homes)} homes.</span>`;
+  if (o && tier === "standard") h += ` <span class="muted">For cautious riders and kids, this spot's island shrinks to ${fmt(o.homes)} people.</span>`;
+  if (o && tier === "strict" && o.homes > (I.homes || 0)) h += ` <span class="muted">For experienced riders, it grows to ${fmt(o.homes)} people.</span>`;
   el.innerHTML = h;
 }
 
@@ -1494,9 +1494,9 @@ function hoverTip(id, x, y) {
   const T = DATA[tier], I = T.islands[id] || {};
   const st = Object.keys(T.stations).sort((a, b) => ((I.near || {})[b] || 0) - ((I.near || {})[a] || 0))[0];
   const n = (I.near || {})[st] || 0, o = (I.ok || {})[st] || 0;
-  tip.innerHTML = `<strong>${fmt(I.homes || 0)} homes</strong>` +
+  tip.innerHTML = `<strong>${fmt(I.homes || 0)} people</strong>` +
     (!n ? "<br>More than a 2-mile ride to Caltrain"
-        : o ? `<br>${pct(o, n)} of homes within 2 miles of ${st} Caltrain have a low-stress route there`
+        : o ? `<br>${pct(o, n)} of people within 2 miles of ${st} Caltrain have a low-stress route there`
         : `<br>No low-stress route to ${st} Caltrain`) +
     (I.sch && I.sch.n ? (I.sch.ok ? `<br>${pct(I.sch.ok, I.sch.n)} have a low-stress route to an elementary school` : "<br>No low-stress route to an elementary school") : "") +
     `<br><span class="muted">Click to see this island</span>`;

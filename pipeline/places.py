@@ -95,6 +95,23 @@ def center(e, rings):
     return (sum(p[0] for p in pts) / len(pts), sum(p[1] for p in pts) / len(pts))
 
 
+def ring_test(rings, r):
+    """reaches(c) for a place with an outline: inside it or within r metres of its edge. A point well outside the
+    outline's bounding box is turned away first (most street points near a place are), so the answer is the same and
+    the edge distances, most of the place export's time, are only measured near the place."""
+    lats = [p[0] for g in rings for p in g]
+    lons = [p[1] for g in rings for p in g]
+    m_lat = (r + 20) / 111_000
+    m_lon = m_lat / math.cos(math.radians(sum(lats) / len(lats)))
+    s, n, w, e = min(lats) - m_lat, max(lats) + m_lat, min(lons) - m_lon, max(lons) + m_lon
+
+    def test(c):
+        if not (s <= c[0] <= n and w <= c[1] <= e):
+            return False
+        return inside(c, rings) or edge_dist(c, rings) <= r
+    return test
+
+
 def osm_places():
     """[{"cat", "name", "p": (lat, lon), "rings", "test": reaches(c) -> bool}], one per named place. A place mapped
     twice (a point inside its own outline) is kept once; closed shops are left out."""
@@ -114,7 +131,7 @@ def osm_places():
             continue
         seen.append((cat, name, p))
         r = EDGE_REACH_M if cat == "park" else LAST_BLOCK_M
-        test = ((lambda g, r: lambda c: inside(c, g) or edge_dist(c, g) <= r)(rings, r) if rings else
+        test = (ring_test(rings, r) if rings else
                 (lambda q, r: lambda c: dist(c, q) <= r)(p, POINT_REACH_M if cat == "park" else LAST_BLOCK_M))
         out.append({"cat": cat, "name": name, "p": p, "rings": rings, "test": test})
     for name, p in DOWNTOWNS.items():
@@ -204,11 +221,17 @@ class Ctx:
             for a, b in zip(w["nodes"], w["nodes"][1:]):
                 self.seg_way[(a, b)] = self.seg_way[(b, a)] = (w["id"], r, low)
         self.explain = Explainer(self.detail)
+        self._sources = {}
 
     def sources(self, place, r=1500):
-        t = place["test"]
-        return ([n for n, c in self.g_all.near(place["p"], r) if t(c)],
-                [k for k, c in self.g_low.near(place["p"], r) if t(c)])
+        """The street points (any street, low-stress) that reach a place; remembered, as island_lists, category_reach
+        and place_detail each ask for the same places."""
+        key = (id(place), r)
+        if key not in self._sources:
+            t = place["test"]
+            self._sources[key] = ([n for n, c in self.g_all.near(place["p"], r) if t(c)],
+                                  [k for k, c in self.g_low.near(place["p"], r) if t(c)])
+        return self._sources[key]
 
     def iid(self):
         from export import island_ids

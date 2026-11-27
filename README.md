@@ -154,13 +154,17 @@ The homepage headline is the strict San Mateo figure: of every 10 residents, how
 
 ## Findings (data/access.csv)
 
-| Homes → station | standard | strict |
+| People → station | standard | strict |
 |---|---|---|
-| San Mateo → San Mateo | 71% of 22,711 | 28% |
-| Burlingame → Burlingame | 38% of 9,685 | 14% |
-| San Mateo → Burlingame | 46% of 13,021 | 6% |
-| Burlingame → San Mateo | 68% of 4,497 | 0% |
-| San Mateo → Hayward Park | 46% of 27,671 | 16% |
+| San Mateo → San Mateo | 71% of 57,007 | 30% |
+| Burlingame → Burlingame | 41% of 21,442 | 14% |
+| San Mateo → Burlingame | 51% of 30,627 | 4% |
+| Burlingame → San Mateo | 61% of 9,397 | 0% |
+| San Mateo → Hayward Park | 46% of 68,192 | 18% |
+
+Since 2026-11-26 the "homes" fields and columns (islands' `homes`, fixes' `gain_homes`, `access.csv`'s
+`homes_within_2mi`) count residents (`ORIGIN_COUNT` in `pipeline/connectivity.py`); the names are kept so share
+pages and readers don't break.
 
 ## Limitations
 

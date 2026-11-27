@@ -16,6 +16,7 @@ from homes import blocks, snap
 from spread import place, is_street
 
 DETOUR = 1.25
+ORIGIN_COUNT = "POP100"   # what an origin counts: residents (Census population); "HU100" for housing units
 SPREAD = True    # spread each block's homes along its streets (spread.py) instead of its internal point
 RADIUS_M = 2 * 1609  # homes within this ride of the station
 STATIONS = ["Burlingame", "San Mateo", "Hayward Park", "Hillsdale"]
@@ -139,10 +140,12 @@ def setup(path, tier, detail=None):
                 low_nodes.add(key(ns[i], w["id"], i, "out"))
                 low_nodes.add(key(ns[i + 1], w["id"], i + 1, "in"))
     adj_all = low_adj(all_edges)
-    # each block's homes along the low-stress streets in and around it (spread.py); SPREAD off: at its internal point
-    snapped, unsnapped = (place(blocks(), low_edges, lambda k: coord[base(k)], dist) if SPREAD
-                          else snap(blocks(), low_nodes, lambda k: coord[base(k)]))
-    # origins: {(node, city): housing units}
+    # each block's residents along the low-stress streets in and around it (spread.py); SPREAD off: at its internal point.
+    # Everything downstream that says "homes" (islands, fixes, access.csv) counts these residents (since 2026-11-26;
+    # housing units before), in blocks with homes, so group quarters (dorms) are left out as before.
+    snapped, unsnapped = (place(blocks(ORIGIN_COUNT), low_edges, lambda k: coord[base(k)], dist) if SPREAD
+                          else snap(blocks(ORIGIN_COUNT), low_nodes, lambda k: coord[base(k)]))
+    # origins: {(node, city): residents}
     origins = collections.Counter()
     for k, lst in snapped.items():
         for hu, city in lst:

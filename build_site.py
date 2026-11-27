@@ -133,7 +133,7 @@ def footer():
         {"subject": "Possible error: bike islands map"}, quote_via=urllib.parse.quote)
     updated = datetime.date.fromisoformat(CFG["updated"])
     return f"""<footer class="bi-foot">
-  <p>Streets: OpenStreetMap contributors. Speed limits: City of San Mateo 2026 speed survey, obtained through a public records request. Homes and kids: 2020 Census. Schools: California School Directory. <a href="{BASE}methodology/">How this was made</a>.</p>
+  <p>Streets: OpenStreetMap contributors. Speed limits: City of San Mateo 2026 speed survey, obtained through a public records request. People and kids: 2020 Census. Schools: California School Directory. <a href="{BASE}methodology/">How this was made</a>.</p>
   <p>Made by <a href="/about/">Max Mautner</a>. <a href="{e(CFG['repo_url'])}">The data and code are public</a>, so anyone can check how each number was reached. <a href="{e(issue)}">Report an error</a>.</p>
   <p>Updated {updated.strftime('%B')} {updated.day}, {updated.year}.</p>
   <p><a href="{BASE}places/">Who can bike to the places kids go</a> · <a href="/tools/">More tools from public data</a></p>
@@ -195,7 +195,8 @@ def feet_or_miles(m):
     return f"{round(ft / 50) * 50:,} ft" if ft < 1000 else f"{m / 1609.34:.1f} mi"
 
 
-MIN_FIX_HOMES = 100  # smaller fixes stay in the panel but get no share page
+ISLAND_SHARE_MIN = 350   # people on an island before it gets a share page (was 150 homes)
+MIN_FIX_HOMES = 230  # people; smaller fixes stay in the panel but get no share page (was 100 homes)
 # Every share address ever built, and what it opens: {path: [kind, standard, fix id or island id]}. A page
 # keeps its address for as long as it exists, and no address is ever given to a different fix or island, so
 # links already shared keep working. New pages are added when built; pages no longer built are listed.
@@ -234,7 +235,7 @@ def fix_need(T, B, tier):
 
 
 def share_entries():
-    """Pages worth sharing: every island with 150+ homes, and every fix in the export, per standard.
+    """Pages worth sharing: every island with ISLAND_SHARE_MIN+ people, and every fix in the export, per standard.
     Returns the entries and the manifest the map page uses to find each view's share link."""
     entries = []
     manifest = {"islands": {"strict": {}, "standard": {}}, "fixes": {"strict": {}, "standard": {}}}
@@ -259,18 +260,18 @@ def share_entries():
         T = DATA[tier]
         suffix = "" if tier == "strict" else "-most-adults"
         for iid, v in sorted(T["islands"].items(), key=lambda kv: -kv[1]["homes"]):
-            if v["homes"] < 150 or not v.get("names"):
+            if v["homes"] < ISLAND_SHARE_MIN or not v.get("names"):
                 continue
             names = " & ".join(short(n) for n in v["names"])
             st = max(T["stations"], key=lambda x: (v.get("near") or {}).get(x, 0))
             n_, o_ = (v.get("near") or {}).get(st, 0), (v.get("ok") or {}).get(st, 0)
             title = f"The bike island around {names}"
             if n_:
-                part = f"{round(100 * o_ / n_)}% of its homes" if o_ else "none of its homes"
-                desc = (f"{v['homes']:,} homes share this island of quiet streets. For {WHO[tier]}, {part} within 2 miles "
+                part = f"{round(100 * o_ / n_)}% of them" if o_ else "none of them"
+                desc = (f"{v['homes']:,} people share this island of quiet streets. For {WHO[tier]}, {part} within 2 miles "
                         f"of {st} Caltrain {'have' if o_ else 'has'} a low-stress bike route there.")
             else:
-                desc = f"{v['homes']:,} homes share this island of quiet streets, more than a 2-mile ride from Caltrain."
+                desc = f"{v['homes']:,} people share this island of quiet streets, more than a 2-mile ride from Caltrain."
             S = v.get("sch") or {}
             if S.get("n"):
                 desc += (f" {round(100 * S['ok'] / S['n'])}% have one to a public elementary school." if S["ok"] else
@@ -298,7 +299,7 @@ def share_entries():
                 what = "A safe crossing " + place[len("the crossing "):]
             else:
                 what = f"Making {place} low-stress ({feet_or_miles(max(B['len'], 15))})"
-            title = f"{what} would connect {round(B['gain']):,} homes to {B['st']} Caltrain"
+            title = f"{what} would connect {round(B['gain']):,} people to {B['st']} Caltrain"
             need = fix_need(T, B, tier)
             desc = (need + " " if need else f"For {WHO[tier]}. ") + "See the bike islands it would join on the map of San Mateo and Burlingame."
             slug = unique(slugify(B["name"]) + suffix, "fix", tier, fid)
@@ -420,9 +421,9 @@ def place_body(P, civ):
          f'<div class="bar" role="img" aria-label="{pct(kok, k)} can bike there safely, {pct(cant, k)} can\'t"><i style="width:{100 * kok / max(k, 1):.1f}%"></i></div>',
          f'<div class="barlab"><span class="c"><b>{pct(kok, k)}</b> can bike there</span><span class="x"><b>{pct(cant, k)}</b> can\'t</span></div>',
          f'<p class="note">This is the map for cautious riders and kids: paths and quiet streets only, never on busy streets, never across '
-         f'El Camino. Of the {tot["homes"]:,} homes within a mile, {ok["homes"]:,} have a route like that.</p>',
+         f'El Camino. Of the {tot["homes"]:,} people within a mile, {ok["homes"]:,} have a route like that.</p>',
          '<p class="note">Each dot is a block, sized by how many kids live there. Green blocks have a route; copper blocks don\'t.</p>' +
-         (f'<p class="note">The main map counts homes within 2 miles of each station; this page counts kids within 1 mile.</p>'
+         (f'<p class="note">The main map counts everyone within 2 miles of each station; this page counts kids within 1 mile.</p>'
           if P["category"] == "caltrain" else "") +
          (f'<p class="note">{ASSUMED_NOTE[P.get("city")]}</p>' if P.get("city") in ASSUMED_NOTE else ""),
          '</div><div class="mapwrap"><p class="hint" id="hint">Tap a block' + (' or a numbered fix' if fixes else '') + '.</p>',

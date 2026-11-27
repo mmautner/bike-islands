@@ -22,13 +22,21 @@ EDGE_M = 20          # a low-stress street point this close to a block's outline
 CELL = 0.002         # grid cell for finding street points near a block, degrees
 
 
+_SHAPES = None
+
+
 def shapes():
-    """{GEOID: rings as [(lon, lat), ...]}, or {} without the file."""
+    """{GEOID: rings as [(lon, lat), ...]}, or {} without the file (read once)."""
+    global _SHAPES
+    if _SHAPES is not None:
+        return _SHAPES
     f = os.path.join(RAW, "block_shapes_06081_2020.json")
     if not os.path.exists(f):
-        return {}
-    return {x["attributes"]["GEOID"]: [[tuple(p) for p in r] for r in x["geometry"]["rings"]]
+        _SHAPES = {}
+        return _SHAPES
+    _SHAPES = {x["attributes"]["GEOID"]: [[tuple(p) for p in r] for r in x["geometry"]["rings"]]
             for x in json.load(open(f))["features"] if x.get("geometry")}
+    return _SHAPES
 
 
 def _seg_dist_m(p, a, b):
@@ -60,18 +68,19 @@ def is_street(tags):
     return tags.get("highway") not in NOT_STREET and tags.get("highway") != "service"
 
 
-def place(blks, low_edges, coord_of, dist_m):
-    """Like homes.snap: blks [(geoid, lat, lon, count, city)], the low-stress segments [(a, b, L, way id)] (with a
-    .street attribute, the way ids that are streets, when the caller has it), coord_of(key) -> (lat, lon), dist_m(p,
-    q) in metres. Returns {key: [(count, city), ...]} and the counts that found no street.
+_ASSIGN = {}     # id(low_edges) -> (low_edges, its assignment), so homes, kids and residents share one geometry pass
 
-    A block's segments are the low-stress segments whose middle is inside its outline, or that run along it (middle and
-    both ends within EDGE_M of it, so a street leading away from the block doesn't count): only
-    streets (is_street) where it has any, else paths too. Each segment gives half its length to each end; one copy per
-    spot (a busy crossing's node has one per side) takes the spot's share, the first in a fixed order, as in snap."""
+
+def assignment(low_edges, coord_of, dist_m):
+    """({GEOID: [(street point, weight)]}, every spot's street point): for each block with an outline, the low-stress
+    segments whose middle is inside it, or that run along it (middle and both ends within EDGE_M of it, so a street
+    leading away from the block doesn't count): only streets (is_street) where it has any, else paths too. Each
+    segment gives half its length to each end; one copy per spot (a busy crossing's node has one per side) takes the
+    spot's share, the first in a fixed order, as in homes.snap. Worked out once per network and remembered."""
+    hit = _ASSIGN.get(id(low_edges))
+    if hit and hit[0] is low_edges:
+        return hit[1]
     S = shapes()
-    if not S:
-        return snap(blks, {k for e in low_edges for k in e[:2]}, coord_of)
     street = getattr(low_edges, "street", None)
     spot = {}
     for e in sorted(low_edges, key=lambda e: (repr(e[0]), repr(e[1]))):
@@ -85,27 +94,22 @@ def place(blks, low_edges, coord_of, dist_m):
         m = ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
         st = street is None or e[3] in street
         grid[(int(m[0] / CELL), int(m[1] / CELL))].append((m[1], m[0], spot[a], spot[b], dist_m(a, b), st, a, b))
-    fallback, out = [], collections.defaultdict(list)
-    for g, lat, lon, n, city in blks:
-        rings = S.get(g)
-        if not n:
-            continue
-        if not rings:
-            fallback.append((g, lat, lon, n, city))
-            continue
+    out = {}
+    for g, rings in S.items():
         pts = [p for r in rings for p in r]
         lo0, lo1 = min(p[0] for p in pts), max(p[0] for p in pts)
         la0, la1 = min(p[1] for p in pts), max(p[1] for p in pts)
         pad = 0.0003
+
+        def near(p):
+            return any(_seg_dist_m(p, r[m], r[m + 1]) <= EDGE_M for r in rings for m in range(len(r) - 1))
         segs = []
         for i in range(int((la0 - pad) / CELL) - 1, int((la1 + pad) / CELL) + 2):
             for j in range(int((lo0 - pad) / CELL) - 1, int((lo1 + pad) / CELL) + 2):
                 for mlo, mla, ka, kb, L, st, a, b in grid.get((i, j), ()):
                     if not (la0 - pad <= mla <= la1 + pad and lo0 - pad <= mlo <= lo1 + pad):
                         continue
-                    near = lambda p: any(_seg_dist_m(p, r[m], r[m + 1]) <= EDGE_M for r in rings for m in range(len(r) - 1))
-                    # inside, or running along the outline (both ends near it): a street leading away doesn't count
-                    if inside((mlo, mla), rings) or (near((a[1], a[0])) and near((b[1], b[0])) and near((mlo, mla))):
+                    if inside((mlo, mla), rings) or (near((mlo, mla)) and near((a[1], a[0])) and near((b[1], b[0]))):
                         segs.append((ka, kb, L, st))
         if any(st for *_, st in segs):
             segs = [x for x in segs if x[3]]
@@ -114,13 +118,33 @@ def place(blks, low_edges, coord_of, dist_m):
             wt[ka] += L / 2
             wt[kb] += L / 2
         cand = sorted((k for k in wt if wt[k] > 0), key=repr)
+        if cand:
+            out[g] = [(k, wt[k]) for k in cand]
+    res = (out, set(spot.values()))
+    _ASSIGN[id(low_edges)] = (low_edges, res)
+    return res
+
+
+def place(blks, low_edges, coord_of, dist_m):
+    """Like homes.snap: blks [(geoid, lat, lon, count, city)], the low-stress segments [(a, b, L, way id)] (with a
+    .street attribute, the way ids that are streets, when the caller has it), coord_of(key) -> (lat, lon), dist_m(p,
+    q) in metres. Returns {key: [(count, city), ...]} and the counts that found no street. Each block's count goes to
+    its street points (assignment()) in whole shares by largest remainder; a block with none falls back to snap."""
+    if not shapes():
+        return snap(blks, {k for e in low_edges for k in e[:2]}, coord_of)
+    A, spots = assignment(low_edges, coord_of, dist_m)
+    fallback, out = [], collections.defaultdict(list)
+    for g, lat, lon, n, city in blks:
+        if not n:
+            continue
+        cand = A.get(g)
         if not cand:
             fallback.append((g, lat, lon, n, city))
             continue
-        for k, share in zip(cand, _apportion(n, [wt[k] for k in cand])):
+        for (k, _), share in zip(cand, _apportion(n, [w for _, w in cand])):
             if share:
                 out[k].append((share, city))
-    fb, unsnapped = snap(fallback, set(spot.values()), coord_of)
+    fb, unsnapped = snap(fallback, spots, coord_of)
     for k, lst in fb.items():
         out[k].extend(lst)
     return out, unsnapped
