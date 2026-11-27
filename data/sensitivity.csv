@@ -15,22 +15,22 @@ standard,Burlingame,Burlingame,1.5,1,6569,3930.0,0.598
 standard,Burlingame,Burlingame,1.5,1.5,8303,4838.0,0.583
 standard,Burlingame,Burlingame,1.5,2,9505,5391.0,0.567
 standard,Burlingame,Burlingame,1.5,3,11784,7580.0,0.643
-standard,San Mateo,San Mateo,1.1,1,11750,6021.0,0.512
-standard,San Mateo,San Mateo,1.1,1.5,19176,8523.0,0.444
-standard,San Mateo,San Mateo,1.1,2,22317,8915.0,0.399
-standard,San Mateo,San Mateo,1.1,3,32182,8925.0,0.277
-standard,San Mateo,San Mateo,1.25,1,11750,7472.0,0.636
-standard,San Mateo,San Mateo,1.25,1.5,19176,11600.0,0.605
-standard,San Mateo,San Mateo,1.25,2,22317,12739.0,0.571
-standard,San Mateo,San Mateo,1.25,3,32182,14364.0,0.446
-standard,San Mateo,San Mateo,1.33,1,11750,7929.0,0.675
-standard,San Mateo,San Mateo,1.33,1.5,19176,12380.0,0.646
-standard,San Mateo,San Mateo,1.33,2,22317,13530.0,0.606
-standard,San Mateo,San Mateo,1.33,3,32182,15887.0,0.494
-standard,San Mateo,San Mateo,1.5,1,11750,8369.0,0.712
-standard,San Mateo,San Mateo,1.5,1.5,19176,13222.0,0.69
-standard,San Mateo,San Mateo,1.5,2,22317,14503.0,0.65
-standard,San Mateo,San Mateo,1.5,3,32182,17629.0,0.548
+standard,San Mateo,San Mateo,1.1,1,11750,6081.0,0.518
+standard,San Mateo,San Mateo,1.1,1.5,19176,8744.0,0.456
+standard,San Mateo,San Mateo,1.1,2,22317,9136.0,0.409
+standard,San Mateo,San Mateo,1.1,3,32182,9146.0,0.284
+standard,San Mateo,San Mateo,1.25,1,11750,7532.0,0.641
+standard,San Mateo,San Mateo,1.25,1.5,19176,11821.0,0.616
+standard,San Mateo,San Mateo,1.25,2,22317,12960.0,0.581
+standard,San Mateo,San Mateo,1.25,3,32182,14585.0,0.453
+standard,San Mateo,San Mateo,1.33,1,11750,7989.0,0.68
+standard,San Mateo,San Mateo,1.33,1.5,19176,12601.0,0.657
+standard,San Mateo,San Mateo,1.33,2,22317,13751.0,0.616
+standard,San Mateo,San Mateo,1.33,3,32182,16108.0,0.501
+standard,San Mateo,San Mateo,1.5,1,11750,8643.0,0.736
+standard,San Mateo,San Mateo,1.5,1.5,19176,13657.0,0.712
+standard,San Mateo,San Mateo,1.5,2,22317,14938.0,0.669
+standard,San Mateo,San Mateo,1.5,3,32182,18064.0,0.561
 standard,Hayward Park,Hayward Park,1.1,1,0,0.0,
 standard,Hayward Park,Hayward Park,1.1,1.5,0,0.0,
 standard,Hayward Park,Hayward Park,1.1,2,0,0.0,
@@ -79,22 +79,22 @@ strict,Burlingame,Burlingame,1.5,1,6569,2608.0,0.397
 strict,Burlingame,Burlingame,1.5,1.5,8303,2608.0,0.314
 strict,Burlingame,Burlingame,1.5,2,9451,2608.0,0.276
 strict,Burlingame,Burlingame,1.5,3,11784,2608.0,0.221
-strict,San Mateo,San Mateo,1.1,1,11750,1927.0,0.164
-strict,San Mateo,San Mateo,1.1,1.5,19176,3163.0,0.165
-strict,San Mateo,San Mateo,1.1,2,22317,3163.0,0.142
-strict,San Mateo,San Mateo,1.1,3,32182,3163.0,0.098
-strict,San Mateo,San Mateo,1.25,1,11750,2489.0,0.212
-strict,San Mateo,San Mateo,1.25,1.5,19176,4096.0,0.214
-strict,San Mateo,San Mateo,1.25,2,22317,4096.0,0.184
-strict,San Mateo,San Mateo,1.25,3,32182,4096.0,0.127
-strict,San Mateo,San Mateo,1.33,1,11750,2956.0,0.252
-strict,San Mateo,San Mateo,1.33,1.5,19176,4661.0,0.243
-strict,San Mateo,San Mateo,1.33,2,22317,4661.0,0.209
-strict,San Mateo,San Mateo,1.33,3,32182,4661.0,0.145
-strict,San Mateo,San Mateo,1.5,1,11750,3423.0,0.291
-strict,San Mateo,San Mateo,1.5,1.5,19176,5221.0,0.272
-strict,San Mateo,San Mateo,1.5,2,22317,5221.0,0.234
-strict,San Mateo,San Mateo,1.5,3,32182,5221.0,0.162
+strict,San Mateo,San Mateo,1.1,1,11750,1987.0,0.169
+strict,San Mateo,San Mateo,1.1,1.5,19176,3223.0,0.168
+strict,San Mateo,San Mateo,1.1,2,22317,3223.0,0.144
+strict,San Mateo,San Mateo,1.1,3,32182,3223.0,0.1
+strict,San Mateo,San Mateo,1.25,1,11750,2549.0,0.217
+strict,San Mateo,San Mateo,1.25,1.5,19176,4156.0,0.217
+strict,San Mateo,San Mateo,1.25,2,22317,4156.0,0.186
+strict,San Mateo,San Mateo,1.25,3,32182,4156.0,0.129
+strict,San Mateo,San Mateo,1.33,1,11750,2919.0,0.248
+strict,San Mateo,San Mateo,1.33,1.5,19176,4624.0,0.241
+strict,San Mateo,San Mateo,1.33,2,22317,4624.0,0.207
+strict,San Mateo,San Mateo,1.33,3,32182,4624.0,0.144
+strict,San Mateo,San Mateo,1.5,1,11750,3578.0,0.305
+strict,San Mateo,San Mateo,1.5,1.5,19176,5376.0,0.28
+strict,San Mateo,San Mateo,1.5,2,22317,5376.0,0.241
+strict,San Mateo,San Mateo,1.5,3,32182,5376.0,0.167
 strict,Hayward Park,Hayward Park,1.1,1,0,0.0,
 strict,Hayward Park,Hayward Park,1.1,1.5,0,0.0,
 strict,Hayward Park,Hayward Park,1.1,2,0,0.0,

@@ -3,8 +3,9 @@ from the san-mateo-speeds repo, which parsed it from the city's survey summary s
 to OpenStreetMap ways, so each matched way gets the surveyed posted limit and median speed.
 
 A segment "Street, A to B" is matched to the ways named Street that lie between the
-point where Street meets A and the point where it meets B. Segments whose endpoints
-can't be found are listed, not guessed.
+point where Street meets A and the point where it meets B ("A/B" matches either). An open end ("to the
+city limit") or one whose cross street can't be found runs to the end of the street, away from the street's
+other surveyed segments; those are listed. Segments with neither end found are listed, not guessed.
 
 Usage: python pipeline/survey.py data/raw/osm_corridor_YYYY-MM-DD.json   (writes data/survey_matches.csv)
 """
@@ -66,32 +67,59 @@ def main():
             node_names[n].add(norm(w["tags"]["name"]))
             node_xy[n] = xy(g["lat"], g["lon"])
 
+    OPEN = "open"  # an end the survey leaves open ("to the city limit"): extended along the street below
+
     def meet(street, cross):
+        """Where street meets cross, OPEN for an open end, None if cross can't be found. A cross label with
+        alternatives ("Ginnever St/Bermuda Dr") is matched by whichever alternatives are found."""
         cross = cross.strip()
         if re.search(r"city limit|walkway|wkwy|end$|terminus", cross, re.I):
-            return None
-        c = norm(cross)
-        pts = [node_xy[n] for w in by_name[street] for n in w["nodes"] if c in node_names[n]]
+            return OPEN
+        alts = {norm(c) for c in cross.split("/") if c.strip()}
+        pts = [node_xy[n] for w in by_name[street] for n in w["nodes"] if alts & node_names[n]]
         if not pts:
             return None
         return (sum(p[0] for p in pts) / len(pts), sum(p[1] for p in pts) / len(pts))
 
-    out, unmatched = [], []
+    rows = []
     for r in csv.DictReader(open(os.path.join(HERE, "..", "data", "sources", "ets_2026_segments.csv"))):
         r = {"survey_id": r["segment_no"], "street": r["street"], "segment": f'{r["from"]} to {r["to"]}',
              "posted_mph": r["existing"], "median_mph": r["p50"], "p85_mph": r["p85"], "adt": r["adt"],
              "from": r["from"], "to": r["to"]}
         street = norm(r["street"])
-        a, b = meet(street, r["from"]), meet(street, r["to"])
-        if not by_name[street] or (a is None and b is None):
+        rows.append((r, street, meet(street, r["from"]), meet(street, r["to"])))
+    # midpoints of the segments with both ends found, by street: an end that has to be guessed runs away from them
+    placed = collections.defaultdict(list)
+    for r, street, a, b in rows:
+        if a not in (None, OPEN) and b not in (None, OPEN):
+            placed[street].append(((a[0] + b[0]) / 2, (a[1] + b[1]) / 2))
+
+    def far_end(street, known, sid):
+        """The end of the street to run to from known, for an open end ("to the city limit") or one whose cross
+        street isn't found ("92 Off-Ramp", a misspelling). Of the street's two far ends from known, the one with
+        fewer of its other surveyed segments in that direction; else the farther. Running to the farther end
+        alone put "E 4th Ave, S Delaware St to S Idaho St" (15,524 cars a day) on E 4th west of Delaware."""
+        pts = [node_xy[n] for w in by_name[street] for n in w["nodes"]]
+        f1 = max(pts, key=lambda p: math.dist(p, known))
+        d = (f1[0] - known[0], f1[1] - known[1])
+        dot = lambda p: (p[0] - known[0]) * d[0] + (p[1] - known[1]) * d[1]
+        f2 = min(pts, key=dot)
+        if dot(f2) >= 0:
+            return f1
+        mids = [m for m in placed[street] if math.dist(m, known) > 30]
+        n1, n2 = sum(dot(m) > 0 for m in mids), sum(dot(m) < 0 for m in mids)
+        return f2 if n2 < n1 else f1
+
+    out, unmatched, guessed = [], [], []
+    for r, street, a, b in rows:
+        known = [e for e in (a, b) if e not in (None, OPEN)]
+        if not by_name[street] or not known:
             unmatched.append((r["survey_id"], r["street"], r["segment"]))
             continue
-        # one open end ("to the city limit"): extend 3 km past the known end along the street
-        if a is None or b is None:
-            known = a or b
-            far = max((node_xy[n] for w in by_name[street] for n in w["nodes"]),
-                      key=lambda p: math.dist(p, known))
-            a, b = known, far
+        if len(known) == 1:
+            if None in (a, b):
+                guessed.append((r["survey_id"], r["street"], r["segment"]))
+            a, b = known[0], far_end(street, known[0], r["survey_id"])
         ax, ay = a
         bx, by = b
         L2 = (bx - ax) ** 2 + (by - ay) ** 2 or 1
@@ -128,6 +156,8 @@ def main():
     print(f"matched {len(seg)} of 123 survey segments to {len(out)} OSM ways")
     for u in unmatched:
         print("  unmatched:", *u)
+    for u in guessed:
+        print("  one end not found, run to the street's end:", *u)
 
 
 if __name__ == "__main__":

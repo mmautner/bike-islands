@@ -30,9 +30,13 @@ to Caltrain. Served at
     island covers when one is selected, and the tiles in view when zoomed in. A street goes in the tile that holds
     its midpoint, so an island's bounding box always covers all of its streets.
   - `run.sh`: reruns survey, export and sensitivity from `data/raw/`.
+  - `plans_check.py`: lists San Mateo fixes not yet compared with the city's plans in `data/city_plans/alignment.csv`.
 - `data/sources/ets_2026_segments.csv`: the city's 2026 speed survey, copied from
   [san-mateo-speeds](https://github.com/mmautner/san-mateo-speeds), which parsed it from the survey summary
   sheets obtained through a public records request.
+- `data/city_plans/`: our fixes compared with San Mateo's 2020 Bicycle Master Plan, 2022 TOD Pedestrian Access Plan
+  and 2012 Pedestrian Master Plan (`README.md` has the findings and page references; `alignment.csv` one row per fix;
+  `bmp_2020_projects.csv` the 2020 plan's project list). The PDFs live in `downloads/`, not in git.
 - `data/field_checks/`: speed limits and one-way streets (`overrides.csv`) and intersection controls (`crossings.csv`)
   checked in person or on Street View, each with its source. An override can also set `bi:lts`, a rating judged in
   the field where the tags can't say why (South Railroad Ave by San Mateo station); `lts()` returns it as is.
@@ -82,8 +86,10 @@ python3 build_site.py
   rating and the Greater Madison MPO's 2023 volume table (`volume_lts` in `pipeline/islands.py`; one-way streets count
   1.5x). Crossings don't use volume (neither Furth's criteria nor Madison's do). Toggle with `USE_VOLUME`.
 - **Speeds**: the city survey's posted limits, then OpenStreetMap `maxspeed`, then defaults (residential 25,
-  tertiary 30, primary/secondary 40, the PeopleForBikes defaults). 110 of 123 survey segments match; the rest are
-  printed by `survey.py`.
+  tertiary 30, primary/secondary 40, the PeopleForBikes defaults). 109 of 123 survey segments match; the rest are
+  printed by `survey.py`, as are those with an open end or a cross street it can't find, which run to the end of the
+  street away from its other surveyed segments. The survey sheet's `bike_lanes` column isn't used: it marks signed
+  routes (N Delaware St, San Mateo Dr) as bike lanes.
 - **Connected home**: a low-stress route to a station's platforms no more than 25% longer than the shortest
   route on any rideable street, for homes within a 2-mile ride.
 - **One-way streets** (`DIRECTED` in `pipeline/islands.py`): routes follow `oneway` (and `oneway:bicycle`,
@@ -112,7 +118,9 @@ python3 build_site.py
   options are also checked at the crossings its routes make. Assumed inputs (default speed or lanes, no daily
   count) are listed. This is what the map's rating would need, not an engineering recommendation.
 - **Share addresses**: `data/share_paths.json` records every share page address and what it opens. A page keeps
-  its address and no address is reused for a different fix or island; `build_site.py` lists pages no longer built.
+  its address and no address is reused for a different fix or island; `build_site.py` lists pages no longer built. A link
+  whose fix or island the current data no longer has opens the map with a note saying the map has been updated since
+  it was shared (`stale` in `site/template.html`).
 - **What's in the way**: for an island that reaches no station, the stressful pieces on the same routes of at
   least half its homes, to the nearest station (shortest average direct ride). Each piece alone, each pair and
   all of them together are tested; the page names the smallest set that gets at least 90% of what all would.
@@ -123,18 +131,18 @@ python3 build_site.py
 
 | Kids under 18 → an elementary school | standard | strict |
 |---|---|---|
-| San Mateo (20,676 within 2 miles) | 60% | 41% |
+| San Mateo (20,676 within 2 miles) | 61% | 42% |
 | Burlingame (6,961) | 62% | 48% |
 
 ## Findings (data/access.csv)
 
 | Homes → station | standard | strict |
 |---|---|---|
-| San Mateo → San Mateo | 57% of 22,317 | 18% |
+| San Mateo → San Mateo | 58% of 22,317 | 19% |
 | Burlingame → Burlingame | 36% of 9,505 | 16% |
-| San Mateo → Burlingame | 31% of 12,984 | 1% |
+| San Mateo → Burlingame | 33% of 12,984 | 1% |
 | Burlingame → San Mateo | 60% of 4,296 | 0% |
-| San Mateo → Hayward Park | 38% of 27,037 | 10% |
+| San Mateo → Hayward Park | 39% of 27,037 | 11% |
 
 ## Limitations
 

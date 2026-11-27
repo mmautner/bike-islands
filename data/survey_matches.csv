@@ -141,10 +141,10 @@ way_id,osm_name,survey_id,posted_mph,median_mph,p85_mph,adt,fit
 1066395677,J Hart Clinton Drive,15,35,37,42,14032,0.498
 1511811726,J Hart Clinton Drive,15,35,37,42,14032,0.48
 8933220,East 4th Avenue,19,25,20,23,6622,0.053
-417329793,East 4th Avenue,20,30,25,29,15524,0.254
+417329793,East 4th Avenue,19,25,20,23,6622,0.476
 449672616,East 4th Avenue,19,25,20,23,6622,0.18
-505633811,East 4th Avenue,20,30,25,29,15524,0.027
-505633812,East 4th Avenue,20,30,25,29,15524,0.046
+505633811,East 4th Avenue,19,25,20,23,6622,0.182
+505633812,East 4th Avenue,19,25,20,23,6622,0.206
 520350424,East 4th Avenue,19,25,20,23,6622,0.01
 619344113,East 4th Avenue,19,25,20,23,6622,0.432
 743758205,East 4th Avenue,19,25,20,23,6622,0.038
@@ -153,6 +153,17 @@ way_id,osm_name,survey_id,posted_mph,median_mph,p85_mph,adt,fit
 829532945,East 4th Avenue,19,25,20,23,6622,0.372
 1050933862,East 4th Avenue,19,25,20,23,6622,0.232
 1207077971,East 4th Avenue,19,25,20,23,6622,0.091
+8924285,East 4th Avenue,20,30,25,29,15524,0.323
+61867209,East 4th Avenue,20,30,25,29,15524,0.463
+61867213,East 4th Avenue,20,30,25,29,15524,0.393
+417301985,East 4th Avenue,20,30,25,29,15524,0.165
+417301994,East 4th Avenue,20,30,25,29,15524,0.191
+417302003,East 4th Avenue,20,30,25,29,15524,0.454
+573515707,East 4th Avenue,20,30,25,29,15524,0.318
+1178029743,East 4th Avenue,20,30,25,29,15524,0.03
+1178029744,East 4th Avenue,20,30,25,29,15524,0.009
+1178029745,East 4th Avenue,20,30,25,29,15524,0.126
+1178029746,East 4th Avenue,20,30,25,29,15524,0.001
 218663687,5th Avenue,21,25,26,29,3295,0.477
 1462096039,5th Avenue,21,25,26,29,3295,0.372
 172669920,East 5th Avenue,23,25,23,27,2251,0.002
@@ -223,8 +234,28 @@ way_id,osm_name,survey_id,posted_mph,median_mph,p85_mph,adt,fit
 96024407,Park Place,43,25,19,22,2878,0.475
 449685603,Park Place,43,25,19,22,2878,0.475
 585741649,Park Place,43,25,19,22,2878,0.228
-134223979,West Hillsdale Boulevard,44,35,32,38,14702,0.492
-417356493,West Hillsdale Boulevard,44,35,32,38,14702,0.474
+134223979,West Hillsdale Boulevard,45,25,29,31,12653,0.431
+417356493,West Hillsdale Boulevard,45,25,29,31,12653,0.333
+50417516,West Hillsdale Boulevard,45,25,29,31,12653,0.19
+75208705,West Hillsdale Boulevard,45,25,29,31,12653,0.079
+394159621,West Hillsdale Boulevard,45,25,29,31,12653,0.032
+394159622,West Hillsdale Boulevard,45,25,29,31,12653,0.162
+394159623,West Hillsdale Boulevard,45,25,29,31,12653,0.147
+394159625,West Hillsdale Boulevard,45,25,29,31,12653,0.215
+394159626,West Hillsdale Boulevard,45,25,29,31,12653,0.007
+394159629,West Hillsdale Boulevard,45,25,29,31,12653,0.018
+394159630,West Hillsdale Boulevard,45,25,29,31,12653,0.249
+417356473,West Hillsdale Boulevard,45,25,29,31,12653,0.309
+417356478,West Hillsdale Boulevard,45,25,29,31,12653,0.332
+417356483,West Hillsdale Boulevard,45,25,29,31,12653,0.236
+417356488,West Hillsdale Boulevard,45,25,29,31,12653,0.273
+417356491,West Hillsdale Boulevard,45,25,29,31,12653,0.285
+417356492,West Hillsdale Boulevard,45,25,29,31,12653,0.366
+417950892,West Hillsdale Boulevard,45,25,29,31,12653,0.072
+518503675,West Hillsdale Boulevard,45,25,29,31,12653,0.07
+534435521,West Hillsdale Boulevard,45,25,29,31,12653,0.17
+706796390,West Hillsdale Boulevard,45,25,29,31,12653,0.105
+945144784,West Hillsdale Boulevard,45,25,29,31,12653,0.118
 1153618958,West Hillsdale Boulevard,46,25,28,31,6675,0.5
 8928947,West Hillsdale Boulevard,47,25,30,32,6816,0.512
 44421252,West Hillsdale Boulevard,47,25,30,32,6816,0.23
@@ -240,8 +271,8 @@ way_id,osm_name,survey_id,posted_mph,median_mph,p85_mph,adt,fit
 417319006,East Hillsdale Boulevard,48,35,33,38,24841,0.495
 417319020,East Hillsdale Boulevard,48,35,33,38,24841,0.155
 417319029,East Hillsdale Boulevard,48,35,33,38,24841,0.486
-417319033,East Hillsdale Boulevard,49,35,32,37,32600,0.502
-417319037,East Hillsdale Boulevard,49,35,32,37,32600,0.502
+417319033,East Hillsdale Boulevard,49,35,32,37,32600,0.498
+417319037,East Hillsdale Boulevard,49,35,32,37,32600,0.493
 417319056,East Hillsdale Boulevard,48,35,33,38,24841,0.461
 573802806,East Hillsdale Boulevard,48,35,33,38,24841,0.148
 706796393,East Hillsdale Boulevard,48,35,33,38,24841,0.109
@@ -250,8 +281,76 @@ way_id,osm_name,survey_id,posted_mph,median_mph,p85_mph,adt,fit
 1030312848,East Hillsdale Boulevard,48,35,33,38,24841,0.464
 1173378585,East Hillsdale Boulevard,48,35,33,38,24841,0.19
 1194235647,East Hillsdale Boulevard,48,35,33,38,24841,0.426
-145420851,East Hillsdale Boulevard,49,35,32,37,32600,0.514
-256400248,East Hillsdale Boulevard,49,35,32,37,32600,0.517
+23947271,East Hillsdale Boulevard,49,35,32,37,32600,0.199
+25374813,East Hillsdale Boulevard,49,35,32,37,32600,0.32
+37410443,East Hillsdale Boulevard,49,35,32,37,32600,0.369
+37410444,East Hillsdale Boulevard,49,35,32,37,32600,0.261
+44421282,East Hillsdale Boulevard,49,35,32,37,32600,0.339
+44421285,East Hillsdale Boulevard,49,35,32,37,32600,0.388
+44421286,East Hillsdale Boulevard,49,35,32,37,32600,0.21
+44421288,East Hillsdale Boulevard,49,35,32,37,32600,0.227
+44421292,East Hillsdale Boulevard,49,35,32,37,32600,0.14
+51865269,East Hillsdale Boulevard,49,35,32,37,32600,0.284
+96024392,East Hillsdale Boulevard,49,35,32,37,32600,0.399
+97522347,East Hillsdale Boulevard,49,35,32,37,32600,0.284
+145420851,East Hillsdale Boulevard,49,35,32,37,32600,0.465
+145420852,East Hillsdale Boulevard,49,35,32,37,32600,0.369
+256400248,East Hillsdale Boulevard,49,35,32,37,32600,0.464
+392680085,East Hillsdale Boulevard,49,35,32,37,32600,0.034
+392680086,East Hillsdale Boulevard,49,35,32,37,32600,0.023
+392680087,East Hillsdale Boulevard,49,35,32,37,32600,0.238
+392680088,East Hillsdale Boulevard,49,35,32,37,32600,0.085
+392680089,East Hillsdale Boulevard,49,35,32,37,32600,0.311
+392680090,East Hillsdale Boulevard,49,35,32,37,32600,0.081
+392680091,East Hillsdale Boulevard,49,35,32,37,32600,0.251
+392680092,East Hillsdale Boulevard,49,35,32,37,32600,0.039
+392680093,East Hillsdale Boulevard,49,35,32,37,32600,0.013
+392680094,East Hillsdale Boulevard,49,35,32,37,32600,0.128
+392680095,East Hillsdale Boulevard,49,35,32,37,32600,0.109
+392680096,East Hillsdale Boulevard,49,35,32,37,32600,0.126
+406949515,East Hillsdale Boulevard,49,35,32,37,32600,0.11
+417318814,East Hillsdale Boulevard,49,35,32,37,32600,0.165
+417318820,East Hillsdale Boulevard,49,35,32,37,32600,0.479
+417318824,East Hillsdale Boulevard,49,35,32,37,32600,0.193
+417318827,East Hillsdale Boulevard,49,35,32,37,32600,0.321
+417318829,East Hillsdale Boulevard,49,35,32,37,32600,0.416
+417318834,East Hillsdale Boulevard,49,35,32,37,32600,0.413
+417318836,East Hillsdale Boulevard,49,35,32,37,32600,0.118
+417318837,East Hillsdale Boulevard,49,35,32,37,32600,0.463
+417318840,East Hillsdale Boulevard,49,35,32,37,32600,0.136
+417318842,East Hillsdale Boulevard,49,35,32,37,32600,0.17
+417318844,East Hillsdale Boulevard,49,35,32,37,32600,0.15
+417318846,East Hillsdale Boulevard,49,35,32,37,32600,0.271
+417318848,East Hillsdale Boulevard,49,35,32,37,32600,0.146
+417318849,East Hillsdale Boulevard,49,35,32,37,32600,0.399
+417318851,East Hillsdale Boulevard,49,35,32,37,32600,0.379
+417319025,East Hillsdale Boulevard,49,35,32,37,32600,0.386
+417319046,East Hillsdale Boulevard,49,35,32,37,32600,0.45
+417319062,East Hillsdale Boulevard,49,35,32,37,32600,0.405
+417319075,East Hillsdale Boulevard,49,35,32,37,32600,0.416
+417931962,East Hillsdale Boulevard,49,35,32,37,32600,0.239
+417931964,East Hillsdale Boulevard,49,35,32,37,32600,0.231
+506410027,East Hillsdale Boulevard,49,35,32,37,32600,0.5
+506411148,East Hillsdale Boulevard,49,35,32,37,32600,0.434
+506411151,East Hillsdale Boulevard,49,35,32,37,32600,0.473
+506411154,East Hillsdale Boulevard,49,35,32,37,32600,0.417
+506413572,East Hillsdale Boulevard,49,35,32,37,32600,0.255
+506413573,East Hillsdale Boulevard,49,35,32,37,32600,0.356
+510030730,East Hillsdale Boulevard,49,35,32,37,32600,0.299
+515940823,East Hillsdale Boulevard,49,35,32,37,32600,0.286
+515940824,East Hillsdale Boulevard,49,35,32,37,32600,0.339
+619344096,East Hillsdale Boulevard,49,35,32,37,32600,0.16
+619344097,East Hillsdale Boulevard,49,35,32,37,32600,0.407
+619344105,East Hillsdale Boulevard,49,35,32,37,32600,0.155
+619344119,East Hillsdale Boulevard,49,35,32,37,32600,0.242
+715535747,East Hillsdale Boulevard,49,35,32,37,32600,0.452
+770046976,East Hillsdale Boulevard,49,35,32,37,32600,0.48
+1057214167,East Hillsdale Boulevard,49,35,32,37,32600,0.453
+1057214168,East Hillsdale Boulevard,49,35,32,37,32600,0.461
+1066402020,East Hillsdale Boulevard,49,35,32,37,32600,0.28
+1074229545,East Hillsdale Boulevard,49,35,32,37,32600,0.377
+1074229546,East Hillsdale Boulevard,49,35,32,37,32600,0.369
+1126669560,East Hillsdale Boulevard,49,35,32,37,32600,0.15
 1379240206,36th Avenue,50,25,25,29,1603,0.209
 1379240208,36th Avenue,50,25,25,29,1603,0.366
 619248874,37th Avenue,51,25,26,30,3272,0.27
@@ -456,20 +555,16 @@ way_id,osm_name,survey_id,posted_mph,median_mph,p85_mph,adt,fit
 717819503,South B Street,82,25,30,35,2925,0.422
 717819953,South B Street,111,25,24,29,3367,0.488
 59035967,South Grant Street,83,25,23,26,2183,0.059
-59035968,South Grant Street,85,25,27,31,7208,0.145
-59035969,South Grant Street,85,25,27,31,7208,0.123
-96027341,South Grant Street,85,25,27,31,7208,0.099
-96024394,South Grant Street,85,25,27,31,7208,0.343
+59035968,South Grant Street,83,25,23,26,2183,0.308
+59035969,South Grant Street,83,25,23,26,2183,0.398
+96027341,South Grant Street,83,25,23,26,2183,0.5
+96024394,South Grant Street,84,25,23,26,3521,0.435
 96024408,South Grant Street,84,25,23,26,3521,0.087
 417348868,South Grant Street,84,25,23,26,3521,0.5
-8935565,South Grant Street,85,25,27,31,7208,0.017
-8935566,South Grant Street,85,25,27,31,7208,0.201
-417932431,South Grant Street,85,25,27,31,7208,0.106
-417932432,South Grant Street,85,25,27,31,7208,0.133
-417932433,South Grant Street,85,25,27,31,7208,0.097
-706780549,South Grant Street,85,25,27,31,7208,0.519
-829790748,South Grant Street,85,25,27,31,7208,0.189
-1424971386,South Grant Street,85,25,27,31,7208,0.512
+40151774,South Grant Street,85,25,27,31,7208,0.283
+184976925,South Grant Street,85,25,27,31,7208,0.05
+706780549,South Grant Street,85,25,27,31,7208,0.241
+1424971386,South Grant Street,85,25,27,31,7208,0.344
 8926154,Bermuda Drive,86,25,27,30,2852,0.496
 96024388,Bermuda Drive,86,25,27,30,2852,0.496
 1381474094,Bermuda Drive,86,25,27,30,2852,0.326
@@ -496,30 +591,43 @@ way_id,osm_name,survey_id,posted_mph,median_mph,p85_mph,adt,fit
 515942180,Wayne Way,89,25,20,24,614,0.338
 8937020,Roberta Drive,90,25,26,30,2003,0.508
 152300697,Roberta Drive,90,25,26,30,2003,0.055
-8927758,Mariners Island Boulevard,92,35,37,41,17435,0.371
+8927758,Mariners Island Boulevard,91,35,39,43,6289,0.379
 35394502,Mariners Island Boulevard,91,35,39,43,6289,0.353
 35394504,Mariners Island Boulevard,91,35,39,43,6289,0.345
 392683806,Mariners Island Boulevard,91,35,39,43,6289,0.375
 392683821,Mariners Island Boulevard,91,35,39,43,6289,0.426
 392683822,Mariners Island Boulevard,91,35,39,43,6289,0.453
-417309066,Mariners Island Boulevard,92,35,37,41,17435,0.5
+417309066,Mariners Island Boulevard,91,35,39,43,6289,0.509
 417309068,Mariners Island Boulevard,91,35,39,43,6289,0.258
-417309071,Mariners Island Boulevard,92,35,37,41,17435,0.138
-417309073,Mariners Island Boulevard,92,35,37,41,17435,0.423
-417309074,Mariners Island Boulevard,92,35,37,41,17435,0.259
-417309075,Mariners Island Boulevard,92,35,37,41,17435,0.479
-417309076,Mariners Island Boulevard,92,35,37,41,17435,0.111
+417309071,Mariners Island Boulevard,91,35,39,43,6289,0.143
+417309073,Mariners Island Boulevard,91,35,39,43,6289,0.431
+417309074,Mariners Island Boulevard,91,35,39,43,6289,0.265
+417309075,Mariners Island Boulevard,91,35,39,43,6289,0.488
+417309076,Mariners Island Boulevard,91,35,39,43,6289,0.116
 417309077,Mariners Island Boulevard,91,35,39,43,6289,0.234
-417309078,Mariners Island Boulevard,92,35,37,41,17435,0.262
-417309079,Mariners Island Boulevard,92,35,37,41,17435,0.229
+417309078,Mariners Island Boulevard,91,35,39,43,6289,0.268
+417309079,Mariners Island Boulevard,91,35,39,43,6289,0.235
 417309082,Mariners Island Boulevard,91,35,39,43,6289,0.229
 417309084,Mariners Island Boulevard,91,35,39,43,6289,0.202
-417309086,Mariners Island Boulevard,92,35,37,41,17435,0.135
-417328129,Mariners Island Boulevard,91,35,39,43,6289,0.505
+417309086,Mariners Island Boulevard,91,35,39,43,6289,0.14
+417328129,Mariners Island Boulevard,92,35,37,41,17435,0.503
 417328130,Mariners Island Boulevard,91,35,39,43,6289,0.495
 706523333,Mariners Island Boulevard,91,35,39,43,6289,0.218
-706523348,Mariners Island Boulevard,92,35,37,41,17435,0.486
-979744304,Mariners Island Boulevard,92,35,37,41,17435,0.446
+706523348,Mariners Island Boulevard,91,35,39,43,6289,0.494
+979744304,Mariners Island Boulevard,91,35,39,43,6289,0.455
+23947217,Mariners Island Boulevard,92,35,37,41,17435,0.5
+30794067,Mariners Island Boulevard,92,35,37,41,17435,0.377
+35394491,Mariners Island Boulevard,92,35,37,41,17435,0.512
+35394496,Mariners Island Boulevard,92,35,37,41,17435,0.059
+35394500,Mariners Island Boulevard,92,35,37,41,17435,0.06
+35394501,Mariners Island Boulevard,92,35,37,41,17435,0.36
+97522348,Mariners Island Boulevard,92,35,37,41,17435,0.46
+392683801,Mariners Island Boulevard,92,35,37,41,17435,0.352
+392683807,Mariners Island Boulevard,92,35,37,41,17435,0.408
+392683809,Mariners Island Boulevard,92,35,37,41,17435,0.02
+392683811,Mariners Island Boulevard,92,35,37,41,17435,0.19
+392683815,Mariners Island Boulevard,92,35,37,41,17435,0.249
+392683819,Mariners Island Boulevard,92,35,37,41,17435,0.13
 8934971,Alameda de las Pulgas,93,30,32,36,11072,0.291
 417317620,Alameda de las Pulgas,93,30,32,36,11072,0.459
 573567518,Alameda de las Pulgas,93,30,32,36,11072,0.065
@@ -564,8 +672,24 @@ way_id,osm_name,survey_id,posted_mph,median_mph,p85_mph,adt,fit
 619344123,Alameda de las Pulgas,96,30,34,37,9770,0.06
 1153618956,Alameda de las Pulgas,96,30,34,37,9770,0.43
 1153618959,Alameda de las Pulgas,96,30,34,37,9770,0.491
-1379240207,Alameda de las Pulgas,97,30,32,36,8088,0.501
-1379240209,Alameda de las Pulgas,97,30,32,36,8088,0.519
+1379240207,Alameda de las Pulgas,97,30,32,36,8088,0.498
+32009268,Alameda de las Pulgas,97,30,32,36,8088,0.288
+43991927,Alameda de las Pulgas,97,30,32,36,8088,0.289
+417322572,Alameda de las Pulgas,97,30,32,36,8088,0.434
+417322574,Alameda de las Pulgas,97,30,32,36,8088,0.391
+417322575,Alameda de las Pulgas,97,30,32,36,8088,0.483
+417322577,Alameda de las Pulgas,97,30,32,36,8088,0.441
+417322579,Alameda de las Pulgas,97,30,32,36,8088,0.436
+417322581,Alameda de las Pulgas,97,30,32,36,8088,0.447
+417322585,Alameda de las Pulgas,97,30,32,36,8088,0.377
+417322590,Alameda de las Pulgas,97,30,32,36,8088,0.465
+417322595,Alameda de las Pulgas,97,30,32,36,8088,0.388
+417322601,Alameda de las Pulgas,97,30,32,36,8088,0.399
+417951099,Alameda de las Pulgas,97,30,32,36,8088,0.493
+520590877,Alameda de las Pulgas,97,30,32,36,8088,0.382
+972726441,Alameda de las Pulgas,97,30,32,36,8088,0.141
+972726442,Alameda de las Pulgas,97,30,32,36,8088,0.145
+1379240209,Alameda de las Pulgas,97,30,32,36,8088,0.472
 8929084,Hacienda Street,98,25,22,27,2169,0.17
 573508483,Hacienda Street,98,25,22,27,2169,0.11
 619248885,Hacienda Street,98,25,22,27,2169,0.49
