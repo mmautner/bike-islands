@@ -24,7 +24,6 @@
 [standard] BMP-22: Hobart Av Edinburgh St–B St (Bike Blvd): jogs along Alameda de las Pulgas, which doesn't count
 [standard] BMP-23: Barneson Av Ashwood Dr–B St (Bike Blvd): B St taken as where the street ends in San Mateo
 [standard] BMP-23: Murphy Dr City Limit–Ashwood Dr (Bike Blvd): City Limit taken as where the street ends in San Mateo
-[standard] BMP-24: 9th Av El Camino Real–B St (Bike Lane): 2 of 21 pieces still wouldn't count
 [standard] BMP-25: Alameda de las Pulgas 26th Av–City Limit (Buffered BL): 134 of 134 pieces still wouldn't count
 [standard] BMP-25: Alameda de las Pulgas 26th Av–City Limit (Buffered BL): City Limit taken as where the street ends in San Mateo
 [standard] BMP-25: Alameda de las Pulgas Crystal Springs Rd–26th Av (Bike Lane): 114 of 137 pieces still wouldn't count
@@ -37,9 +36,7 @@
 [standard] BMP-32: De Anza Bl SR-92–Parkwood Dr (Bike Lane): SR-92 taken as where the street ends in San Mateo
 [standard] BMP-35: Hillsdale Bl 31st Av–Hillsdale Pl (Bike Lane): 91 of 91 pieces still wouldn't count
 [standard] BMP-39: Caltrain Crossing El Camino Real–Pacific Bl (Shared-Use Path): not a street in OpenStreetMap (new construction?)
-[standard] BMP-3: Humboldt St City Limit–Poplar Av (Bike Blvd): 3 of 33 pieces still wouldn't count
 [standard] BMP-3: Humboldt St City Limit–Poplar Av (Bike Blvd): City Limit taken as where the street ends in San Mateo
-[standard] BMP-3: Humboldt St Poplar Av–9th Av (Bike Lane): 1 of 135 pieces still wouldn't count
 [standard] BMP-41: 40th Av Pasadena Dr–Casanova Dr (Bike Blvd): no connected route from Pasadena Dr to Casanova Dr
 [standard] BMP-41: Casanova Dr 40th Av–Casanova Park (Bike Blvd): Casanova Park taken as where the street ends in San Mateo
 [standard] BMP-41: Casanova Park Connector Casanova Dr–Laurie Meadows Dr (Shared-Use Path): not a street in OpenStreetMap (new construction?)

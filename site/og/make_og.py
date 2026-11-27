@@ -4,7 +4,7 @@ page (og/island/, og/fix/), and one per place page (og/places/<slug>.png).
     ../san-mateo-speeds/pipeline/.venv/bin/python site/og/make_og.py   # after build_site.py (needs Pillow)
 
 Same look as ../san-mateo-speeds/site/og/make_og.py: maxmautner.com's dark tokens, Newsreader title,
-IBM Plex Sans labels. The map shows the strict ("kids and cautious riders") standard, with the largest
+IBM Plex Sans labels. The map shows the strict ("cautious riders and kids") standard, with the largest
 island in the accent color, stressful streets light, and the two Caltrain stations marked.
 """
 import sys

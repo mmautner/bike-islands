@@ -13,8 +13,10 @@ import sys
 
 from islands import build, islands, dist, mph, lanes, station_test, oneway
 from homes import blocks, snap
+from spread import place, is_street
 
 DETOUR = 1.25
+SPREAD = True    # spread each block's homes along its streets (spread.py) instead of its internal point
 RADIUS_M = 2 * 1609  # homes within this ride of the station
 STATIONS = ["Burlingame", "San Mateo", "Hayward Park", "Hillsdale"]
 CITIES = ["San Mateo", "Burlingame"]
@@ -120,6 +122,7 @@ def setup(path, tier, detail=None):
     all_edges.oneway = {w["id"]: oneway(w["tags"]) for w, _, _, _ in ws if oneway(w["tags"])}
     low_edges = LowEdges()   # (a, b, L, wid)
     low_edges.oneway = {w["id"]: oneway(w["tags"]) for w, _, _, low in ws if low and oneway(w["tags"])}
+    low_edges.street = {w["id"] for w, _, _, low in ws if low and is_street(w["tags"])}   # where homes go (spread.py)
     high_edges = []  # (na, nb, L, wid)
     low_nodes = set()
     for w, r, _, low in ws:
@@ -136,7 +139,9 @@ def setup(path, tier, detail=None):
                 low_nodes.add(key(ns[i], w["id"], i, "out"))
                 low_nodes.add(key(ns[i + 1], w["id"], i + 1, "in"))
     adj_all = low_adj(all_edges)
-    snapped, unsnapped = snap(blocks(), low_nodes, lambda k: coord[base(k)])
+    # each block's homes along the low-stress streets in and around it (spread.py); SPREAD off: at its internal point
+    snapped, unsnapped = (place(blocks(), low_edges, lambda k: coord[base(k)], dist) if SPREAD
+                          else snap(blocks(), low_nodes, lambda k: coord[base(k)]))
     # origins: {(node, city): housing units}
     origins = collections.Counter()
     for k, lst in snapped.items():

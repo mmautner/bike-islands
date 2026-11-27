@@ -161,15 +161,20 @@ def ok(dd, dl):
 
 
 def kid_origins(low_edges, coord):
-    """{(node, city): people under 18}, from data/raw/pl_blocks_06081_2020.json, snapped like homes. None without it."""
+    """{(node, city): people under 18}, from data/raw/pl_blocks_06081_2020.json, placed like homes. None without it."""
     f = os.path.join(RAW, "pl_blocks_06081_2020.json")
     if not os.path.exists(f):
         return None
     rows = json.load(open(f))
     kids = {"".join(r[2:6]): int(r[0]) - int(r[1]) for r in rows[1:]}
     blks = [(g, la, lo, kids.get(g, 0), c) for g, la, lo, _, c in blocks()]
-    low_nodes = {k for a, b, _, _ in low_edges for k in (a, b)}
-    snapped, _ = snap(blks, low_nodes, lambda k: coord[base(k)])
+    from connectivity import SPREAD
+    from spread import place
+    if SPREAD:     # placed like homes (spread.py)
+        snapped, _ = place(blks, low_edges, lambda k: coord[base(k)], dist)
+    else:
+        low_nodes = {k for a, b, _, _ in low_edges for k in (a, b)}
+        snapped, _ = snap(blks, low_nodes, lambda k: coord[base(k)])
     out = collections.Counter()
     for k, lst in snapped.items():
         for n, city in lst:

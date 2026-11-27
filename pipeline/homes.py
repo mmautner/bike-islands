@@ -20,7 +20,8 @@ def inside(pt, rings):
     return c
 
 
-def blocks():
+def blocks(field="HU100"):
+    """[(GEOID, lat, lon, count, city)] for blocks with homes: count is housing units, or field (POP100, residents)."""
     places = json.load(open(os.path.join(RAW, "places_2020.json")))["features"]
     shapes = [(p["attributes"]["BASENAME"], p["geometry"]["rings"]) for p in places]
     out = []
@@ -30,7 +31,7 @@ def blocks():
             continue
         lat, lon = float(a["INTPTLAT"]), float(a["INTPTLON"])
         city = next((n for n, r in shapes if inside((lon, lat), r)), None)
-        out.append((a["GEOID"], lat, lon, a["HU100"], city))
+        out.append((a["GEOID"], lat, lon, a[field], city))
     return out
 
 

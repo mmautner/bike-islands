@@ -11,6 +11,5 @@ python3 pipeline/sensitivity.py "$OSM" > /dev/null
 python3 pipeline/civic.py
 python3 pipeline/plan_projects.py "$OSM" > /dev/null
 python3 pipeline/tiles.py
-python3 pipeline/plans_check.py
 python3 pipeline/plan_scenarios.py "$OSM" > /dev/null
 echo "data/ rebuilt from $OSM"

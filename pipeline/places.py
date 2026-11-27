@@ -473,6 +473,54 @@ def describe(ctx, key, v):
             "len": round(sum(L.values()))}
 
 
+# --- citywide reach, for the homepage's headline ---------------------------------------------------------------
+
+REACH_CATS = {"grocery": RIDE_M, "park": RIDE_M, "library": RIDE_M, "downtown": RIDE_M, "caltrain": 2 * 1609}
+
+
+def category_reach(ctx, places):
+    """{category: {city: {"homes": [can bike to one, within the ride of one], "people": [...]}}}: for each kind of place,
+    the homes and residents (Census population, placed like homes) within its ride (a mile; Caltrain two) of any of
+    them, and those with a low-stress route to one no more than DETOUR longer than the shortest ride to the nearest."""
+    from homes import blocks
+    from spread import place
+    people = collections.Counter()
+    placed, _ = place(blocks("POP100"), ctx.low_edges, lambda k: ctx.coord[base(k)], dist)
+    for k, lst in placed.items():
+        for n, c in lst:
+            if c in CITIES:
+                people[k] += n
+    city = {}
+    out = {}
+    for cat, ride in REACH_CATS.items():
+        src_all, src_low = [], []
+        for pl in places:
+            if pl["cat"] == cat:
+                a, l = ctx.sources(pl)
+                src_all += a
+                src_low += l
+        if not src_all:
+            continue
+        d_all = dj(ctx.adj_all, src_all, cutoff=ride)
+        d_low = dj(ctx.adj_low, src_low, cutoff=ride * DETOUR + 50) if src_low else {}
+        tot = collections.defaultdict(lambda: {"homes": [0, 0], "people": [0, 0]})
+        for k in set(ctx.W) | set(people):
+            h, p = ctx.W[k][0] if k in ctx.W else 0, people.get(k, 0)
+            dd = d_all.get(base(k))
+            if not (h or p) or dd is None or dd > ride:
+                continue
+            if k not in city:
+                city[k] = city_of(ctx.coord[base(k)])
+            t = tot[city[k]]
+            ok = d_low.get(k, 1e18) <= DETOUR * dd + 50
+            for key, n in (("homes", h), ("people", p)):
+                t[key][1] += n
+                if ok:
+                    t[key][0] += n
+        out[cat] = {c: v for c, v in tot.items() if c in CITIES}
+    return out
+
+
 # --- the city's plan projects (pipeline/plan_model.py, plan_projects.py) -------------------------------------
 
 PLANS_PER_PAGE = 3      # city projects a place page keeps, best first
@@ -575,8 +623,8 @@ def export(path):
                                 "places": [[s, names[s], per[s]] for s in pls[:3]]}
             if e:
                 out[str(isl_id)] = e
-        json.dump({"islands": out, "places": summary}, open(os.path.join(ROOT, "data", f"places_{tier}.json"), "w"),
-                  separators=(",", ":"))
+        json.dump({"islands": out, "places": summary, "reach": category_reach(ctx, places)},
+                  open(os.path.join(ROOT, "data", f"places_{tier}.json"), "w"), separators=(",", ":"))
         print(f"[{tier}] places: {len(out)} islands, {len(summary)} place pages")
 
 

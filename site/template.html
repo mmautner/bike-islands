@@ -159,6 +159,8 @@
   .ask-req { background: var(--bg); border: 1px solid var(--light); border-radius: 10px; padding: 10px 12px; font-size: 14.5px; line-height: 1.5; margin: 0 0 10px; max-width: 75ch; }
   .act-item p.ask-note { font-size: 13px; color: var(--grey); max-width: 75ch; }
   .stale { font-size:14px; background:var(--light); border-left:3px solid var(--copper); padding:6px 10px; margin:0 0 10px; }
+  .placestrip { font-size:15px; line-height:1.5; color:var(--body); margin:6px 0 14px; max-width:720px; }
+  .placestrip .allplaces { font-weight:600; white-space:nowrap; }
   .mapnote { font-size:15px; line-height:1.45; color:var(--ink); margin:10px 0 0; }
   .mapnote .muted { font-size:14px; }
   .legend .ramp { display:inline-flex; vertical-align:middle; margin:0 4px; }
@@ -175,9 +177,10 @@
 /*HEADER*/
   <h1 id="title"></h1>
   <p class="sub" id="subtitle"></p>
+  <!--PLACESTRIP-->
   <div class="riders">
     <div class="seg" role="group" aria-label="Who's riding?">
-      <button data-tier="strict" aria-pressed="true">Kids and cautious riders</button>
+      <button data-tier="strict" aria-pressed="true">Cautious riders and kids</button>
       <button data-tier="standard" aria-pressed="false">Experienced riders</button>
     </div>
     <p class="ridernote"><span id="ridernote"></span> <button class="askquiz" id="openquiz">Not sure? 7 quick questions</button></p>
@@ -609,10 +612,10 @@ const fixWhat = B => {
 };
 // What this map's rating would need there, from pipeline/treatments.py: options, then why it's rated stressful now.
 // The two standards, named by who's riding
-const WHO = {strict: "kids and cautious riders", standard: "experienced riders"};
+const WHO = {strict: "cautious riders and kids", standard: "experienced riders"};
 const whyOf = o => (DATA[tier].why || {})[o && o.why];
 const orList = xs => xs.length > 1 ? xs.slice(0, -1).join("; ") + "; or " + xs[xs.length - 1] : xs[0];
-function needText(o, t = tier) {      // "Would count for kids and cautious riders with a protected bike lane; or a 25 mph limit, ..."
+function needText(o, t = tier) {      // "Would count for cautious riders and kids with a protected bike lane; or a 25 mph limit, ..."
   const W = whyOf(o), opts = W && W.need[t];
   if (!W) return "";
   if (!opts.length) return `Already counts for ${WHO[t]}.`;
@@ -796,11 +799,10 @@ function schoolTotals(T, city) {
   const cs = city ? [T.school_totals[city]] : Object.values(T.school_totals);
   return {kn: cs.reduce((a, c) => a + c.kn, 0), kok: cs.reduce((a, c) => a + c.kok, 0)};
 }
+const HEADLINE = /*HEADLINE*/;
+const REACH = /*REACH*/;     // places.py: residents within a mile of a grocery store, etc., who can bike to one, by standard     // build_site.py: San Mateo homes and grocery stores, for cautious riders and kids
 function headline() {
-  // fixed headline: San Mateo's kids and elementary schools, kids-and-cautious-riders standard, whichever is showing
-  const t = schoolTotals(DATA.strict, "San Mateo"), n = Math.round(10 * (1 - t.kok / t.kn));
-  document.getElementById("title").textContent =
-    `${n} in 10 San Mateo kids have no bike route to an elementary school that feels safe for them`;
+  document.getElementById("title").textContent = HEADLINE;
   document.getElementById("subtitle").textContent =
     `Quiet streets form islands, cut off from each other by busy streets. ${COARSE ? "Tap" : "Click"} near home to see where you can bike from your door.`;
   document.getElementById("ridernote").textContent = RIDER_NOTE[tier];
@@ -998,13 +1000,16 @@ function panel() {
   if (!sel) {
     const act = document.getElementById("actions"); act.hidden = true; act.innerHTML = "";
     const {kn, kok: ko} = schoolTotals(T);
+    // people within a 1-mile ride of a grocery store who can bike to one, both cities (places.py "reach")
+    const g = Object.values((REACH[tier] || {}).grocery || {}).reduce((a, c) => [a[0] + c.people[0], a[1] + c.people[1]], [0, 0]);
+    const grocery = g[1] ? `<div class="stat"><div class="lbl">Grocery store: <strong>${pct(g[0], g[1])}</strong> of ${fmt(g[1])} people within a mile can bike to one</div><div class="bar"><i style="width:${100 * g[0] / g[1]}%"></i></div></div>` : "";
     const school = `<div class="stat"><div class="lbl">Elementary school: <strong>${pct(ko, kn)}</strong> of ${fmt(kn)} kids have a low-stress route to one</div><div class="bar"><i style="width:${100 * ko / kn}%"></i></div></div>`;
     const stations = `<div class="stat"><div class="lbl">Caltrain: share of homes within 2 miles of each station with a low-stress route</div><ul class="stlist">` +
       Object.keys(T.stations).map(st => {
         const [o, n] = share(T, st);
         return `<li><span>${st}</span><b>${pct(o, n)}</b><div class="bar"><i style="width:${100 * o / n}%"></i></div></li>`;
       }).join("") + `</ul></div>`;
-    el.innerHTML = `<h2>Your island</h2>${staleNote()}<p>${COARSE ? "Tap" : "Click"} a street near home. The map lights up every street you can reach from there without riding on, or crossing, a stressful one.</p><p class="muted" style="margin-bottom:4px">For ${WHO[tier]}, across San Mateo and Burlingame:</p>${school}${stations}`;
+    el.innerHTML = `<h2>Your island</h2>${staleNote()}<p>${COARSE ? "Tap" : "Click"} a street near home. The map lights up every street you can reach from there without riding on, or crossing, a stressful one.</p><p class="muted" style="margin-bottom:4px">For ${WHO[tier]}, across San Mateo and Burlingame:</p>${grocery}${school}${stations}`;
     return;
   }
   const I = T.islands[sel] || {homes: 0, ok: {}, near: {}, bridges: []};
@@ -1398,7 +1403,7 @@ function mapnote() {
   const I = T.islands[sel] || {};
   let h = `Colored streets are the ones you can reach from ${heatFrom === "where you clicked" ? "where you clicked" : "this island"} without riding on, or crossing, a stressful street.`;
   const o = otherStandardAt();
-  if (o && tier === "standard") h += ` <span class="muted">For kids and cautious riders, this spot's island shrinks to ${fmt(o.homes)} homes.</span>`;
+  if (o && tier === "standard") h += ` <span class="muted">For cautious riders and kids, this spot's island shrinks to ${fmt(o.homes)} homes.</span>`;
   if (o && tier === "strict" && o.homes > (I.homes || 0)) h += ` <span class="muted">For experienced riders, it grows to ${fmt(o.homes)} homes.</span>`;
   el.innerHTML = h;
 }
@@ -1677,7 +1682,7 @@ function qrender() {
     const t = adult ? "standard" : "strict";
     let msg = adult
       ? "<p>Your map: <strong>experienced riders</strong>. You'd be comfortable on every kind of street and crossing it counts.</p>"
-      : "<p>Your map: <strong>kids and cautious riders</strong>. The other map counts at least one kind of street or crossing you'd be uncomfortable on.</p>";
+      : "<p>Your map: <strong>cautious riders and kids</strong>. The other map counts at least one kind of street or crossing you'd be uncomfortable on.</p>";
     if (ans.a1 >= 3) msg += "<p>Even quiet residential streets feel uncomfortable to you, so the map may still show more routes than you'd use.</p>";
     const type = ans.a2 === 1 ? "strong and fearless" : ans.a3 === 1 ? "enthused and confident" : "interested but concerned";
     msg += `<p class="muted">In Dill and McNeil's national survey, your answers to questions 2 and 3 would make you "${type}."</p>`;

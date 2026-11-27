@@ -4,10 +4,35 @@ Compared 2026-11-26, after the Grant St survey fix (the pipeline run of that dat
 but a project in an adopted plan is what qualifies for outside grants, so "is it in a plan?" is the first question
 for any fix we promote. Burlingame's plans haven't been gathered yet.
 
+## Update, later on 2026-11-26: homes spread across their blocks, and Street View checks
+
+Two changes after the comparison below was written:
+- **Street View checks.** All 12 rows of `../field_checks/TO_CHECK.md` are done, and the corrections are in
+  `../field_checks/overrides.csv`.
+  - 1st Ave (Railroad to Main) and S B St (5th to 8th) have painted lanes.
+  - 9th Ave, E Poplar and N Humboldt have 2 through lanes; the third lane at each signal is a turn pocket.
+  - Those fixes are gone: those homes already had a route.
+- **Homes spread across their blocks** (`pipeline/spread.py`). Each block's homes were placed at its center. San
+  Mateo High School's block (1,005 homes over 28 ha) had all of them stacked on a campus parking aisle. They are now
+  spread along the block's streets.
+  - **The N Delaware jog fix is gone.** The "1,005 homes behind one driveway" were this artifact, so the N Delaware
+    findings below are retracted: the fix, its plan comparison and the scenario.
+  - **For experienced riders, project 15 (3rd/4th Ave) now reaches 281 of our 2nd Ave fix's 465 homes (60%), not
+    all of them.** For kids it reaches 659 of 804 (82%).
+  - **Peninsula Ave grows** as the biggest gap in both maps.
+
+Since then, plan coverage is computed on every run, not kept by hand:
+- station fixes in `fix_coverage.csv`
+- each place-page fix's plan status in `data/places/<standard>/<slug>.json`
+
+`alignment.csv` is the hand review as of the comparison below, before the home-placement change. Some of its
+`where` texts no longer match current fixes.
+
 ## Files
 
-- `alignment.csv`: one row per San Mateo fix (rider standard + the fix's exact `where` text from `data/bridges.csv`
-  or a place page), with the homes it connected on 2026-11-26, a verdict, the plan projects it touches, and notes.
+- `alignment.csv`: the hand review, one row per San Mateo fix as of the comparison below (rider standard + the fix's
+  `where` text at the time), with the homes it connected, a verdict, the plan projects it touches, and notes.
+  Current coverage is computed: see `fix_coverage.csv` and the place pages' plan status.
 - `bmp_2020_projects.csv`: the 2020 Bicycle Master Plan's full project list (Table 6.3), one row per segment,
   transcribed so nobody has to re-extract the PDF. `project` numbers repeat across a project's segments; cost is on
   the first row (`cost_level2` = the permanent, curb-separated version where the plan gives one).
@@ -16,9 +41,6 @@ for any fix we promote. Burlingame's plans haven't been gathered yet.
 - `project_scores.csv`, `fix_coverage.csv`, `project_notes.txt`, `other_projects.csv`: every city project scored
   for each station, and how much of each of our station fixes they cover (below); `pipeline/plan_projects.py`
   (run by `run.sh`) rewrites them. `pipeline/plan_model.py` holds what both scripts share.
-- `pipeline/plans_check.py` lists fixes with no row in `alignment.csv`. Run it after the pipeline: only the fixes it
-  prints need reading against the plans. It checks every fix to San Mateo, Hayward Park and Hillsdale stations,
-  and San Mateo place-page fixes for 500 or more homes.
 
 Verdicts:
 - `matches`: a plan proposes a treatment on the same span that our map says would count.

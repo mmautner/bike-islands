@@ -27,19 +27,45 @@ DATA = {t: json.load(open(os.path.join(HERE, "data", f"map_{t}.json"))) for t in
 e = html.escape
 
 
-def headline_share():
-    """Same number the page's title computes: of every 10 San Mateo kids within 2 miles of a public elementary
-    school, how many have no low-stress route to one for kids and cautious riders (the strict standard)."""
+def headline():
+    """The homepage's headline, about the reader's own errands: of every 10 San Mateo residents within a 1-mile ride of
+    a grocery store, how many have no route to one on paths and quiet streets (cautious riders and kids; places.py's
+    "reach"). Without that data, the earlier one about kids and elementary schools."""
+    pf = os.path.join(HERE, "data", "places_strict.json")
+    r = json.load(open(pf)).get("reach", {}).get("grocery", {}).get("San Mateo", {}).get("people") if os.path.exists(pf) else None
+    if r and r[1]:
+        return f"{round(10 * (1 - r[0] / r[1]))} in 10 San Mateo residents can't bike to a grocery store without riding on a busy street"
     t = DATA["strict"]["school_totals"]["San Mateo"]
-    return round(10 * (1 - t["kok"] / t["kn"]))
+    return f"{round(10 * (1 - t['kok'] / t['kn']))} in 10 San Mateo kids have no bike route to an elementary school that feels safe for them"
 
 
-HEADLINE = f"{headline_share()} in 10 San Mateo kids have no bike route to an elementary school that feels safe for them"
+HEADLINE = headline()
+
+
+def reach():
+    """{standard: {category: {city: {"homes", "people"}}}} from places.py, for the panel's citywide rows."""
+    out = {}
+    for t in ("strict", "standard"):
+        pf = os.path.join(HERE, "data", f"places_{t}.json")
+        out[t] = json.load(open(pf)).get("reach", {}) if os.path.exists(pf) else {}
+    return out
+
+# places the homepage names to lead people to the place pages: ones most people here know (slug, how it's named)
+FEATURED_PLACES = [("downtown", "Downtown San Mateo"), ("central-park", "Central Park"), ("trader-joes-grant", "Trader Joe's"),
+                   ("main-library", "the main library"), ("san-mateo-caltrain", "San Mateo Caltrain")]
+
+
+def place_strip():
+    """The homepage's line of links into the place pages, and to the list of all of them."""
+    n = len(json.load(open(os.path.join(HERE, "site", "places.json")))["places"])
+    links = " · ".join(f'<a href="places/{s}/">{e(name)}</a>' for s, name in FEATURED_PLACES)
+    return (f'<p class="placestrip">Or start from a place: who can bike to {links}? '
+            f'<a class="allplaces" href="places/">See all {n} places &rarr;</a></p>')
 
 
 TITLE = "Find your bike island: San Mateo and Burlingame"
-DESCRIPTION = (f"{HEADLINE}. Click near home to see your island, the schools and Caltrain stations it reaches, "
-               "and the fixes that would connect it.")
+DESCRIPTION = (f"{HEADLINE}. Click near home to see where you can bike from your door (grocery stores, parks, "
+               "schools, Caltrain) and the fixes that would connect you.")
 
 # the same header as maxmautner.com and the speeds and crashes pages
 HEADER = """<header role="banner">
@@ -148,7 +174,7 @@ def civic():
 ABBR = {"Avenue": "Ave", "Street": "St", "Drive": "Dr", "Road": "Rd", "Boulevard": "Blvd", "Lane": "Ln",
         "Court": "Ct", "Place": "Pl", "North": "N", "South": "S", "East": "E", "West": "W"}
 # The two standards, named by who's riding (share addresses made earlier keep their "-most-adults" suffix)
-WHO = {"strict": "kids and cautious riders", "standard": "experienced riders"}
+WHO = {"strict": "cautious riders and kids", "standard": "experienced riders"}
 
 
 def short(name):
@@ -393,7 +419,7 @@ def place_body(P, civ):
          f'{"Only " if kok < k / 2 else ""}<strong>{kok:,}</strong> of them can get there without riding on a busy street.</p>',
          f'<div class="bar" role="img" aria-label="{pct(kok, k)} can bike there safely, {pct(cant, k)} can\'t"><i style="width:{100 * kok / max(k, 1):.1f}%"></i></div>',
          f'<div class="barlab"><span class="c"><b>{pct(kok, k)}</b> can bike there</span><span class="x"><b>{pct(cant, k)}</b> can\'t</span></div>',
-         f'<p class="note">This is the map for kids and cautious riders: paths and quiet streets only, never on busy streets, never across '
+         f'<p class="note">This is the map for cautious riders and kids: paths and quiet streets only, never on busy streets, never across '
          f'El Camino. Of the {tot["homes"]:,} homes within a mile, {ok["homes"]:,} have a route like that.</p>',
          '<p class="note">Each dot is a block, sized by how many kids live there. Green blocks have a route; copper blocks don\'t.</p>' +
          (f'<p class="note">The main map counts homes within 2 miles of each station; this page counts kids within 1 mile.</p>'
@@ -584,6 +610,8 @@ def main():
                 .replace("/*STDURL*/", json.dumps(std_url))
                 .replace("/*STREETS*/", open(os.path.join(HERE, "data", "streets.json")).read())
                 .replace("/*CIVIC*/", json.dumps(civic(), separators=(",", ":")))
+                .replace("/*HEADLINE*/", json.dumps(HEADLINE)).replace("/*REACH*/", json.dumps(reach(), separators=(",", ":"))).replace("<!--PLACESTRIP-->", place_strip())
+                .replace('<h1 id="title"></h1>', f'<h1 id="title">{e(HEADLINE)}</h1>')
                 .replace("/*SHARE*/", json.dumps(manifest, separators=(",", ":")))
                 .replace("/*TILEBASE*/", json.dumps(f"{BASE}data/tiles/")).replace("/*TILEV*/", json.dumps(tile_v))
                 .replace("/*DATA*/", json.dumps({"strict": OV["strict"]}, separators=(",", ":")))
