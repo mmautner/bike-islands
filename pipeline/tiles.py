@@ -98,6 +98,21 @@ def main():
                     out["islands"][i]["pl"] = e
         else:
             print(f"{tier}: no {pf}; run pipeline/places.py --export for the islands' places")
+        # city plan projects (pipeline/plan_projects.py): the projects, each island's as "pj" ([entry, homes as it
+        # stands, homes if crossings of its own street were made safe]), and each fix's place in the plans as "plan"
+        # ([project, bucket, share as it stands, share with those crossings])
+        qf = os.path.join(DATA, f"plans_{tier}.json")
+        if os.path.exists(qf):
+            Q = json.load(open(qf))
+            out["projects"], out["pentries"] = Q["projects"], Q["entries"]
+            for i, e in Q["islands"].items():
+                if i in out["islands"]:
+                    out["islands"][i]["pj"] = e
+            for B in out["bridges"]:
+                if f'{B["id"]}|{B["st"]}' in Q["fixes"]:
+                    B["plan"] = Q["fixes"][f'{B["id"]}|{B["st"]}']
+        else:
+            print(f"{tier}: no {qf}; run pipeline/plan_projects.py for the city's projects")
         out.update(packed=overview, origin=[oy, ox], tiles=sorted(tiles), tile_size=[TILE_LAT, TILE_LON])
         json.dump(out, open(os.path.join(DATA, f"overview_{tier}.json"), "w"), separators=(",", ":"))
         full = os.path.getsize(os.path.join(DATA, f"map_{tier}.json"))

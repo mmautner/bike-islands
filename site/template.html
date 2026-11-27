@@ -1,7 +1,7 @@
 /*HEAD*/
 <style>
   /* page colors map onto maxmautner.com's tokens (site.css), so the dark-mode toggle works */
-  :root { --ink: var(--text); --body: var(--text-2); --grey: var(--text-3); --light: var(--surface-sunken); --copper: var(--accent); --card: var(--surface); }
+  :root { --plan: #2f7f73; --ink: var(--text); --body: var(--text-2); --grey: var(--text-3); --light: var(--surface-sunken); --copper: var(--accent); --card: var(--surface); }
   html, body { overflow-x: hidden; }
   main.bi [hidden] { display: none !important; }   /* .legend's display:flex would otherwise beat the hidden attribute */
   main.bi { max-width: 1100px; margin: 0 auto; padding: 0 20px 40px; font-family: var(--font-sans); color: var(--body); }
@@ -113,6 +113,9 @@
   ul.stlist li { display:grid; grid-template-columns: 1fr 38px 90px; gap:8px; align-items:center; padding:2px 0; }
   ul.stlist b { color:var(--ink); text-align:right; }
   ul.stlist .bar { margin:0; }
+  .planline { margin:10px 0 0; padding:10px 12px; background:var(--card); border-left:3px solid var(--plan); font-size:14px; color:var(--ink); }
+  .planline .need, .fixline .need { display:block; margin-top:4px; }
+  .planst { display:block; margin-top:4px; font-size:13px; color:var(--grey); }
   .fixline { margin:10px 0 0; padding:10px 12px; background:var(--card); border-left:3px solid var(--copper); font-size:14px; color:var(--ink); }
   .need { display:block; font-size:13.5px; color:var(--ink); margin-top:2px; }
   .need b { font-weight:600; }
@@ -206,6 +209,7 @@
         <span id="lg-join" hidden><i style="border-color:#5f87b5"></i>Islands the fix would join to yours</span>
         <span><i style="border-color:var(--ink); border-top-width:2px"></i>Stressful streets</span>
         <span><b class="schdot"></b>Public elementary school</span>
+        <span id="lg-plan" hidden><i style="border-color:var(--plan); border-top-width:4px"></i>The city's planned project</span>
         <span id="lg-fix" hidden>&#9312; Fix, numbered as in the panel</span>
       </div>
     </div>
@@ -272,6 +276,7 @@ function decodeTier(t) {
   t.detail = new Map();                 // tile key -> full lines with routing nodes
   t.loading = new Map();
   for (const B of t.bridges) B.pts = decodePts(B.p);
+  for (const P of t.projects || []) P.lines = (P.p || []).map(p => decodePts(p));
 }
 decodeTier(DATA.strict);
 // --- detail tiles: full geometry and routing nodes, fetched only where they're needed ---
@@ -569,6 +574,9 @@ function draw() {
     const [lx, ly] = spots.find(clear) || spots[0];
     ctx.strokeText(label, lx, ly); ctx.fillStyle = INK; ctx.fillText(label, lx, ly);
   }
+  // the city project that leads for the selected island
+  const LP = leadPlan(T);
+  if (LP) for (const pts of LP.P.lines) if (pts.length > 1) stroke(pts, PLAN_COLOR, 4 * z);
   // fixes for the selected island, drawn last so labels never cover them
   if (sel && T.islands[sel]) {
     topBridges(T, sel).forEach((e, k) => {
@@ -816,9 +824,77 @@ function placeFixLine(F) {
   return `<p class="fixline"><strong>${placeFixWhat(F)}</strong> would let ${pl.length > 1 ? "up to " : ""}${fmt(F.homes)} more homes here bike to ${andList(pl)}.` +
     (F.need && F.need.length ? `<span class="need">It would need ${orList(F.need)}.</span>` : "") + `</p>`;
 }
-// One fix leads, everywhere: the panel, marker 1 on the map, the email and the request to the city. The top
-// Caltrain fix if there is one (it's on the map), else the fix that opens the most places, else what's in the way.
+// --- The city's own plans (pipeline/plan_projects.py) ---
+// Asking the city to finish a project it has already adopted is easier than asking for a new one, so a city
+// project leads when it would connect at least PLAN_COVER of what this map's best fix would. "As it stands" counts
+// only the crossings the project itself makes safe; "crossed" adds safe crossings of the project's own street
+// (a bike lane on Peninsula Ave doesn't make crossing Peninsula Ave easier).
+const PLAN_COVER = 0.75;
+const PLAN_COLOR = getComputedStyle(document.documentElement).getPropertyValue("--plan").trim() || "#2f7f73";
+function allPlans(T, id) {
+  const by = {};
+  for (const [ei, b, w] of ((T.islands[id] || {}).pj || [])) {
+    const E = T.pentries[ei], k = E.pi;
+    by[k] = by[k] || {pi: k, per: {}, perW: {}};
+    by[k].per[E.st] = (by[k].per[E.st] || 0) + b;
+    by[k].perW[E.st] = (by[k].perW[E.st] || 0) + w;
+  }
+  return Object.values(by).map(e => ({...e, max: Math.max(0, ...Object.values(e.per)), maxW: Math.max(0, ...Object.values(e.perW))}))
+    .sort((a, b) => b.max - a.max || b.maxW - a.maxW);
+}
+const capFirst = x => x[0].toUpperCase() + x.slice(1);
+const planRef = P => `${P.ref} of the city's ${P.doc}`;                 // "project 15 of the city's 2020 Bicycle Master Plan"
+const crossList = P => andList(P.cross.map(c => c.replace(/ Avenue$/, " Ave").replace(/ Street$/, " St").replace(/ Boulevard$/, " Blvd")));
+function planCost(P) {
+  if (!P.cost) return "";
+  return P.cost2 ? `estimated ${P.cost}, or ${P.cost2} built with curbs and planters` : `estimated ${P.cost}`;
+}
+// The project that would help this island most, if it leads: {p: entry, P: project, crossed}
+function leadPlan(T) {
+  if (!sel || !T.islands[sel] || !T.projects) return null;
+  const list = topBridges(T, sel), best = list.length ? list[0].max : 0;
+  // on a tie, the project this map's top fix falls under (fix_coverage), so the two tell the same story
+  const mine = list.length ? (T.bridges[list[0].bid].plan || [])[0] : null;
+  const plans = allPlans(T, sel).sort((a, b) => b.max - a.max || (b.pi === mine) - (a.pi === mine) || b.maxW - a.maxW);
+  const asIs = plans.find(p => p.max > 0 && p.max >= PLAN_COVER * best);
+  if (asIs) return {p: asIs, P: T.projects[asIs.pi], crossed: false};
+  const withX = plans.filter(p => p.maxW > 0 && p.maxW >= PLAN_COVER * best && T.projects[p.pi].cross.length)
+    .sort((a, b) => b.maxW - a.maxW)[0];
+  return withX ? {p: withX, P: T.projects[withX.pi], crossed: true} : null;
+}
+function planStation(L) {        // the station the lead project helps most here, and by how many homes
+  const per = L.crossed ? L.p.perW : L.p.per;
+  return Object.entries(per).sort((a, b) => b[1] - a[1])[0];
+}
+function planItem(T, L) {
+  const P = L.P, [st, hu] = planStation(L);
+  const asIs = L.p.per[st] || 0;
+  const gain = L.crossed
+    ? `It would let ${fmt(hu)} more homes here bike to ${st} Caltrain if it also made crossing ${crossList(P)} safe${asIs ? ` (${fmt(asIs)} as planned)` : ""}.`
+    : `It would let ${fmt(hu)} more homes here bike to ${st} Caltrain.`;
+  const meta = [P.priority && P.num ? `${P.priority} priority in the plan` : "", planCost(P)].filter(Boolean).join("; ");
+  return `<p class="planline"><strong>Finish ${planRef(P)}</strong>${P.what ? `: ${P.what}` : ""}. ${gain}` +
+    (meta ? `<span class="need">${capFirst(meta)}.</span>` : "") + `</p>`;
+}
+// Where one of this map's fixes stands in the city's plans
+function planStatus(T, B) {
+  const q = B.plan;
+  if (!q) return "";
+  const [pi, bucket, , sw] = q, P = pi === null || pi === undefined ? null : T.projects[pi];
+  if (bucket === "outside") return "";
+  if (bucket === "project" && P) return `In the city's plans: ${planRef(P)} covers it.`;
+  if (bucket === "project_if_its_street_crossed" && P) return `${capFirst(planRef(P))} covers it only if it also makes crossing ${crossList(P)} safe.`;
+  if ((bucket === "project_with_crossings" || bucket === "plans_together") && P) return `The city's plans would cover it, with safe crossings they don't name yet.`;
+  if (bucket === "partly" && P) return `${capFirst(planRef(P))} reaches about ${Math.round(sw * 100)}% of these homes; the rest isn't in the city's plans.`;
+  return "Not in any of the city's plans yet.";
+}
+
+// One fix leads, everywhere: the panel, the map, the email and the request to the city. A city project that would
+// do nearly as much (leadPlan) if there is one, else the top Caltrain fix (it's on the map), else the fix that opens
+// the most places, else what's in the way.
 function leadFix(T, I, list) {
+  const L = leadPlan(T);
+  if (L) return {kind: "plan", L};
   if (list.length) return {kind: "bridge", e: list[0]};
   if (I.pl && I.pl.fix) return {kind: "place", F: I.pl.fix};
   if (I.gaps) return {kind: "gap"};
@@ -878,6 +954,7 @@ function fixItem(T, e) {
   const sp = SHARE.fixes[tier][B.id];
   return `<li data-fix="${B.id}"${B.id === focusFix ? ' class="focus"' : ""}><a class="fixlink" role="button" href="#t=${tier}&i=${sel}&f=${encodeURIComponent(B.id)}" aria-pressed="${B.id === focusFix}">${fixPlain(B)}</a> would let ${gains}.` +
     (needPlain(B) ? `<span class="need">${needPlain(B)}</span>` : "") +
+    (planStatus(T, B) ? `<span class="planst">${planStatus(T, B)}</span>` : "") +
     whyBlock(B, [needAll(B), joinText(B)]) +
     (sp ? `<a class="sharefix" href="${sp}" data-share="${sp}">Share this fix</a>` : "") + `</li>`;
 }
@@ -935,7 +1012,8 @@ function panel() {
   const lead = leadFix(T, I, list);
   let h = `<h2>This island</h2>${staleNote()}<div><span class="big">${fmt(I.homes)}</span> homes</div>` + summaryBlock(T, I);
   // the one fix
-  if (lead && lead.kind === "bridge") h += `<h3 class="leadh">The fix that would help most</h3><ol class="br lead">${fixItem(T, lead.e)}</ol>`;
+  if (lead && lead.kind === "plan") h += `<h3 class="leadh">The city's own project that would help most</h3>${planItem(T, lead.L)}`;
+  else if (lead && lead.kind === "bridge") h += `<h3 class="leadh">The fix that would help most</h3><ol class="br lead">${fixItem(T, lead.e)}</ol>`;
   else if (lead && lead.kind === "place") h += `<h3 class="leadh">The fix that would help most</h3>${placeFixLine(lead.F)}`;
   else if (lead && lead.kind === "gap") h += gapBlock(I);
   else h += `<p class="muted" style="margin-top:12px">${minor ? "No single fix tested would connect 2% or more of this island's homes to Caltrain."
@@ -955,11 +1033,12 @@ function panel() {
   if (routes.length) { more.push(`<h3>Route details</h3>` + routes.join("")); what.push("route details"); }
   if (I.gaps && (!lead || lead.kind !== "gap")) { more.push(gapBlock(I)); what.push("what's in the way"); }
   const others = [];
-  if (list.length > 1) others.push(`<ol class="br" start="2">${list.slice(1).map(e => fixItem(T, e)).join("")}</ol>`);
+  const rest = lead && lead.kind === "bridge" ? list.slice(1) : list;     // when a city project leads, every fix is "other"
+  if (rest.length) others.push(`<ol class="br" start="${list.length - rest.length + 1}">${rest.map(e => fixItem(T, e)).join("")}</ol>`);
   if (P.fix && lead && lead.kind !== "place") others.push(placeFixLine(P.fix));
   if (list.length && minor) others.push(`<p class="muted">${minor === 1 ? "1 smaller fix" : `${minor} smaller fixes`}, each connecting under 2% of this island's homes, ${minor === 1 ? "isn't" : "aren't"} shown.</p>`);
-  const nOther = Math.max(0, list.length - 1) + (P.fix && lead && lead.kind !== "place" ? 1 : 0);
-  if (others.length) { more.push(`<h3>Other fixes</h3>` + others.join("")); if (nOther) what.push(nOther === 1 ? "1 other fix" : `${nOther} other fixes`); }
+  const nOther = rest.length + (P.fix && lead && lead.kind !== "place" ? 1 : 0);
+  if (others.length) { more.push(`<h3>${lead && lead.kind === "plan" ? "Fixes this map tested" : "Other fixes"}</h3>` + others.join("")); if (nOther) what.push(nOther === 1 ? "1 other fix" : `${nOther} other fixes`); }
   if (more.length) {
     const leadId = lead && lead.kind === "bridge" ? T.bridges[lead.e.bid].id : null;
     const open = moreOpen || (focusFix && focusFix !== leadId) || (focusGap !== null && !(lead && lead.kind === "gap"));
@@ -1029,8 +1108,9 @@ function actionCards(T, I, list, fixText, lead) {
   if (!spot && top) spot = top.pts[Math.floor(top.pts.length / 2)];
   if (!spot) { const L = T.lines.find(L => L.i === sel); spot = L.pts[Math.floor(L.pts.length / 2)]; }
   const {city, district} = whereIs(spot);
-  // the station the email talks about: the top fix's, else the one most homes here are near
-  const st = top ? top.st : Object.keys(T.stations).sort((a, b) => ((I.near || {})[b] || 0) - ((I.near || {})[a] || 0))[0];
+  // the station the email talks about: the lead city project's, else the top fix's, else the one most homes here are near
+  const LP = lead && lead.kind === "plan" ? lead.L : null;
+  const st = LP ? planStation(LP)[0] : top ? top.st : Object.keys(T.stations).sort((a, b) => ((I.near || {})[b] || 0) - ((I.near || {})[a] || 0))[0];
   const n = (I.near || {})[st] || 0, o = (I.ok || {})[st] || 0;
   const link = shareURL();
   const cityCfg = (CIVIC.links || {})[city] || {};
@@ -1053,7 +1133,12 @@ function actionCards(T, I, list, fixText, lead) {
       (n ? (o ? ` For ${WHO[tier]}, ${fmt(o)} of the ${fmt(n)} homes on this island of quiet streets within 2 miles of ${st} Caltrain have a low-stress bike route there.`
               : ` For ${WHO[tier]}, none of the ${fmt(n)} homes on this island of quiet streets within 2 miles of ${st} Caltrain has a low-stress bike route there.`) : "")];
     const consider = city === "San Mateo" ? "Could the city consider it for the Quick Build Mobility Program?" : "Could the city consider it?";
-    if (top) {
+    if (LP) {
+      const [pst, hu] = planStation(LP), P = LP.P;
+      lines.push("", `The city's ${P.doc} already includes a fix that would help here: ${P.ref}${P.what ? ` (${P.what})` : ""}. ` +
+        `It would connect ${fmt(hu)} more homes to ${pst} Caltrain` + (LP.crossed ? `, if it also made crossing ${crossList(P)} safe` : "") +
+        `. Could the city fund and build it?`);
+    } else if (top) {
       const hu = list[0].per[top.st] || list[0].max;
       lines.push("", `The single fix that would help most here is ${fixText(top)}, which would connect ${fmt(hu)} more homes to ${top.st} Caltrain. ${consider}`);
     } else if (F) {
@@ -1063,28 +1148,30 @@ function actionCards(T, I, list, fixText, lead) {
       lines.push("", "What would it take to connect these streets to the rest of the city?");
     }
     lines.push("", "[Add a sentence of your own]", "", link, "", "Thank you,");
-    const subj = top ? `A safe bike connection to ${top.st} Caltrain` : F ? `A safe bike route to ${F.places[0][1]}` : `Bike routes in my neighborhood`;
+    const subj = LP ? `Please build ${LP.P.ref} of the ${LP.P.doc}` : top ? `A safe bike connection to ${top.st} Caltrain` : F ? `A safe bike route to ${F.places[0][1]}` : `Bike routes in my neighborhood`;
     href = `mailto:${toAddr}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(lines.join("\n"))}`;
   }
   const shareBtn = `<button type="button" class="btn${href ? "" : " btn-primary"}" id="share">${CAN_SHARE ? "Share link" : "Copy link"}</button>`;
   let h = `<h2>What you can do</h2><div class="act-item">`;
   if (href) {
-    h += `<p>${intro} The email starts with this island's numbers${top || F ? " and the fix that would help most" : ""}; add a sentence of your own. Or send the link to a neighbor.</p>` +
+    h += `<p>${intro} The email starts with this island's numbers${LP ? " and the city's own project that would help most" : top || F ? " and the fix that would help most" : ""}; add a sentence of your own. Or send the link to a neighbor.</p>` +
          `<p class="act-btns"><a class="btn btn-primary" href="${href}" data-act="email_clicked" data-city="${city}">Email ${salutation}</a>${shareBtn}<span class="muted" id="copied"></span></p>`;
   } else {
     h += `<p>Send the link to a neighbor: it opens the map on this island, with its numbers.</p><p class="act-btns">${shareBtn}<span class="muted" id="copied"></span></p>`;
   }
-  // the request is about the chosen fix, else the lead one, and goes to the city it's in
-  const askE = list.find(e => T.bridges[e.bid].id === focusFix) || list[0];
+  // the request is about the chosen fix, else the lead city project, else the lead fix, and goes to the city it's in
+  const chosen = list.find(e => T.bridges[e.bid].id === focusFix);
+  const askPlan = !chosen && LP;
+  const askE = chosen || (askPlan ? null : list[0]);
   const askB = askE && T.bridges[askE.bid];
-  const askCityName = askB ? whereIs(askB.pts[Math.floor(askB.pts.length / 2)]).city || city : city;
+  const askCityName = askPlan ? "San Mateo" : askB ? whereIs(askB.pts[Math.floor(askB.pts.length / 2)]).city || city : city;
   const askCfg = (CIVIC.links || {})[askCityName] || {};
   if ((askCityName === "San Mateo" || askCityName === "Burlingame") && askCfg.service_request) {
-    const ask = askCity(T, I, askE);
+    const ask = askPlan ? askCityPlan(LP) : askCity(T, I, askE);
     const c = askCityName;
     const form = `<a href="${askCfg.service_request}" data-act="city_concern_clicked" data-city="${c}">Open ${c}'s service request form</a>` +
       (c === "San Mateo" && askCfg.traffic_calming ? `, or <a href="${askCfg.traffic_calming}" data-act="calming_request_clicked" data-city="${c}">request a traffic calming study</a> for your street` : "");
-    h += `<details class="ask"><summary>Or ask the city to look at ${ask.place}</summary>`;
+    h += `<details class="ask"><summary>Or ask the city to ${askPlan ? "prioritize" : "look at"} ${ask.place}</summary>`;
     if (ask.text) {
       h += `<p>Copy this into the city's service request form:</p><div class="ask-req" id="askreq">${ask.text}</div>` +
            `<p><button type="button" class="btn btn-primary" id="askcopy">Copy request</button> <span class="muted" id="askcopied"></span></p>` +
@@ -1143,6 +1230,15 @@ function askCity(T, I, top) {
     (n === 1 ? "it isn't mapped." : n === 2 && E.length === 1 ? "neither is mapped." : "these aren't mapped.") : "";
   return {place, text: parts.join(" "),
           assumed: assumed && `${assumed} If you know otherwise, edit the request before sending it.`};
+}
+
+// The request when a city project leads: finish it
+function askCityPlan(L) {
+  const P = L.P, [st, hu] = planStation(L);
+  const parts = [`Please prioritize ${planRef(P)}${P.what ? `: ${P.what}` : ""}.`,
+    `On the bike islands map (maxmautner.com/bike-islands), it would give about ${fmt(hu)} nearby homes a low-stress bike route to ${st} Caltrain` +
+    (L.crossed ? `, if it also made crossing ${crossList(P)} safe for ${WHO[tier]}.` : ` for ${WHO[tier]}.`)];
+  return {place: P.ref, text: parts.join(" "), assumed: ""};
 }
 
 // The same request for the fix that would let the most homes here bike to everyday places (no Caltrain fix here)
@@ -1295,6 +1391,7 @@ function mapnote() {
     '<i style="border-color:var(--grey)"></i>Small islands';
   // the key's fix marker only once there are fixes on the map
   document.getElementById("lg-fix").hidden = !(sel && T.islands[sel] && topBridges(T, sel).length);
+  document.getElementById("lg-plan").hidden = !leadPlan(T);
   // before a click, the subtitle and the hint say what to do; after one, the panel has the answers
   if (!sel) { el.innerHTML = ""; return; }
   const I = T.islands[sel] || {};

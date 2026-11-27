@@ -16,16 +16,23 @@ generous), and the share all projects together reach. Buckets (COVER = 75%), the
 - partly: all of them together, generous, reach at least 25%
 - none: under 25% even then
 
+For the map page it also writes data/plans_<tier>.json, which tiles.py merges into the overview: each project that
+helps anyone (its words and lines), the homes it would connect on each island (bare and written), and, for each of
+our fixes, its bucket and the project behind it.
+
 Usage: python pipeline/plan_projects.py data/raw/osm_corridor_YYYY-MM-DD.json
-       (writes data/city_plans/project_scores.csv and data/city_plans/fix_coverage.csv)
+       (writes data/city_plans/project_scores.csv, data/city_plans/fix_coverage.csv and data/plans_<tier>.json)
 """
 import collections
 import csv
+import json
 import os
 import sys
 import time
 
 from connectivity import STATIONS
+from export import enc, island_ids
+from islands import islands as mk_islands, barrier, lts
 from plan_model import PlanModel, MODES
 
 HERE = os.path.dirname(__file__)
@@ -49,6 +56,66 @@ def projects():
 def label(p, P):
     first = P["rows"][0]
     return f"{p}: {first['street']}" + (f" +{len(P['rows']) - 1} more" if len(P["rows"]) > 1 else "")
+
+
+MAX_PARTS = 4     # a project's description lists this many pieces at most
+# the page's words for the plan's abbreviations and facilities
+WORDS = {"Av": "Ave", "Bl": "Blvd", "Pk": "Pkwy", "Wy": "Way", "Ci": "Cir", "Ciro": "Crio"}
+FACILITY = {"Bike Lane": "a bike lane", "Buffered BL": "a buffered bike lane", "Separated BL": "a protected bike lane",
+            "Shared-Use Path": "a bike path", "Bike Blvd": "a bike boulevard (a traffic-calmed street)",
+            "Road diet + Bike Lane": "two fewer traffic lanes and a bike lane", "Road diet": "two fewer traffic lanes"}
+
+
+def words(name):
+    name = {"City Limit": "the city limit", "Bay Trail": "the Bay Trail"}.get(name, name)
+    return " ".join(WORDS.get(t, t) for t in name.split())
+
+
+def describe(p, P):
+    """{"title", "what", "doc", "ref"}: "Peninsula Ave", and "a bike lane on Peninsula Ave from Highland Ave to San Mateo
+    Dr; a protected bike lane on Peninsula Ave from San Mateo Dr to Bayshore Blvd". Connected segments of one street
+    with one treatment are one stretch; a treatment's explanation appears once; past MAX_PARTS, the rest are counted.
+    A named crossing reads as "a safer crossing at A and B"."""
+    runs = []    # [facility, street, from, to]
+    for r in P["rows"]:
+        if r["kind"] == "crossing" or r["facility"] not in FACILITY or not r.get("to"):
+            continue
+        if runs and runs[-1][0] == r["facility"] and runs[-1][1] == r["street"] and runs[-1][3] == r["from"]:
+            runs[-1][3] = r["to"]
+        else:
+            runs.append([r["facility"], r["street"], r["from"], r["to"]])
+    parts = []
+    for fac, st, a, b in runs:
+        where = f"{words(st)} from {words(a)} to {words(b)}"
+        if parts and parts[-1][0] == fac:
+            parts[-1][1].append(where)
+        else:
+            parts.append([fac, [where]])
+    lst = lambda ws: ws[0] if len(ws) == 1 else ", ".join(ws[:-1]) + " and " + ws[-1]
+    segs = [f"{FACILITY[fac]} on {lst(ws)}" for fac, ws in parts]
+    if len(segs) > MAX_PARTS:
+        segs = segs[:MAX_PARTS - 1] + [f"and {len(segs) - MAX_PARTS + 1} more pieces"]
+    xs = [f"a safer crossing at {words(r['street'])} and {words(r['from'])}" for r in P["rows"] if r["kind"] == "crossing"]
+    streets = list(dict.fromkeys(words(r["street"]) for r in P["rows"]))
+    title = streets[0] if len(streets) == 1 else (", ".join(streets[:2]) + (" and more" if len(streets) > 2 else ""))
+    if p.startswith("BMP-"):
+        doc, ref = "2020 Bicycle Master Plan", f"project {p.split('-', 1)[1]}"
+    elif p.startswith("PMP-"):
+        doc, ref = "2012 Pedestrian Master Plan", f"priority project {p.split('-', 1)[1]}"
+    else:
+        doc, ref = "2022 plan for walking to Caltrain", "a recommendation"
+    return {"title": title, "what": "; ".join(segs + xs), "doc": doc, "ref": ref}
+
+
+def chains(steps, coord):
+    """A plan's steps as polylines: consecutive steps joined."""
+    out = []
+    for u, v, _ in steps:
+        if out and out[-1][-1] == u:
+            out[-1].append(v)
+        else:
+            out.append([u, v])
+    return [[coord[n] for n in c] for c in out]
 
 
 def bucket(r):
@@ -76,6 +143,22 @@ def main():
                       "own": set().union(*(v["own"] for v in plans.values())),
                       "named": set().union(*(v["named"] for v in plans.values()))}
         print(f"[{tier}] model ready in {time.time() - t0:.0f}s", flush=True)
+        f, key = mk_islands(m.ws, m.bn)
+        iid = island_ids(m.ws, f, key, m.origins, tier)
+        page = {"projects": [], "entries": [], "islands": collections.defaultdict(list), "fixes": {}}
+        pindex = {}
+
+        def page_project(p):
+            if p not in pindex:
+                plan = plans[p]
+                cross = sorted({m.wmap[w]["tags"].get("name", "") for w in plan["own"]
+                                if barrier(plan["after"].get(w, m.wmap[w]["tags"]), lts(plan["after"].get(w, m.wmap[w]["tags"])), tier)} - {""})
+                num = p.split("-", 1)[1] if p.startswith("BMP-") else ""
+                pindex[p] = len(page["projects"])
+                page["projects"].append({"id": p, "num": num, "source": P[p]["source"], "priority": P[p]["priority"],
+                                         "cost": P[p]["cost"], "cost2": P[p]["cost2"], **describe(p, P[p]),
+                                         "cross": cross, "p": [enc(c) for c in chains(plan["steps"], m.coord)]})
+            return pindex[p]
         for st in STATIONS:
             S = m.station(st)
             got = {}
@@ -84,6 +167,17 @@ def main():
                     got[p] = {k: (0, set()) for k in MODES}
                     continue
                 got[p] = {k: S.gain(m.extra(plan, k)) for k in MODES}
+                if got[p]["written"][0] > 0:
+                    # the homes it would connect on each island, bare and written
+                    per = collections.defaultdict(lambda: [0, 0])
+                    for j, k in enumerate(("bare", "written")):
+                        for o in got[p][k][1]:
+                            per[iid(o[0])][j] += S.near[o]
+                    ei = len(page["entries"])
+                    page["entries"].append({"pi": page_project(p), "st": st, "bare": round(got[p]["bare"][0]),
+                                            "written": round(got[p]["written"][0])})
+                    for i, (b, w) in per.items():
+                        page["islands"][str(i)].append([ei, round(b), round(w)])
                 scores.append({"tier": tier, "station": st, "project": p, "source": P[p]["source"],
                                "priority": P[p]["priority"], "cost": P[p]["cost"], "cost_level2": P[p]["cost2"],
                                **{f"homes_{k}": round(got[p][k][0]) for k in ("bare", "written", "generous")},
@@ -109,8 +203,16 @@ def main():
                     row[f"all_plans_share_{k}"] = round(share(allp[k][1]), 3)
                 row["bucket"] = bucket(row)
                 cover.append(row)
+                # the page: the project behind the bucket (bare for "project", else written, else generous)
+                mode = {"project": "bare"}.get(row["bucket"], "written" if row["best_share_written"] > 0 else "generous")
+                b = max(got, key=lambda p: (share(got[p][mode][1]), got[p][mode][0]))
+                page["fixes"][f"{kind}{oid}|{st}"] = [page_project(b) if share(got[b][mode][1]) > 0 else None,
+                                                     row["bucket"], row["best_share_bare"], row["best_share_written"]]
             print(f"[{tier}] {st}: {len(plans)} projects scored ({time.time() - t0:.0f}s); all projects together "
                   f"+{allp['bare'][0]:,.0f} bare, +{allp['written'][0]:,.0f} written, +{allp['generous'][0]:,.0f} generous, of {S.homes(S.near):,.0f} homes near", flush=True)
+        page["islands"] = dict(page["islands"])
+        json.dump(page, open(os.path.join(HERE, "..", "data", f"plans_{tier}.json"), "w"), separators=(",", ":"))
+        print(f"[{tier}] data/plans_{tier}.json: {len(page['projects'])} projects, {len(page['islands'])} islands", flush=True)
     for name, rows in (("project_scores.csv", scores), ("fix_coverage.csv", cover)):
         with open(os.path.join(PLANS, name), "w", newline="") as fh:
             wr = csv.DictWriter(fh, fieldnames=list(rows[0]))

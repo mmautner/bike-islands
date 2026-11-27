@@ -46,7 +46,7 @@ to Caltrain. Served at
   the field where the tags can't say why (South Railroad Ave by San Mateo station); `lts()` returns it as is.
 - `site/places.json`: the places that get their own page, matched to OpenStreetMap by name. San Mateo only until
   Burlingame's speed survey is in. `site/place.html`: the place page template.
-- `site/template.html`: the page (map, rider switch, panel: three answers, the one fix that would help most, the rest folded under "More"; quiz). `site/img/`: quiz photos, cropped from Google
+- `site/template.html`: the page (map, rider switch, panel: three answers, the one fix that would help most, the rest folded under "More"; quiz). The lead is the city's own plan project (`data/plans_<tier>.json`, merged by `tiles.py`) when it would connect at least 75% of what the best fix would (`PLAN_COVER`); each fix says where it stands in the city's plans. `site/img/`: quiz photos, cropped from Google
   Street View screenshots. Not in git until Google's terms for publishing them are checked; the originals are
   Max's 2950×1964 browser screenshots, cropped to the street view and scaled to 1200 px wide:
   `sips -s format jpeg -s formatOptions 82 --cropOffset 693 620 -c 870 2094 IN.png --out OUT.jpg && sips --resampleWidth 1200 OUT.jpg`.
