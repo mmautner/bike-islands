@@ -197,6 +197,7 @@ def untamable(t):
 
 
 OVERRIDES = os.path.join(os.path.dirname(__file__), "..", "data", "field_checks", "overrides.csv")
+EXTRA_OVERRIDES = []   # rows like overrides.csv's, added in code to test a change (peninsula.py's 30 mph); not field checks
 
 
 SURVEY = os.path.join(os.path.dirname(__file__), "..", "data", "survey_matches.csv")
@@ -268,7 +269,7 @@ def apply_overrides(ways):
     """Posted limits from the City of San Mateo 2026 speed survey (data/survey_matches.csv,
     made by pipeline/survey.py), then field-checked values (data/field_checks/overrides.csv)."""
     survey = {int(r["way_id"]): r for r in csv.DictReader(open(SURVEY))} if os.path.exists(SURVEY) else {}
-    rows = list(csv.DictReader(open(OVERRIDES))) if os.path.exists(OVERRIDES) else []
+    rows = (list(csv.DictReader(open(OVERRIDES))) if os.path.exists(OVERRIDES) else []) + EXTRA_OVERRIDES
     for w in ways:
         if w["id"] in survey:
             w["tags"]["maxspeed"] = survey[w["id"]]["posted_mph"] + " mph"
@@ -277,7 +278,10 @@ def apply_overrides(ways):
             if survey[w["id"]].get("adt"):
                 w["tags"]["survey:adt"] = survey[w["id"]]["adt"]
         for r in rows:
-            if w["tags"].get("name") == r["name"] and in_bounds(w["geometry"][0], r):
+            # a row names a street and a box around its ways' first points, or one way as "way:<OSM id>" (where two
+            # ways start at the same point, as at Peninsula Ave and Anita Rd)
+            if (r["name"] == f'way:{w["id"]}' or
+                    (w["tags"].get("name") == r["name"] and in_bounds(w["geometry"][0], r))):
                 w["tags"][r["tag"]] = r["value"]
                 w["tags"]["src:" + r["tag"]] = "field"
 

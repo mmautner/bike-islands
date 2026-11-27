@@ -13,4 +13,5 @@ python3 pipeline/plan_projects.py "$OSM" > /dev/null
 python3 pipeline/tiles.py
 python3 pipeline/plan_scenarios.py "$OSM" > /dev/null
 python3 pipeline/checklist.py "$OSM" > /dev/null
+python3 pipeline/peninsula.py "$OSM" 2> /dev/null      # the Peninsula Avenue page (data/peninsula.json)
 echo "data/ rebuilt from $OSM"

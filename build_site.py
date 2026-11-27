@@ -13,6 +13,7 @@ The 1200x630 preview image (og/index.png) is drawn by site/og/make_og.py, which 
 """
 import datetime
 import hashlib
+import csv
 import html
 import json
 import os
@@ -60,7 +61,8 @@ def place_strip():
     n = len(json.load(open(os.path.join(HERE, "site", "places.json")))["places"])
     links = " · ".join(f'<a href="places/{s}/">{e(name)}</a>' for s, name in FEATURED_PLACES)
     return (f'<p class="placestrip">Or start from a place: who can bike to {links}? '
-            f'<a class="allplaces" href="places/">See all {n} places &rarr;</a></p>')
+            f'<a class="allplaces" href="places/">See all {n} places &rarr;</a> '
+            f'Or a street: <a href="peninsula/">what\'s on the other side of Peninsula Avenue</a>.</p>')
 
 
 TITLE = "Find your bike island: San Mateo and Burlingame"
@@ -581,6 +583,166 @@ def place_pages(civ):
     return len(rows)
 
 
+PEN_PAGES = {"Safeway on Delaware": "safeway-delaware", "Burlingame Caltrain": "burlingame-caltrain",
+             "Martin Luther King Park": "martin-luther-king-park", "Mi Rancho Supermarket": "mi-rancho"}
+SMALL_ACTS = "https://maxmautner.com/2026/11/21/small-acts.html"
+
+
+def r10(n):
+    """People counts on the Peninsula page, to the nearest ten (they're estimates spread from Census blocks)."""
+    return f"{max(0, round(n / 10) * 10):,}"
+
+
+def peninsula_page():
+    """bike-islands/peninsula/: Peninsula Avenue's crossings, for neighbors on both sides (data from peninsula.py)."""
+    src = os.path.join(HERE, "data", "peninsula.json")
+    if not os.path.exists(src):
+        print("warning: data/peninsula.json missing; run pipeline/peninsula.py. No Peninsula page.")
+        return False
+    D = json.load(open(src))
+    rows = {r["label"]: r for r in D["dests"]["strict"]}
+    U = D["union"]["strict"]
+    Ustd = D["union"]["standard"]
+    survey = [r for r in csv.DictReader(open(os.path.join(HERE, "data", "sources", "ets_2026_segments.csv")))
+              if r["street"] == "Peninsula Ave"]
+    east = next(r for r in survey if r["to"] == "Airport Blvd")
+    west = next(r for r in survey if r["from"] == "El Camino Real")
+    home = {"north": "Burlingame", "south": "San Mateo"}
+    path = f"{BASE}peninsula/"
+    url = f"{CFG['site_url']}{path}"
+
+    def dest(label, home_city):
+        c = rows[label]["cities"][home_city]
+        name = (f'<a href="{BASE}places/{PEN_PAGES[label]}/">{e(label)}</a>' if label in PEN_PAGES else e(label))
+        if label == "Safeway on Delaware":
+            return ('<div class="dest"><div class="gain words">The last block</div><p>'
+                    f'<strong>{name}</strong> sits on the San Mateo corner of Peninsula and Delaware. The map already counts '
+                    f'{r10(c["now"][0])} Burlingame residents as able to get there, because it lets you walk your bike the last '
+                    'block of any trip to a store. For everyone north of Peninsula, that last block is across Peninsula, on foot.</p></div>')
+        mins = f", about a {c['minutes']}-minute ride" if c.get("minutes") else ""
+        return (f'<div class="dest"><div class="gain">+{r10(c["gain"][0])}<small>{r10(c["gain"][1])} of them kids</small></div><p>'
+                f'<strong>{name}</strong>{mins}. Of the {r10(c["within"][0])} {home_city} residents within a mile, '
+                f'{r10(c["now"][0])} can bike there on quiet streets and paths today.</p></div>')
+
+    h = ['<p class="crumb"><a href="' + BASE + '">Bike islands</a> · <a href="' + BASE + 'places/">Places</a> · Peninsula Avenue</p>',
+         "<h1>What's on the other side of Peninsula Avenue</h1>",
+         f'<p class="lede">Peninsula Avenue divides Burlingame and San Mateo. Five safe crossings and a 30 mph limit would let '
+         f'<strong>{r10(sum(v[0] for v in U.values()))} neighbors</strong> bike to parks, shops and Caltrain on the other side.</p>',
+         '<div class="switch" role="group" aria-label="Where you live">'
+         '<button type="button" data-side="north" aria-pressed="false">I live north of Peninsula</button>'
+         '<button type="button" data-side="south" aria-pressed="false">I live south of Peninsula</button></div>',
+         '<div class="sides">',
+         '<div class="side north"><h2>North of Peninsula, in Burlingame</h2>'
+         '<p class="who">What safe crossings would open up for you, south of the street</p>',
+         dest("Safeway on Delaware", "Burlingame"), dest("Martin Luther King Park", "Burlingame"),
+         dest("Mi Rancho Supermarket", "Burlingame"),
+         f'<p class="also">And the other way: {r10(rows["Burlingame Avenue"]["cities"]["San Mateo"]["gain"][0])} more San Mateo '
+         'neighbors could bike to Burlingame Avenue\'s shops and restaurants.</p></div>',
+         '<div class="side south"><h2>South of Peninsula, in San Mateo</h2>'
+         '<p class="who">What safe crossings would open up for you, north of the street</p>',
+         dest("Burlingame Avenue", "San Mateo"), dest("Washington Park", "San Mateo"), dest("Victoria Park", "San Mateo"),
+         dest("Burlingame Caltrain", "San Mateo"), '</div>',
+         '</div>',
+         '<div class="mapwrap"><canvas id="map" role="img" aria-label="Map of Peninsula Avenue between El Camino Real and '
+         'Highway 101, with its five crossings circled and dots where the people they would connect live"></canvas>'
+         '<div class="legend"><span><i class="ln" style="background:var(--copper)"></i>Peninsula Avenue</span>'
+         '<span><i class="sw" style="background:var(--card);border:2.5px solid var(--ink)"></i>The five crossings</span>'
+         '<span><i class="sw" style="background:var(--north)"></i>Burlingame residents it would connect</span>'
+         '<span><i class="sw" style="background:var(--south)"></i>San Mateo residents it would connect</span>'
+         '<span><i class="ln" style="background:var(--quiet)"></i>Quiet street</span>'
+         '<span><i class="ln" style="background:var(--busy)"></i>Busy street</span></div></div>']
+
+    # crossing it today
+    lim = {x["at"]: x["speed"] for x in D["crossings"]}
+    h.append('<section><h2>Crossing it today</h2>'
+             '<div class="facts">'
+             f'<div class="fact"><b>{int(east["adt"]):,}</b><span>cars a day east of San Mateo Drive ({int(west["adt"]):,} west of it), '
+             'from the city\'s 2026 speed survey</span></div>'
+             f'<div class="fact"><b>{east["p85"]} mph</b><span>the speed 15% of drivers go faster than, east of San Mateo Drive. '
+             f'It\'s posted {east["existing"]} there, {west["existing"]} west of Anita Road</span></div>'
+             '<div class="fact"><b>0 of 5</b><span>of the crossings below have a traffic signal or an all-way stop</span></div></div>'
+             '<table class="x"><thead><tr><th>Crossing</th><th>Peninsula\'s limit there</th><th>The side streets</th></tr></thead><tbody>')
+    for x in D["crossings"]:
+        legs = "; ".join(f"{e(short(n))} ({e(c)})" for n, c in x["legs"])
+        h.append(f'<tr><td>{e(x["at"])}</td><td>{e(x["speed"] or "")}</td><td>{legs}</td></tr>')
+    h.append('</tbody></table>'
+             '<p class="intro" style="margin-top:14px">The map counts a crossing of Peninsula as safe for cautious riders and kids '
+             'where a signal or an all-way stop gives them a turn and traffic is going 30 mph or slower. Where it\'s 35, it takes both. '
+             f'The same is true on foot with a stroller or a dog. The painted crosswalks and flashing beacons at Highland '
+             f'Avenue started as a single service request; it took almost three years (<a href="{SMALL_ACTS}">how it went</a>).</p></section>')
+
+    # what it would take
+    secs = round(D["stretch_35_m"] / 1609.34 * (1 / 30 - 1 / 35) * 3600)
+    h.append('<section><h2>What it would take</h2><ol class="asks">'
+             '<li><strong>A safe way across at all five intersections</strong>: a signal or an all-way stop at Highland, Lorton, '
+             'Arundel, Clarendon and Humboldt, or a design the cities\' engineers find works as well, like curb extensions '
+             'that shorten the crossing or a raised crosswalk.</li>'
+             f'<li><strong>30 mph along all of Peninsula.</strong> East of Anita Road it\'s 35 today. Over that '
+             f'{D["stretch_35_m"] / 1609.34:.1f}-mile stretch, 30 mph adds about {secs} seconds to a drive, and most drivers already '
+             f'go close to it: half go {east["p50"]} or slower.</li></ol>'
+             '<p class="intro">Neither takes away a traffic lane or a parking space.</p>'
+             '<p class="intro">For experienced riders, 30 mph alone would do most of it: '
+             f'{r10(Ustd.get("San Mateo", [0])[0])} San Mateo and {r10(Ustd.get("Burlingame", [0])[0])} Burlingame residents '
+             'could ride to these places across Peninsula.</p>'
+             '<div class="callout">San Mateo\'s 2020 Bicycle Master Plan already lists bike lanes along Peninsula (project 2, '
+             'high priority). Lanes help people riding along Peninsula. For people going across it, the crossings are what '
+             'matter, so if the project is built, it\'s the chance to add them, along with curb extensions that slow '
+             'turning cars and shorten every crossing.</div></section>')
+
+    # what you can do
+    req = {"Burlingame": (
+        "Please make it safe to cross Peninsula Avenue at Highland Ave, Lorton Ave, Arundel Rd, Clarendon Rd and "
+        "Humboldt St, with a signal or all-way stop or an equivalent design, and work with San Mateo to lower Peninsula's "
+        f"limit to 30 mph east of Anita Rd. {r10(U.get('Burlingame', [0])[0])} Burlingame residents could then bike to Martin "
+        f"Luther King Park on calm streets, and {r10(rows['Burlingame Avenue']['cities']['San Mateo']['gain'][0])} more San "
+        f"Mateo neighbors to Burlingame Avenue. Details: {url}"),
+        "San Mateo": (
+        "Please make it safe to cross Peninsula Avenue at Highland Ave, Lorton Ave/Prospect Row, Woodside Way/Arundel Rd, "
+        "N Claremont St/Clarendon Rd and N Humboldt St, with a signal or all-way stop or an equivalent design, and lower "
+        "Peninsula's limit to 30 mph east of Anita Rd, working with Burlingame. When Bicycle Master Plan project 2 is "
+        f"built, please include these crossings. {r10(U.get('San Mateo', [0])[0])} San Mateo residents could then bike to "
+        f"Burlingame Avenue, Washington Park, Victoria Park and Burlingame Caltrain on calm streets. Details: {url}")}
+    h.append('<section><h2>What you can do</h2>'
+             '<p class="intro">Peninsula belongs to both cities, so ask yours. A short request to the city, followed up, '
+             'is how the Highland crosswalk happened.</p><div class="act-grid">'
+             '<div class="act-item"><h3>Send it across the street</h3><p>Send this page to a neighbor on the other side of '
+             'Peninsula, a parent group or a school newsletter.</p>'
+             '<button type="button" class="btn" id="share">Share link</button> <span class="muted" id="copied"></span></div>')
+    for side, city in (("north", "Burlingame"), ("south", "San Mateo")):
+        cc = CFG["cities"].get(city, {})
+        if not cc.get("service_request"):
+            continue
+        rid = "req-" + side
+        h.append(f'<div class="act-item" data-for="{side}"><h3>If you live in {city}</h3><p>Copy this into {city}\'s service request form:</p>'
+                 f'<div class="ask-req" id="{rid}">{e(req[city])}</div>'
+                 f'<p><button type="button" class="btn" data-copy="{rid}">Copy request</button> <span class="muted"></span></p>'
+                 f'<p><a href="{e(cc["service_request"])}">Open {city}\'s service request form</a>'
+                 + (f', or <a href="{e(cc["traffic_calming"])}">request a traffic calming study</a>' if cc.get("traffic_calming") else "")
+                 + (f', or email the <a href="mailto:{e(cc["council_email"])}">city council</a>' if cc.get("council_email") else "")
+                 + '.</p></div>')
+    h.append('</div></section>')
+    h.append('<div class="how"><h2>How this is counted</h2>'
+             '<p>Someone can bike to a place when a route on paths and quiet streets reaches it and is no more than 25% longer than '
+             'the shortest ride on any street, within a 1-mile ride. Parks are reached at their edge; shops within about a block, '
+             'walking the bike the rest. People and kids are from the 2020 Census, by block, spread along each block\'s streets, '
+             'and counted by the city they live in. These counts are for cautious riders and kids unless noted.</p>'
+             '<p>The crossings are tested by treating each as having a signal or all-way stop, with Peninsula at 30 mph, then counting '
+             'again. Speeds and traffic counts come from the City of San Mateo\'s 2026 speed survey and Street View checks; the '
+             f'rating rules are on the <a href="{BASE}methodology/">methodology page</a>. Engineers may find better designs; the '
+             'counts show who a safe crossing would connect, not which design to build.</p></div>')
+
+    d = os.path.join(OUT, "peninsula")
+    os.makedirs(d, exist_ok=True)
+    title = "What's on the other side of Peninsula Avenue"
+    desc = (f"Safe crossings of Peninsula Avenue would let {r10(U.get('San Mateo', [0])[0])} San Mateo and "
+            f"{r10(U.get('Burlingame', [0])[0])} Burlingame residents bike to parks, shops and Caltrain across the street.")
+    page = (open(os.path.join(HERE, "site", "peninsula.html")).read()
+            .replace("/*HEAD*/", head(title, desc, path)).replace("/*HEADER*/", HEADER).replace("/*FOOTER*/", footer())
+            .replace("/*BODY*/", "\n".join(h)).replace("/*MAP*/", json.dumps(D["map"], separators=(",", ":"))))
+    open(os.path.join(d, "index.html"), "w").write(page)
+    return True
+
+
 def main():
     if os.path.exists(OUT):
         shutil.rmtree(OUT)
@@ -629,6 +791,8 @@ def main():
         + "\n</main>\n</body>\n</html>\n")
 
     print(f"{place_pages(civic())} place pages")
+    if peninsula_page():
+        print("Peninsula Avenue page")
     img = os.path.join(HERE, "site", "img")
     if os.path.isdir(img):
         shutil.copytree(img, os.path.join(OUT, "img"))
