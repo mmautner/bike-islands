@@ -32,7 +32,7 @@ import os
 import sys
 
 from islands import islands as mk_islands, dist
-from connectivity import setup, low_adj, dj, dj_prevs, base, DETOUR, CITIES, street_names, crossing_name
+from connectivity import setup, low_adj, Overlay, dj, dj_prevs, base, DETOUR, CITIES, street_names, crossing_name
 from schools import inside, edge_dist, kid_origins
 from treatments import Explainer
 
@@ -181,6 +181,11 @@ class Ctx:
          self.reaches) = setup(path, tier, self.detail)
         self.f, self.key = mk_islands(self.ws, self.bn)
         self.adj_low = low_adj(self.low_edges)
+        self.copies = collections.defaultdict(set)    # barrier node -> its copies, one per side
+        for a, b, _, _ in self.low_edges:
+            for x in (a, b):
+                if isinstance(x, tuple):
+                    self.copies[x[0]].add(x)
         self.g_all = Grid(list(self.adj_all), lambda n: self.coord[n])
         self.g_low = Grid(list(self.adj_low), lambda k: self.coord[base(k)])
         self.W = collections.defaultdict(lambda: [0, 0])     # origin key -> [homes, kids], San Mateo and Burlingame
@@ -317,7 +322,10 @@ def place_detail(ctx, pl):
             for a, b in v["segs"]:
                 extra.append((a, b, dist(ctx.coord[a], ctx.coord[b])))
                 fixed |= {a, b}
-        return low_adj(ctx.low_edges, extra, fixed), frozenset(fixed)
+        # laid over the network instead of rebuilding it: a fixed node joins every copy of itself (one per side
+        # of a busy crossing) by a zero-length link, which gives the same distances as merging them
+        extra += [(n, c, 0) for n in sorted(fixed, key=repr) for c in sorted(ctx.copies.get(n, ()), key=repr)]
+        return Overlay(ctx.adj_low, extra), frozenset(fixed)
 
     def srcs_fixed(fx):
         return src_low + [n for n in src_all if n in fx]

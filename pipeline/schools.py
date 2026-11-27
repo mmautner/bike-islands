@@ -17,6 +17,7 @@ import csv
 import glob
 import heapq
 import json
+import math
 import os
 import sys
 
@@ -72,6 +73,20 @@ def edge_dist(p, rings):
     return min(seg_dist(p, a, b) for ring in rings for a, b in zip(ring, ring[1:]))
 
 
+def grounds_test(g):
+    """reaches(c): inside the grounds or within GROUNDS_REACH_M of their edge. A point well outside the grounds'
+    bounding box is turned away first, so testing every street node stays cheap; the answer is the same."""
+    m = GROUNDS_REACH_M + 20
+    lats = [p[0] for r in g for p in r]
+    lons = [p[1] for r in g for p in r]
+    dla, dlo = m / 111_000, m / (111_000 * math.cos(math.radians(37.55)))
+    s, n, w, e = min(lats) - dla, max(lats) + dla, min(lons) - dlo, max(lons) + dlo
+
+    def reaches(c):
+        return s <= c[0] <= n and w <= c[1] <= e and (inside(c, g) or edge_dist(c, g) <= GROUNDS_REACH_M)
+    return reaches
+
+
 def schools():
     """{name: reaches(lat, lon) -> bool}, how each school is reached ('grounds' or 'point'), and
     {name: (lat, lon)} for the map. A name is the directory's, plus its city where two schools share it."""
@@ -85,7 +100,7 @@ def schools():
         key = name if dup[name] == 1 else f"{name} ({city})"
         pts[key] = p
         if d <= MATCH_M:
-            tests[key] = (lambda g: lambda c: inside(c, g) or edge_dist(c, g) <= GROUNDS_REACH_M)(best)
+            tests[key] = grounds_test(best)
             how[key] = "grounds"
         else:
             tests[key] = (lambda q: lambda c: dist(c, q) <= POINT_REACH_M)(p)
