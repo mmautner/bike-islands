@@ -1,0 +1,225 @@
+[standard] BMP-10: Norfolk St 3rd Av–San Mateo Creek Path (Separated BL): San Mateo Creek Path taken as where the street ends in San Mateo
+[standard] BMP-10: Norfolk St Cypress Av–Dolan Av (Bike Blvd): 109 of 198 pieces still wouldn't count
+[standard] BMP-10: Norfolk St Cypress Av–Dolan Av (Bike Blvd): Dolan Av taken as where the street ends in San Mateo
+[standard] BMP-10: Norfolk St Dolan Av–3rd Av (Bike Lane): 64 of 185 pieces still wouldn't count
+[standard] BMP-10: Norfolk St Dolan Av–3rd Av (Bike Lane): Dolan Av taken as where the street ends in San Mateo
+[standard] BMP-11: Dolan Av ROW Limit–Ryder St (Bike Blvd): ROW Limit taken as where the street ends in San Mateo
+[standard] BMP-11: Ryder St Dolan Av–Bay Trail (Bike Blvd): Bay Trail taken as where the street ends in San Mateo
+[standard] BMP-12: 4th Av Railroad Av (West)–Railroad Av (East) (Bike Lane): 
+[standard] BMP-13: B St Railroad Av (West)–Baldwin Av (Bike Blvd): 1 of 11 pieces still wouldn't count
+[standard] BMP-13: Baywood Av City Limit–El Camino Real (Bike Blvd): City Limit taken as where the street ends in San Mateo
+[standard] BMP-13: Ellsworth Av Monte Diablo Av–Baldwin Av (Bike Blvd): 1 of 13 pieces still wouldn't count
+[standard] BMP-15: 3rd Av Dartmouth Rd–El Camino Real (Bike Lane): 13 of 15 pieces still wouldn't count
+[standard] BMP-19: O'Farrell St SR-92 Overcrossing–20th Av (Bike Blvd): SR-92 Overcrossing taken as where the street ends in San Mateo
+[standard] BMP-19: SR-92 Overcrossing Bovet Rd–O'Farrell St (Shared-Use Path): not a street in OpenStreetMap (new construction?)
+[standard] BMP-1: Clark Dr Occidental Av–Crescent Av (Bike Blvd): Crescent Av taken as where the street ends in San Mateo
+[standard] BMP-1: Crescent Av Clark Dr–Bellevue Av (Bike Blvd): Clark Dr taken as where the street ends in San Mateo
+[standard] BMP-1: Highland Av City Limit–Bellevue Av (Bike Blvd): City Limit taken as where the street ends in San Mateo
+[standard] BMP-1: Occidental Av City Limit–City Limit (Bike Blvd): neither City Limit nor City Limit found on it
+[standard] BMP-1: Poplar Av Hurlingham Av–El Camino Real (Bike Blvd): 16 of 20 pieces still wouldn't count
+[standard] BMP-21: Hayward Park Connector Existing Path–Concar Dr (Shared-Use Path): not a street in OpenStreetMap (new construction?)
+[standard] BMP-21: Pacific Bl Concar Dr–Delaware St (Bike Blvd): 40 of 40 pieces still wouldn't count
+[standard] BMP-22: Hobart Av Edinburgh St–B St (Bike Blvd): 1 of 15 pieces still wouldn't count
+[standard] BMP-22: Hobart Av Edinburgh St–B St (Bike Blvd): B St taken as where the street ends in San Mateo
+[standard] BMP-22: Hobart Av Edinburgh St–B St (Bike Blvd): jogs along Alameda de las Pulgas, which doesn't count
+[standard] BMP-23: Barneson Av Ashwood Dr–B St (Bike Blvd): B St taken as where the street ends in San Mateo
+[standard] BMP-23: Murphy Dr City Limit–Ashwood Dr (Bike Blvd): City Limit taken as where the street ends in San Mateo
+[standard] BMP-24: 9th Av El Camino Real–B St (Bike Lane): 2 of 21 pieces still wouldn't count
+[standard] BMP-25: Alameda de las Pulgas 26th Av–City Limit (Buffered BL): 134 of 134 pieces still wouldn't count
+[standard] BMP-25: Alameda de las Pulgas 26th Av–City Limit (Buffered BL): City Limit taken as where the street ends in San Mateo
+[standard] BMP-25: Alameda de las Pulgas Crystal Springs Rd–26th Av (Bike Lane): 114 of 137 pieces still wouldn't count
+[standard] BMP-27: 25th Av Flores St–Delaware St (Bike Lane): 8 of 23 pieces still wouldn't count
+[standard] BMP-29: Parkwood Dr De Anza Bl–Broadview Ct (Bike Blvd): Broadview Ct taken as where the street ends in San Mateo
+[standard] BMP-2: Peninsula Av Highland Av–San Mateo Dr (Bike Lane): 3 of 6 pieces still wouldn't count
+[standard] BMP-31: Perimeter Rd CSM Dr–Hillsdale Bl (Separated BL): 
+[standard] BMP-32: De Anza Bl Polhemus Rd–SR-92 (Separated BL): SR-92 taken as where the street ends in San Mateo
+[standard] BMP-32: De Anza Bl SR-92–Parkwood Dr (Bike Lane): 53 of 73 pieces still wouldn't count
+[standard] BMP-32: De Anza Bl SR-92–Parkwood Dr (Bike Lane): SR-92 taken as where the street ends in San Mateo
+[standard] BMP-35: Hillsdale Bl 31st Av–Hillsdale Pl (Bike Lane): 91 of 91 pieces still wouldn't count
+[standard] BMP-39: Caltrain Crossing El Camino Real–Pacific Bl (Shared-Use Path): not a street in OpenStreetMap (new construction?)
+[standard] BMP-3: Humboldt St City Limit–Poplar Av (Bike Blvd): 3 of 33 pieces still wouldn't count
+[standard] BMP-3: Humboldt St City Limit–Poplar Av (Bike Blvd): City Limit taken as where the street ends in San Mateo
+[standard] BMP-3: Humboldt St Poplar Av–9th Av (Bike Lane): 1 of 135 pieces still wouldn't count
+[standard] BMP-41: 40th Av Pasadena Dr–Casanova Dr (Bike Blvd): no connected route from Pasadena Dr to Casanova Dr
+[standard] BMP-41: Casanova Dr 40th Av–Casanova Park (Bike Blvd): Casanova Park taken as where the street ends in San Mateo
+[standard] BMP-41: Casanova Park Connector Casanova Dr–Laurie Meadows Dr (Shared-Use Path): not a street in OpenStreetMap (new construction?)
+[standard] BMP-41: Curtiss St Franklin Pk–39th Av (Bike Blvd): Franklin Pk taken as where the street ends in San Mateo
+[standard] BMP-41: Orinda Dr Santa Clara Wy–San Miguel Wy (Bike Blvd): San Miguel Wy taken as where the street ends in San Mateo
+[standard] BMP-41: Otay Av Pacific Bl–San Miguel Wy (Bike Blvd): San Miguel Wy taken as where the street ends in San Mateo
+[standard] BMP-41: Pasadena Dr Santa Clara Wy–40th Av (Bike Blvd): 40th Av taken as where the street ends in San Mateo
+[standard] BMP-41: San Miguel Wy Otay Av–Pasadena Dr (Bike Blvd): neither Otay Av nor Pasadena Dr found on it
+[standard] BMP-41: Seagate Dr Woodbridge Ci–City Limit (Bike Blvd): City Limit taken as where the street ends in San Mateo
+[standard] BMP-43: 42nd Av Alameda de las Pulgas–Olympic Av (Bike Blvd): 60 of 60 pieces still wouldn't count
+[standard] BMP-44: Pacific Bl Vista Av–42nd Av (Bike Lane): 3 of 10 pieces still wouldn't count
+[standard] BMP-45: Edison St 31st Av–42nd Av (Bike Blvd): no connected route from 31st Av to 42nd Av
+[standard] BMP-46: 28th Av Mason Ln–Edison St (Bike Blvd): 33 of 46 pieces still wouldn't count
+[standard] BMP-48: 28th Av Delaware St–Kyne St (Bike Lane): 2 of 19 pieces still wouldn't count
+[standard] BMP-49: 31st Av 28th Av–Delaware St (Bike Blvd): 70 of 99 pieces still wouldn't count
+[standard] BMP-49: 31st Av 28th Av–Delaware St (Bike Blvd): jogs along an unnamed street, which doesn't count
+[standard] BMP-4: Coyote Point Dr Airport Bl–Bay Trail (Bike Lane): 11 of 147 pieces still wouldn't count
+[standard] BMP-4: Coyote Point Dr Airport Bl–Bay Trail (Bike Lane): Bay Trail taken as where the street ends in San Mateo
+[standard] BMP-50: La Selva St Los Prados St–City Limit (Bike Blvd): City Limit taken as where the street ends in San Mateo
+[standard] BMP-51: Hillsdale Bl Spur Saratoga Dr–US-101 (Bike Blvd): not a street in OpenStreetMap (new construction?)
+[standard] BMP-51: US-101 Overcrossing Hillsdale Bl Spur–La Selva St (Shared-Use Path): not a street in OpenStreetMap (new construction?)
+[standard] BMP-52: Bahia St Los Prados Park–Los Prados St (Bike Blvd): Los Prados Park taken as where the street ends in San Mateo
+[standard] BMP-53: Hillsdale Bl Franklin Pk–City Limit (Separated BL): neither Franklin Pk nor City Limit found on it
+[standard] BMP-54: Norfolk St Ciro Av–La Selva St (Buffered BL): 11 of 33 pieces still wouldn't count
+[standard] BMP-55: Delaware St 28th Av–Pacific Bl (Bike Blvd): 6 of 26 pieces still wouldn't count
+[standard] BMP-55: Delaware St 5th Av–Concar Dr (Buffered BL): 2 of 35 pieces still wouldn't count
+[standard] BMP-56: Saratoga Dr Hillsdale Bl–Santa Clara Wy (Buffered BL): 126 of 126 pieces still wouldn't count
+[standard] BMP-56: Saratoga Dr Hillsdale Bl–Santa Clara Wy (Buffered BL): Santa Clara Wy taken as where the street ends in San Mateo
+[standard] BMP-59: Bermuda Dr Delaware St–Saratoga Dr (Bike Blvd): Saratoga Dr taken as where the street ends in San Mateo
+[standard] BMP-5: San Mateo Dr City Limit–Catalpa St (Bike Lane): 11 of 62 pieces still wouldn't count
+[standard] BMP-5: San Mateo Dr City Limit–Catalpa St (Bike Lane): City Limit taken as where the street ends in San Mateo
+[standard] BMP-61: Mariners Island Bl Fashion Island Bl–Winward Wy (Shared-Use Path): Winward Wy taken as where the street ends in San Mateo
+[standard] BMP-62: Bridgepointe Ci Bridgepointe Pk–Chess Dr (Buffered BL): 
+[standard] BMP-62: Chess Dr Bridgepointe Pk–City Limit (Buffered BL): 33 of 48 pieces still wouldn't count
+[standard] BMP-62: Chess Dr Bridgepointe Pk–City Limit (Buffered BL): City Limit taken as where the street ends in San Mateo
+[standard] BMP-63: Grant St 9th Av–Concar Dr (Bike Blvd): 13 of 36 pieces still wouldn't count
+[standard] BMP-63: Grant St Concar Dr–Bermuda Dr (Separated BL): no connected route from Concar Dr to Bermuda Dr
+[standard] BMP-65: US-101 Overcrossing Amphlett Bl–Norton St (Shared-Use Path): not a street in OpenStreetMap (new construction?)
+[standard] BMP-66: Norton St US-101 Overcrossing–Royal Av (Bike Blvd): US-101 Overcrossing taken as where the street ends in San Mateo
+[standard] BMP-68: J Hart Clinton Dr Seal Point Park–Newbridge Av (Shared-Use Path): Newbridge Av taken as where the street ends in San Mateo
+[standard] BMP-68: Newbridge Av Norfolk St–J Hart Clinton Dr (Bike Blvd): J Hart Clinton Dr taken as where the street ends in San Mateo
+[standard] BMP-69: Dale Av Norfolk St–Wastewater Treatment Path (Bike Blvd): Wastewater Treatment Path taken as where the street ends in San Mateo
+[standard] BMP-69: Detroit Dr J Hart Clinton Dr–John Lee Dog Park (Bike Blvd): no connected route from J Hart Clinton Dr to John Lee Dog Park
+[standard] BMP-69: Wastewater Treatment Path Detroit Dr–John Lee Dog Park (Shared-Use Path): not a street in OpenStreetMap (new construction?)
+[standard] BMP-6: Delaware St Poplar Av–Indian Av (Bike Lane): 4 of 6 pieces still wouldn't count
+[standard] BMP-6: Poplar Av El Camino Real–Delaware St (Bike Lane): 12 of 38 pieces still wouldn't count
+[standard] BMP-70: 3rd Av Mariners Island Bl–Bay Trail (Shared-Use Path): no connected route from Mariners Island Bl to Bay Trail
+[standard] BMP-8: Monte Diablo Av San Mateo Dr–US-101 (Bike Blvd): no connected route from San Mateo Dr to US-101
+[standard] BMP-8: Monte Diablo Av US-101–Bay Trail (Bike Blvd): neither US-101 nor Bay Trail found on it
+[standard] BMP-9: Tilton Av City Limit–Ellsworth Av (Bike Lane): City Limit taken as where the street ends in San Mateo
+[standard] TOD-25-diet: 25th Av El Camino Real–Delaware St (Road diet): 17 of 17 pieces still wouldn't count
+[standard] TOD-28-diet: 28th Av El Camino Real–Delaware St (Road diet): 22 of 24 pieces still wouldn't count
+[standard] TOD-FB-xing: Franklin Pk & Baze Rd isn't rated a barrier now
+[standard] TOD-HPE-xing: Concar Dr & Delaware St isn't rated a barrier now
+[standard] TOD-NSA-xing: Tilton Av & Claremont St isn't rated a barrier now
+[standard] TOD-SUN-xing: 16th Av & Delaware St isn't rated a barrier now
+[strict] BMP-10: Kingston St Monte Diablo Av–Cypress Av (Bike Blvd): 10 of 10 pieces still wouldn't count
+[strict] BMP-10: Norfolk St 3rd Av–San Mateo Creek Path (Separated BL): San Mateo Creek Path taken as where the street ends in San Mateo
+[strict] BMP-10: Norfolk St Cypress Av–Dolan Av (Bike Blvd): 187 of 198 pieces still wouldn't count
+[strict] BMP-10: Norfolk St Cypress Av–Dolan Av (Bike Blvd): Dolan Av taken as where the street ends in San Mateo
+[strict] BMP-10: Norfolk St Dolan Av–3rd Av (Bike Lane): 185 of 185 pieces still wouldn't count
+[strict] BMP-10: Norfolk St Dolan Av–3rd Av (Bike Lane): Dolan Av taken as where the street ends in San Mateo
+[strict] BMP-11: Dolan Av ROW Limit–Ryder St (Bike Blvd): ROW Limit taken as where the street ends in San Mateo
+[strict] BMP-11: Ryder St Dolan Av–Bay Trail (Bike Blvd): Bay Trail taken as where the street ends in San Mateo
+[strict] BMP-12: 4th Av Railroad Av (West)–Railroad Av (East) (Bike Lane): 
+[strict] BMP-12: Railroad Av (East) Monte Diablo Av–4th Av (Bike Blvd): 27 of 39 pieces still wouldn't count
+[strict] BMP-12: Railroad Av (West) 3rd Av–4th Av (Bike Blvd): 6 of 6 pieces still wouldn't count
+[strict] BMP-12: Railroad Av (West) 4th Av–5th Av (Shared-Use Path): 3 of 5 pieces still wouldn't count
+[strict] BMP-13: 1st Av B St–Railroad Av (East) (Bike Lane): 13 of 14 pieces still wouldn't count
+[strict] BMP-13: B St Railroad Av (West)–Baldwin Av (Bike Blvd): 11 of 11 pieces still wouldn't count
+[strict] BMP-13: Baldwin Av El Camino Real–San Mateo Dr (Bike Blvd): 9 of 9 pieces still wouldn't count
+[strict] BMP-13: Baldwin Av San Mateo Dr–B St (Bike Lane): 7 of 7 pieces still wouldn't count
+[strict] BMP-13: Baywood Av City Limit–El Camino Real (Bike Blvd): City Limit taken as where the street ends in San Mateo
+[strict] BMP-13: Ellsworth Av Monte Diablo Av–Baldwin Av (Bike Blvd): 13 of 13 pieces still wouldn't count
+[strict] BMP-13: Railroad Av (West) Monte Diablo Av–B St (Bike Blvd): 2 of 17 pieces still wouldn't count
+[strict] BMP-14: B St 5th Av–16th Av (Buffered BL): 37 of 37 pieces still wouldn't count
+[strict] BMP-14: South Bl 16th Av–Palm Av (Buffered BL): 13 of 13 pieces still wouldn't count
+[strict] BMP-15: 3rd Av Dartmouth Rd–El Camino Real (Bike Lane): 15 of 15 pieces still wouldn't count
+[strict] BMP-16: 5th Av Delaware St–Amphlett Bl (Bike Blvd): 10 of 36 pieces still wouldn't count
+[strict] BMP-19: O'Farrell St SR-92 Overcrossing–20th Av (Bike Blvd): SR-92 Overcrossing taken as where the street ends in San Mateo
+[strict] BMP-19: SR-92 Overcrossing Bovet Rd–O'Farrell St (Shared-Use Path): not a street in OpenStreetMap (new construction?)
+[strict] BMP-1: Clark Dr Occidental Av–Crescent Av (Bike Blvd): Crescent Av taken as where the street ends in San Mateo
+[strict] BMP-1: Crescent Av Clark Dr–Bellevue Av (Bike Blvd): Clark Dr taken as where the street ends in San Mateo
+[strict] BMP-1: Highland Av City Limit–Bellevue Av (Bike Blvd): City Limit taken as where the street ends in San Mateo
+[strict] BMP-1: Occidental Av City Limit–City Limit (Bike Blvd): neither City Limit nor City Limit found on it
+[strict] BMP-1: Poplar Av Hurlingham Av–El Camino Real (Bike Blvd): 20 of 20 pieces still wouldn't count
+[strict] BMP-20: Borel Av Edinburgh St–Bovet Rd (Bike Blvd): 10 of 10 pieces still wouldn't count
+[strict] BMP-21: Hayward Park Connector Existing Path–Concar Dr (Shared-Use Path): not a street in OpenStreetMap (new construction?)
+[strict] BMP-21: Pacific Bl Concar Dr–Delaware St (Bike Blvd): 40 of 40 pieces still wouldn't count
+[strict] BMP-22: Hobart Av Edinburgh St–B St (Bike Blvd): 1 of 15 pieces still wouldn't count
+[strict] BMP-22: Hobart Av Edinburgh St–B St (Bike Blvd): B St taken as where the street ends in San Mateo
+[strict] BMP-22: Hobart Av Edinburgh St–B St (Bike Blvd): jogs along Alameda de las Pulgas, which doesn't count
+[strict] BMP-23: Barneson Av Ashwood Dr–B St (Bike Blvd): 48 of 48 pieces still wouldn't count
+[strict] BMP-23: Barneson Av Ashwood Dr–B St (Bike Blvd): B St taken as where the street ends in San Mateo
+[strict] BMP-23: Murphy Dr City Limit–Ashwood Dr (Bike Blvd): City Limit taken as where the street ends in San Mateo
+[strict] BMP-24: 9th Av El Camino Real–B St (Bike Lane): 21 of 21 pieces still wouldn't count
+[strict] BMP-25: Alameda de las Pulgas 26th Av–City Limit (Buffered BL): 134 of 134 pieces still wouldn't count
+[strict] BMP-25: Alameda de las Pulgas 26th Av–City Limit (Buffered BL): City Limit taken as where the street ends in San Mateo
+[strict] BMP-25: Alameda de las Pulgas Crystal Springs Rd–26th Av (Bike Lane): 137 of 137 pieces still wouldn't count
+[strict] BMP-27: 25th Av Flores St–Delaware St (Bike Lane): 23 of 23 pieces still wouldn't count
+[strict] BMP-27: Palm Av South Bl–25th Av (Bike Lane): 42 of 42 pieces still wouldn't count
+[strict] BMP-28: Hacienda St 22nd Av–39th Av (Bike Blvd): 44 of 47 pieces still wouldn't count
+[strict] BMP-29: Parkwood Dr De Anza Bl–Broadview Ct (Bike Blvd): Broadview Ct taken as where the street ends in San Mateo
+[strict] BMP-2: Peninsula Av Highland Av–San Mateo Dr (Bike Lane): 6 of 6 pieces still wouldn't count
+[strict] BMP-30: CSM Dr Parrott Dr–Perimeter Rd (Bike Lane): 17 of 21 pieces still wouldn't count
+[strict] BMP-31: Perimeter Rd CSM Dr–Hillsdale Bl (Separated BL): 
+[strict] BMP-32: De Anza Bl Polhemus Rd–SR-92 (Separated BL): SR-92 taken as where the street ends in San Mateo
+[strict] BMP-32: De Anza Bl SR-92–Parkwood Dr (Bike Lane): 73 of 73 pieces still wouldn't count
+[strict] BMP-32: De Anza Bl SR-92–Parkwood Dr (Bike Lane): SR-92 taken as where the street ends in San Mateo
+[strict] BMP-33: Glendora Dr Cedarwood Dr–Cherrywood Dr (Bike Lane): 10 of 10 pieces still wouldn't count
+[strict] BMP-33: Glendora Dr Hillsdale Bl–Cedarwood Dr (Bike Blvd): 15 of 15 pieces still wouldn't count
+[strict] BMP-34: Campus Dr Hillsdale Bl–26th Av (Bike Lane): 17 of 101 pieces still wouldn't count
+[strict] BMP-35: Hillsdale Bl 31st Av–Hillsdale Pl (Bike Lane): 91 of 91 pieces still wouldn't count
+[strict] BMP-37: 36th Av Fernwood St–Edison St (Bike Blvd): 18 of 36 pieces still wouldn't count
+[strict] BMP-37: Fernwood St Hillsdale Bl–39th Av (Bike Blvd): 12 of 29 pieces still wouldn't count
+[strict] BMP-39: Caltrain Crossing El Camino Real–Pacific Bl (Shared-Use Path): not a street in OpenStreetMap (new construction?)
+[strict] BMP-3: Humboldt St City Limit–Poplar Av (Bike Blvd): 32 of 33 pieces still wouldn't count
+[strict] BMP-3: Humboldt St City Limit–Poplar Av (Bike Blvd): City Limit taken as where the street ends in San Mateo
+[strict] BMP-3: Humboldt St Poplar Av–9th Av (Bike Lane): 135 of 135 pieces still wouldn't count
+[strict] BMP-41: 40th Av Pasadena Dr–Casanova Dr (Bike Blvd): no connected route from Pasadena Dr to Casanova Dr
+[strict] BMP-41: Casanova Dr 40th Av–Casanova Park (Bike Blvd): Casanova Park taken as where the street ends in San Mateo
+[strict] BMP-41: Casanova Park Connector Casanova Dr–Laurie Meadows Dr (Shared-Use Path): not a street in OpenStreetMap (new construction?)
+[strict] BMP-41: Curtiss St Franklin Pk–39th Av (Bike Blvd): Franklin Pk taken as where the street ends in San Mateo
+[strict] BMP-41: Orinda Dr Santa Clara Wy–San Miguel Wy (Bike Blvd): San Miguel Wy taken as where the street ends in San Mateo
+[strict] BMP-41: Otay Av Pacific Bl–San Miguel Wy (Bike Blvd): San Miguel Wy taken as where the street ends in San Mateo
+[strict] BMP-41: Pasadena Dr Santa Clara Wy–40th Av (Bike Blvd): 40th Av taken as where the street ends in San Mateo
+[strict] BMP-41: San Miguel Wy Otay Av–Pasadena Dr (Bike Blvd): neither Otay Av nor Pasadena Dr found on it
+[strict] BMP-41: Seagate Dr Woodbridge Ci–City Limit (Bike Blvd): City Limit taken as where the street ends in San Mateo
+[strict] BMP-42: Laurie Meadows Dr Pacific Bl–Woodbridge Ci (Buffered BL): 26 of 26 pieces still wouldn't count
+[strict] BMP-43: 42nd Av Alameda de las Pulgas–Olympic Av (Bike Blvd): 60 of 60 pieces still wouldn't count
+[strict] BMP-44: Pacific Bl Vista Av–42nd Av (Bike Lane): 10 of 10 pieces still wouldn't count
+[strict] BMP-45: Edison St 31st Av–42nd Av (Bike Blvd): no connected route from 31st Av to 42nd Av
+[strict] BMP-46: 28th Av Mason Ln–Edison St (Bike Blvd): 33 of 46 pieces still wouldn't count
+[strict] BMP-46: 31st Av Hillsdale Bl–28th Av (Bike Blvd): 13 of 13 pieces still wouldn't count
+[strict] BMP-48: 28th Av Delaware St–Kyne St (Bike Lane): 2 of 19 pieces still wouldn't count
+[strict] BMP-49: 31st Av 28th Av–Delaware St (Bike Blvd): 97 of 99 pieces still wouldn't count
+[strict] BMP-49: 31st Av 28th Av–Delaware St (Bike Blvd): jogs along an unnamed street, which doesn't count
+[strict] BMP-4: Coyote Point Dr Airport Bl–Bay Trail (Bike Lane): 11 of 147 pieces still wouldn't count
+[strict] BMP-4: Coyote Point Dr Airport Bl–Bay Trail (Bike Lane): Bay Trail taken as where the street ends in San Mateo
+[strict] BMP-50: La Selva St Los Prados St–City Limit (Bike Blvd): 1 of 10 pieces still wouldn't count
+[strict] BMP-50: La Selva St Los Prados St–City Limit (Bike Blvd): City Limit taken as where the street ends in San Mateo
+[strict] BMP-51: Hillsdale Bl Spur Saratoga Dr–US-101 (Bike Blvd): not a street in OpenStreetMap (new construction?)
+[strict] BMP-51: US-101 Overcrossing Hillsdale Bl Spur–La Selva St (Shared-Use Path): not a street in OpenStreetMap (new construction?)
+[strict] BMP-52: Bahia St Los Prados Park–Los Prados St (Bike Blvd): Los Prados Park taken as where the street ends in San Mateo
+[strict] BMP-53: Hillsdale Bl Franklin Pk–City Limit (Separated BL): neither Franklin Pk nor City Limit found on it
+[strict] BMP-54: Norfolk St Ciro Av–La Selva St (Buffered BL): 33 of 33 pieces still wouldn't count
+[strict] BMP-55: Delaware St 28th Av–Pacific Bl (Bike Blvd): 6 of 26 pieces still wouldn't count
+[strict] BMP-55: Delaware St 5th Av–Concar Dr (Buffered BL): 35 of 35 pieces still wouldn't count
+[strict] BMP-55: Pacific Bl Delaware St–Otay Av (Buffered BL): 15 of 15 pieces still wouldn't count
+[strict] BMP-56: Saratoga Dr Hillsdale Bl–Santa Clara Wy (Buffered BL): 126 of 126 pieces still wouldn't count
+[strict] BMP-56: Saratoga Dr Hillsdale Bl–Santa Clara Wy (Buffered BL): Santa Clara Wy taken as where the street ends in San Mateo
+[strict] BMP-59: Bermuda Dr Delaware St–Saratoga Dr (Bike Blvd): 9 of 20 pieces still wouldn't count
+[strict] BMP-59: Bermuda Dr Delaware St–Saratoga Dr (Bike Blvd): Saratoga Dr taken as where the street ends in San Mateo
+[strict] BMP-5: San Mateo Dr City Limit–Catalpa St (Bike Lane): 62 of 62 pieces still wouldn't count
+[strict] BMP-5: San Mateo Dr City Limit–Catalpa St (Bike Lane): City Limit taken as where the street ends in San Mateo
+[strict] BMP-61: Mariners Island Bl Fashion Island Bl–Winward Wy (Shared-Use Path): Winward Wy taken as where the street ends in San Mateo
+[strict] BMP-62: Bridgepointe Ci Bridgepointe Pk–Chess Dr (Buffered BL): 
+[strict] BMP-62: Chess Dr Bridgepointe Pk–City Limit (Buffered BL): 48 of 48 pieces still wouldn't count
+[strict] BMP-62: Chess Dr Bridgepointe Pk–City Limit (Buffered BL): City Limit taken as where the street ends in San Mateo
+[strict] BMP-63: Grant St 9th Av–Concar Dr (Bike Blvd): 36 of 36 pieces still wouldn't count
+[strict] BMP-63: Grant St Concar Dr–Bermuda Dr (Separated BL): no connected route from Concar Dr to Bermuda Dr
+[strict] BMP-65: US-101 Overcrossing Amphlett Bl–Norton St (Shared-Use Path): not a street in OpenStreetMap (new construction?)
+[strict] BMP-66: Norton St US-101 Overcrossing–Royal Av (Bike Blvd): US-101 Overcrossing taken as where the street ends in San Mateo
+[strict] BMP-67: Roberta Dr Kehoe Av–Norfolk St (Bike Blvd): 57 of 57 pieces still wouldn't count
+[strict] BMP-68: J Hart Clinton Dr Seal Point Park–Newbridge Av (Shared-Use Path): Newbridge Av taken as where the street ends in San Mateo
+[strict] BMP-68: Newbridge Av Norfolk St–J Hart Clinton Dr (Bike Blvd): J Hart Clinton Dr taken as where the street ends in San Mateo
+[strict] BMP-69: Dale Av Norfolk St–Wastewater Treatment Path (Bike Blvd): Wastewater Treatment Path taken as where the street ends in San Mateo
+[strict] BMP-69: Detroit Dr J Hart Clinton Dr–John Lee Dog Park (Bike Blvd): no connected route from J Hart Clinton Dr to John Lee Dog Park
+[strict] BMP-69: Wastewater Treatment Path Detroit Dr–John Lee Dog Park (Shared-Use Path): not a street in OpenStreetMap (new construction?)
+[strict] BMP-6: Delaware St Poplar Av–Indian Av (Bike Lane): 6 of 6 pieces still wouldn't count
+[strict] BMP-6: Poplar Av El Camino Real–Delaware St (Bike Lane): 38 of 38 pieces still wouldn't count
+[strict] BMP-70: 3rd Av Mariners Island Bl–Bay Trail (Shared-Use Path): no connected route from Mariners Island Bl to Bay Trail
+[strict] BMP-7: Claremont St State St–9th Av (Bike Blvd): 1 of 71 pieces still wouldn't count
+[strict] BMP-7: Delaware St Peninsula Av–State St (Bike Lane): 12 of 12 pieces still wouldn't count
+[strict] BMP-8: Monte Diablo Av San Mateo Dr–US-101 (Bike Blvd): no connected route from San Mateo Dr to US-101
+[strict] BMP-8: Monte Diablo Av US-101–Bay Trail (Bike Blvd): neither US-101 nor Bay Trail found on it
+[strict] BMP-9: Tilton Av City Limit–Ellsworth Av (Bike Lane): City Limit taken as where the street ends in San Mateo
+[strict] PMP-9: Alameda de las Pulgas Crystal Springs Rd–Barneson Av (Road diet + Bike Lane): 57 of 57 pieces still wouldn't count
+[strict] TOD-25-diet: 25th Av El Camino Real–Delaware St (Road diet): 17 of 17 pieces still wouldn't count
+[strict] TOD-28-diet: 28th Av El Camino Real–Delaware St (Road diet): 22 of 24 pieces still wouldn't count
+[strict] TOD-FB-xing: Franklin Pk & Baze Rd isn't rated a barrier now
+[strict] TOD-NSA-xing: Tilton Av & Claremont St isn't rated a barrier now
+[strict] TOD-SUN-xing: 16th Av & Delaware St isn't rated a barrier now

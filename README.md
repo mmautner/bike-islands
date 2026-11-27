@@ -33,6 +33,8 @@ to Caltrain. Served at
   - `plans_check.py`: lists San Mateo fixes not yet compared with the city's plans in `data/city_plans/alignment.csv`.
   - `plan_scenarios.py`: tests the city's own routes (`data/city_plans/scenarios.csv`) against our fixes: do they
     connect the same homes? Writes `data/city_plans/scenario_results.csv`.
+  - `plan_projects.py`: scores every city plan project for each station, and how much of each of our station fixes
+    they cover (`data/city_plans/project_scores.csv`, `fix_coverage.csv`). `plan_model.py`: what both share.
 - `data/sources/ets_2026_segments.csv`: the city's 2026 speed survey, copied from
   [san-mateo-speeds](https://github.com/mmautner/san-mateo-speeds), which parsed it from the survey summary
   sheets obtained through a public records request.

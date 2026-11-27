@@ -13,6 +13,9 @@ for any fix we promote. Burlingame's plans haven't been gathered yet.
   the first row (`cost_level2` = the permanent, curb-separated version where the plan gives one).
 - `scenarios.csv` / `scenario_results.csv`: city routes tested against our fixes (below); `pipeline/plan_scenarios.py`
   (run by `run.sh`) rewrites the results.
+- `project_scores.csv`, `fix_coverage.csv`, `project_notes.txt`, `other_projects.csv`: every city project scored
+  for each station, and how much of each of our station fixes they cover (below); `pipeline/plan_projects.py`
+  (run by `run.sh`) rewrites them. `pipeline/plan_model.py` holds what both scripts share.
 - `pipeline/plans_check.py` lists fixes with no row in `alignment.csv`. Run it after the pipeline: only the fixes it
   prints need reading against the plans. It checks every fix to San Mateo, Hayward Park and Hillsdale stations,
   and San Mateo place-page fixes for 500 or more homes.
@@ -119,10 +122,10 @@ Results, San Mateo station:
 | | Our fix | City's version | City's version reaches our fix's homes |
 |---|---|---|---|
 | Experienced riders: N Delaware jog vs plan's Delaware lane + State/Claremont/Bellevue bike boulevards + Tilton all-way stop | +1,005 | +0 | 0 of 1,005 |
-| Kids: same | +1,005 | +1,165 as written (+2,276 with its crossings treated) | 0 of 1,005 |
+| Kids: same | +1,005 | +2,351 | 0 of 1,005 |
 | Experienced riders: 2nd Ave vs BMP #15 (3rd/4th protected lanes) | +430 | +486 | all 430 |
-| Kids: same | +573 | +945 | 540 of 573 |
-| Experienced riders: 2nd Ave vs all downtown projects (#12–#16, Claremont) | +430 | +1,653 | all 430 |
+| Kids: same | +573 | +945 (0 unless 3rd/4th themselves can be crossed) | 540 of 573 |
+| Experienced riders: 2nd Ave vs all downtown projects (#12–#16, Claremont) | +430 | +1,698 | all 430 |
 | Kids: same | +573 | +4,193 | 540 of 573 |
 
 - **2nd Ave: promote the plan's project instead.** BMP #15 (High priority) connects everyone our 2nd Ave fix does,
@@ -132,14 +135,53 @@ Results, San Mateo station:
   plan leaves alone: its Delaware lane stops at State, and its route moves west to Claremont. The ask is a short
   addition to BMP #7: extend its treatment from State down to Bellevue. First check the complex has no other exit
   (`field_checks/TO_CHECK.md` #11). If it does, the fix and this result both change.
-- **For kids, the Delaware package still helps others** (1,165 homes as written). With its crossings treated it
-  would help 2,276. The crossings it would need are Bellevue at El Camino, Highland at Peninsula, and Claremont at
-  3rd and 4th.
+- **For kids, the Delaware package still helps others:** 2,351 homes, mostly through the Crescent and Highland
+  bike boulevards (BMP #1). Those don't depend on the crossings it leaves untreated.
 - **The Tilton/Claremont all-way stop changes nothing on our map:** that crossing isn't rated a barrier today.
 - **Our kids 2nd Ave fix needs a crossing too:** S Delaware at 2nd, which OpenStreetMap tags as 4 lanes (the survey
   says 2; `TO_CHECK.md` #12). The usual scoring hides this because it assumes crossings on a fixed street are treated.
 - **Gaps in the plan data:** Crescent Av doesn't meet Clark Dr in OpenStreetMap, so that piece of BMP #1 is left
   out. W 3rd Av's painted lane west of El Camino doesn't count for either rider.
+
+## Every city project, scored (stations, 2026-11-26)
+
+`pipeline/plan_projects.py` scores each of the 70 projects in the 2020 bike plan, plus 9 bike-relevant items from
+the pedestrian plans (`other_projects.csv`), for homes gaining a low-stress route to each Caltrain station. It writes
+`project_scores.csv` and, for each of our station fixes, how much of it the city's projects cover
+(`fix_coverage.csv`). Notes on how each project was applied (limits taken as street ends, pieces that still don't
+count, new construction it can't model) are in `project_notes.txt`.
+
+`plan_model.py` scores three ways, by which crossings on a fixed street count:
+- bare: only crossings the plan's treatments make safe, or that it names.
+- written: also crossing the plan's own street.
+- generous: every crossing, which is how our fixes are scored.
+
+Buckets: `project` means one project covers at least 75% of the fix's homes as it stands (bare).
+`project_if_its_street_crossed` means it would with safe crossings of its own street.
+
+Distinct fixes on San Mateo streets (border streets included), best bucket across stations:
+
+| | Covered by one city project | Covered if that project adds crossings of its own street | Partly (25–75%) | Not covered (<25%) |
+|---|---|---|---|---|
+| Experienced riders (41 fixes) | 18 | 3: all Peninsula Ave | 1 | 19 |
+| Kids (33 fixes) | 13 | 4: Peninsula ×3, 2nd Ave (via 3rd/4th) | 4 | 12 |
+
+- **Peninsula is the biggest gap, but not the only one.** BMP #2's protected lane alone reaches 2–20% of what our
+  Peninsula fixes connect. If the project also made crossing Peninsula safe at Clarendon/Claremont and
+  Arundel/Woodside, it would reach all of them. So the ask is "finish project #2, with those two crossings."
+- **For kids, the 3rd/4th lanes need the same:** they reach 94% of our 2nd Ave fix only if 3rd and 4th themselves
+  can be crossed; as they stand (bare), 26%.
+- **The uncovered fixes fall into a few groups:**
+  - El Camino (Caltrans), about 8 fixes.
+  - The N Delaware jog (1,005 homes).
+  - Third traffic lanes the plan keeps: N Humboldt and E Poplar by San Mateo High, N San Mateo Dr by Peninsula.
+  - The east side of North Central: N Bayshore, N and S Amphlett, 1st Ave east of the tracks.
+  - A few small ones.
+- **How the model reads the plan (in `plan_model.py`):**
+  - A plan names a street, not one roadway, so same-named parallel roadways (a divided road, Peninsula's frontage
+    pair near Humboldt) are included.
+  - "City Limit" means where the street leaves San Mateo.
+  - Jogs along busy streets aren't given the plan's treatment.
 
 ## Not done yet
 

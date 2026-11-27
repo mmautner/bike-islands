@@ -1,0 +1,10 @@
+project,priority,kind,street,from,to,facility,source
+PMP-9,Priority,segment,Alameda de las Pulgas,Crystal Springs Rd,Barneson Av,Road diet + Bike Lane,"2012 Pedestrian Master Plan priority #9 (road diet), with BMP #25's lane"
+TOD-HPE-path,Recommended,segment,Pacific Bl,Concar Dr,Delaware St,Shared-Use Path,"2022 TOD plan, Hayward Park East: wider sidewalk or Class I path on Pacific"
+TOD-HPE-xing,Recommended,crossing,Concar Dr,Delaware St,,Protected intersection,"2022 TOD plan, Hayward Park East"
+TOD-NSA-xing,Recommended,crossing,Tilton Av,Claremont St,,All-way stop,"2022 TOD plan, North Station Access"
+TOD-SUN-xing,Recommended,crossing,16th Av,Delaware St,,Signal or roundabout,"2022 TOD plan, Hayward Park–Sunnybrae"
+TOD-HB-xing,Recommended,crossing,Hillsdale Bl,Edison St,,Signal or roundabout,"2022 TOD plan, Hillsdale Boulevard"
+TOD-FB-xing,Recommended,crossing,Franklin Pk,Baze Rd,,Signal or all-way stop if warranted,"2022 TOD plan, 31st Ave / Bay Meadows"
+TOD-28-diet,Consider,segment,28th Av,El Camino Real,Delaware St,Road diet,"2022 TOD plan, Hillsdale–28th Ave (consider feasibility)"
+TOD-25-diet,Consider,segment,25th Av,El Camino Real,Delaware St,Road diet,"2022 TOD plan, Hillsdale–25th Ave (consider feasibility)"

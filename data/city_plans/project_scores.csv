@@ -1,0 +1,525 @@
+tier,station,project,source,priority,cost,cost_level2,homes_bare,homes_written,homes_generous,untreated_crossings
+standard,Burlingame,BMP-2,2020 Bicycle Master Plan,High,"$330,000","$1,410,000",0,2630,2630,Peninsula Avenue
+standard,Burlingame,BMP-3,2020 Bicycle Master Plan,High,"$320,000",,341,341,341,North Humboldt Street & Peninsula Avenue
+standard,Burlingame,BMP-5,2020 Bicycle Master Plan,High,"$70,000",,243,243,243,
+standard,Burlingame,BMP-6,2020 Bicycle Master Plan,High,"$130,000",,0,0,0,
+standard,Burlingame,BMP-7,2020 Bicycle Master Plan,High,"$480,000",,0,0,0,
+standard,Burlingame,BMP-9,2020 Bicycle Master Plan,High,"$30,000",,0,0,0,
+standard,Burlingame,BMP-12,2020 Bicycle Master Plan,High,"$290,000",,0,0,0,East 3rd Avenue & South Railroad Avenue; East 4th Avenue & South Railroad Avenue
+standard,Burlingame,BMP-13,2020 Bicycle Master Plan,High,"$310,000",,7,7,7,
+standard,Burlingame,BMP-14,2020 Bicycle Master Plan,High,"$260,000","$680,000",470,470,470,
+standard,Burlingame,BMP-15,2020 Bicycle Master Plan,High,"$430,000","$1,830,000",0,6,6,East 3rd Avenue; West 3rd Avenue
+standard,Burlingame,BMP-16,2020 Bicycle Master Plan,High,"$190,000",,0,0,0,
+standard,Burlingame,BMP-26,2020 Bicycle Master Plan,High,"$90,000",,0,0,0,
+standard,Burlingame,BMP-27,2020 Bicycle Master Plan,High,"$90,000",,0,0,0,East 25th Avenue
+standard,Burlingame,BMP-28,2020 Bicycle Master Plan,High,"$490,000",,0,0,0,
+standard,Burlingame,BMP-45,2020 Bicycle Master Plan,High,"$410,000",,0,0,0,
+standard,Burlingame,BMP-46,2020 Bicycle Master Plan,High,"$430,000","$530,000",0,0,0,28th Avenue & Alameda de las Pulgas
+standard,Burlingame,BMP-55,2020 Bicycle Master Plan,High,"$640,000","$1,820,000",22,22,22,Charles Lane & South Delaware Street; South Delaware Street
+standard,Burlingame,BMP-56,2020 Bicycle Master Plan,High,"$410,000","$1,720,000",0,0,0,Saratoga Drive
+standard,Burlingame,BMP-58,2020 Bicycle Master Plan,High,"$430,000","$740,000",0,0,0,
+standard,Burlingame,BMP-10,2020 Bicycle Master Plan,Med-High,"$200,000","$250,000",0,0,0,South Norfolk Street
+standard,Burlingame,BMP-19,2020 Bicycle Master Plan,Med-High,"$250,000",,0,0,0,
+standard,Burlingame,BMP-20,2020 Bicycle Master Plan,Med-High,"$170,000","$560,000",0,0,0,
+standard,Burlingame,BMP-23,2020 Bicycle Master Plan,Med-High,"$470,000",,0,0,0,Alameda de las Pulgas & Barneson Avenue
+standard,Burlingame,BMP-24,2020 Bicycle Master Plan,Med-High,"$230,000",,0,0,0,Alameda de las Pulgas & Notre Dame Avenue; Notre Dame Avenue & South El Camino Real
+standard,Burlingame,BMP-25,2020 Bicycle Master Plan,Med-High,"$340,000",,0,0,0,Alameda de las Pulgas; Alameda de las Pulgas & Caribbean Way
+standard,Burlingame,BMP-33,2020 Bicycle Master Plan,Med-High,"$130,000",,0,0,0,
+standard,Burlingame,BMP-40,2020 Bicycle Master Plan,Med-High,"$80,000",,0,0,0,
+standard,Burlingame,BMP-42,2020 Bicycle Master Plan,Med-High,"$60,000",,0,0,0,
+standard,Burlingame,BMP-47,2020 Bicycle Master Plan,Med-High,"$260,000",,0,0,0,
+standard,Burlingame,BMP-48,2020 Bicycle Master Plan,Med-High,"$90,000",,0,0,0,
+standard,Burlingame,BMP-49,2020 Bicycle Master Plan,Med-High,"$460,000",,0,0,0,31st Avenue & Alameda de las Pulgas; East 31st Avenue
+standard,Burlingame,BMP-54,2020 Bicycle Master Plan,Med-High,"$40,000",,0,0,0,South Norfolk Street
+standard,Burlingame,BMP-60,2020 Bicycle Master Plan,Med-High,"$610,000","$2,610,000",0,0,0,Fashion Island Boulevard
+standard,Burlingame,BMP-61,2020 Bicycle Master Plan,Med-High,"$670,000","$1,990,000",0,0,0,East 3rd Avenue & J Hart Clinton Drive & Mariners Island Boulevard; East 3rd Avenue & Mariners Island Boulevard
+standard,Burlingame,BMP-63,2020 Bicycle Master Plan,Med-High,"$400,000","$770,000",0,0,0,
+standard,Burlingame,BMP-67,2020 Bicycle Master Plan,Med-High,"$220,000",,0,0,0,
+standard,Burlingame,BMP-1,2020 Bicycle Master Plan,Med-Low,"$790,000",,0,0,0,Clark Drive & North El Camino Real
+standard,Burlingame,BMP-4,2020 Bicycle Master Plan,Med-Low,"$950,000",,0,0,0,Airport Boulevard & Coyote Point Drive & Peninsula Avenue; Peninsula Avenue
+standard,Burlingame,BMP-17,2020 Bicycle Master Plan,Med-Low,"$170,000",,0,0,0,
+standard,Burlingame,BMP-21,2020 Bicycle Master Plan,Med-Low,"$710,000",,0,0,0,
+standard,Burlingame,BMP-31,2020 Bicycle Master Plan,Med-Low,"$330,000","$1,430,000",0,0,0,
+standard,Burlingame,BMP-32,2020 Bicycle Master Plan,Med-Low,"$160,000","$670,000",0,0,0,De Anza Boulevard & Polhemus Road
+standard,Burlingame,BMP-34,2020 Bicycle Master Plan,Med-Low,"$330,000",,0,0,0,26th Avenue & Alameda de las Pulgas
+standard,Burlingame,BMP-38,2020 Bicycle Master Plan,Med-Low,"$320,000",,0,0,0,Alameda de las Pulgas & West 39th Avenue; South El Camino Real & West 39th Avenue
+standard,Burlingame,BMP-44,2020 Bicycle Master Plan,Med-Low,"$70,000","$280,000",0,0,0,
+standard,Burlingame,BMP-57,2020 Bicycle Master Plan,Med-Low,"$100,000",,0,0,0,
+standard,Burlingame,BMP-59,2020 Bicycle Master Plan,Med-Low,"$230,000",,0,0,0,Bermuda Drive & South Delaware Street
+standard,Burlingame,BMP-64,2020 Bicycle Master Plan,Med-Low,"$330,000",,0,0,0,
+standard,Burlingame,BMP-68,2020 Bicycle Master Plan,Med-Low,"$360,000",,0,0,0,East 3rd Avenue & J Hart Clinton Drive & Mariners Island Boulevard; J Hart Clinton Drive & Seal Point Park
+standard,Burlingame,BMP-11,2020 Bicycle Master Plan,Low,"$150,000",,0,0,0,
+standard,Burlingame,BMP-18,2020 Bicycle Master Plan,Low,"$300,000",,0,0,0,
+standard,Burlingame,BMP-22,2020 Bicycle Master Plan,Low,"$190,000",,0,0,0,Alameda de las Pulgas & Hobart Avenue
+standard,Burlingame,BMP-29,2020 Bicycle Master Plan,Low,"$130,000",,0,0,0,
+standard,Burlingame,BMP-30,2020 Bicycle Master Plan,Low,"$280,000",,0,0,0,CSM Drive & West Hillsdale Boulevard & West Perimeter Road; De Anza Boulevard & Parrott Drive
+standard,Burlingame,BMP-36,2020 Bicycle Master Plan,Low,"$200,000",,0,0,0,Laurel Creek Drive & West Hillsdale Boulevard
+standard,Burlingame,BMP-37,2020 Bicycle Master Plan,Low,"$470,000",,0,0,0,36th Avenue & Alameda de las Pulgas; Fernwood Street & West Hillsdale Boulevard
+standard,Burlingame,BMP-41,2020 Bicycle Master Plan,Low,"$1,090,000",,0,0,0,Curtiss Street & East Hillsdale Boulevard
+standard,Burlingame,BMP-50,2020 Bicycle Master Plan,Low,"$30,000",,0,0,0,
+standard,Burlingame,BMP-52,2020 Bicycle Master Plan,Low,"$40,000",,0,0,0,
+standard,Burlingame,BMP-62,2020 Bicycle Master Plan,Low,"$100,000",,0,0,0,Armada Way & Mariners Island Boulevard; Chess Drive
+standard,Burlingame,BMP-66,2020 Bicycle Master Plan,Low,"$110,000",,0,0,0,
+standard,Burlingame,BMP-69,2020 Bicycle Master Plan,Low,"$860,000",,0,0,0,
+standard,Burlingame,PMP-9,"2012 Pedestrian Master Plan priority #9 (road diet), with BMP #25's lane",Priority,,,0,0,0,
+standard,Burlingame,TOD-HPE-path,"2022 TOD plan, Hayward Park East: wider sidewalk or Class I path on Pacific",Recommended,,,0,0,0,Pacific Boulevard & South Delaware Street
+standard,Burlingame,TOD-HPE-xing,"2022 TOD plan, Hayward Park East",Recommended,,,0,0,0,
+standard,Burlingame,TOD-NSA-xing,"2022 TOD plan, North Station Access",Recommended,,,0,0,0,
+standard,Burlingame,TOD-SUN-xing,"2022 TOD plan, Hayward Park–Sunnybrae",Recommended,,,0,0,0,
+standard,Burlingame,TOD-HB-xing,"2022 TOD plan, Hillsdale Boulevard",Recommended,,,0,0,0,
+standard,Burlingame,TOD-FB-xing,"2022 TOD plan, 31st Ave / Bay Meadows",Recommended,,,0,0,0,
+standard,Burlingame,TOD-28-diet,"2022 TOD plan, Hillsdale–28th Ave (consider feasibility)",Consider,,,0,0,0,
+standard,San Mateo,BMP-2,2020 Bicycle Master Plan,High,"$330,000","$1,410,000",0,1304,1304,Peninsula Avenue
+standard,San Mateo,BMP-3,2020 Bicycle Master Plan,High,"$320,000",,0,0,0,North Humboldt Street & Peninsula Avenue
+standard,San Mateo,BMP-5,2020 Bicycle Master Plan,High,"$70,000",,181,181,181,
+standard,San Mateo,BMP-6,2020 Bicycle Master Plan,High,"$130,000",,0,0,0,
+standard,San Mateo,BMP-7,2020 Bicycle Master Plan,High,"$480,000",,0,0,0,
+standard,San Mateo,BMP-9,2020 Bicycle Master Plan,High,"$30,000",,0,0,0,
+standard,San Mateo,BMP-12,2020 Bicycle Master Plan,High,"$290,000",,45,45,45,East 3rd Avenue & South Railroad Avenue; East 4th Avenue & South Railroad Avenue
+standard,San Mateo,BMP-13,2020 Bicycle Master Plan,High,"$310,000",,45,45,45,
+standard,San Mateo,BMP-14,2020 Bicycle Master Plan,High,"$260,000","$680,000",1205,1205,1205,
+standard,San Mateo,BMP-15,2020 Bicycle Master Plan,High,"$430,000","$1,830,000",480,486,486,East 3rd Avenue; West 3rd Avenue
+standard,San Mateo,BMP-16,2020 Bicycle Master Plan,High,"$190,000",,0,0,0,
+standard,San Mateo,BMP-26,2020 Bicycle Master Plan,High,"$90,000",,0,0,0,
+standard,San Mateo,BMP-27,2020 Bicycle Master Plan,High,"$90,000",,94,94,94,East 25th Avenue
+standard,San Mateo,BMP-28,2020 Bicycle Master Plan,High,"$490,000",,0,0,0,
+standard,San Mateo,BMP-45,2020 Bicycle Master Plan,High,"$410,000",,0,0,0,
+standard,San Mateo,BMP-46,2020 Bicycle Master Plan,High,"$430,000","$530,000",0,0,0,28th Avenue & Alameda de las Pulgas
+standard,San Mateo,BMP-55,2020 Bicycle Master Plan,High,"$640,000","$1,820,000",543,543,893,Charles Lane & South Delaware Street; South Delaware Street
+standard,San Mateo,BMP-56,2020 Bicycle Master Plan,High,"$410,000","$1,720,000",0,0,0,Saratoga Drive
+standard,San Mateo,BMP-58,2020 Bicycle Master Plan,High,"$430,000","$740,000",0,0,0,
+standard,San Mateo,BMP-10,2020 Bicycle Master Plan,Med-High,"$200,000","$250,000",0,0,0,South Norfolk Street
+standard,San Mateo,BMP-19,2020 Bicycle Master Plan,Med-High,"$250,000",,0,0,0,
+standard,San Mateo,BMP-20,2020 Bicycle Master Plan,Med-High,"$170,000","$560,000",0,0,0,
+standard,San Mateo,BMP-23,2020 Bicycle Master Plan,Med-High,"$470,000",,11,11,11,Alameda de las Pulgas & Barneson Avenue
+standard,San Mateo,BMP-24,2020 Bicycle Master Plan,Med-High,"$230,000",,144,144,144,Alameda de las Pulgas & Notre Dame Avenue; Notre Dame Avenue & South El Camino Real
+standard,San Mateo,BMP-25,2020 Bicycle Master Plan,Med-High,"$340,000",,1,1,1,Alameda de las Pulgas; Alameda de las Pulgas & Caribbean Way
+standard,San Mateo,BMP-33,2020 Bicycle Master Plan,Med-High,"$130,000",,0,0,0,
+standard,San Mateo,BMP-40,2020 Bicycle Master Plan,Med-High,"$80,000",,0,0,0,
+standard,San Mateo,BMP-42,2020 Bicycle Master Plan,Med-High,"$60,000",,0,0,0,
+standard,San Mateo,BMP-47,2020 Bicycle Master Plan,Med-High,"$260,000",,0,0,0,
+standard,San Mateo,BMP-48,2020 Bicycle Master Plan,Med-High,"$90,000",,0,0,0,
+standard,San Mateo,BMP-49,2020 Bicycle Master Plan,Med-High,"$460,000",,0,0,0,31st Avenue & Alameda de las Pulgas; East 31st Avenue
+standard,San Mateo,BMP-54,2020 Bicycle Master Plan,Med-High,"$40,000",,0,0,0,South Norfolk Street
+standard,San Mateo,BMP-60,2020 Bicycle Master Plan,Med-High,"$610,000","$2,610,000",78,78,78,Fashion Island Boulevard
+standard,San Mateo,BMP-61,2020 Bicycle Master Plan,Med-High,"$670,000","$1,990,000",0,0,0,East 3rd Avenue & J Hart Clinton Drive & Mariners Island Boulevard; East 3rd Avenue & Mariners Island Boulevard
+standard,San Mateo,BMP-63,2020 Bicycle Master Plan,Med-High,"$400,000","$770,000",0,0,0,
+standard,San Mateo,BMP-67,2020 Bicycle Master Plan,Med-High,"$220,000",,0,0,0,
+standard,San Mateo,BMP-1,2020 Bicycle Master Plan,Med-Low,"$790,000",,0,0,0,Clark Drive & North El Camino Real
+standard,San Mateo,BMP-4,2020 Bicycle Master Plan,Med-Low,"$950,000",,0,0,0,Airport Boulevard & Coyote Point Drive & Peninsula Avenue; Peninsula Avenue
+standard,San Mateo,BMP-17,2020 Bicycle Master Plan,Med-Low,"$170,000",,0,0,0,
+standard,San Mateo,BMP-21,2020 Bicycle Master Plan,Med-Low,"$710,000",,0,0,0,
+standard,San Mateo,BMP-31,2020 Bicycle Master Plan,Med-Low,"$330,000","$1,430,000",0,0,0,
+standard,San Mateo,BMP-32,2020 Bicycle Master Plan,Med-Low,"$160,000","$670,000",0,0,0,De Anza Boulevard & Polhemus Road
+standard,San Mateo,BMP-34,2020 Bicycle Master Plan,Med-Low,"$330,000",,0,0,0,26th Avenue & Alameda de las Pulgas
+standard,San Mateo,BMP-38,2020 Bicycle Master Plan,Med-Low,"$320,000",,0,0,0,Alameda de las Pulgas & West 39th Avenue; South El Camino Real & West 39th Avenue
+standard,San Mateo,BMP-44,2020 Bicycle Master Plan,Med-Low,"$70,000","$280,000",0,0,0,
+standard,San Mateo,BMP-57,2020 Bicycle Master Plan,Med-Low,"$100,000",,0,0,0,
+standard,San Mateo,BMP-59,2020 Bicycle Master Plan,Med-Low,"$230,000",,0,0,0,Bermuda Drive & South Delaware Street
+standard,San Mateo,BMP-64,2020 Bicycle Master Plan,Med-Low,"$330,000",,9,9,9,
+standard,San Mateo,BMP-68,2020 Bicycle Master Plan,Med-Low,"$360,000",,0,0,0,East 3rd Avenue & J Hart Clinton Drive & Mariners Island Boulevard; J Hart Clinton Drive & Seal Point Park
+standard,San Mateo,BMP-11,2020 Bicycle Master Plan,Low,"$150,000",,0,0,0,
+standard,San Mateo,BMP-18,2020 Bicycle Master Plan,Low,"$300,000",,0,0,0,
+standard,San Mateo,BMP-22,2020 Bicycle Master Plan,Low,"$190,000",,0,0,0,Alameda de las Pulgas & Hobart Avenue
+standard,San Mateo,BMP-29,2020 Bicycle Master Plan,Low,"$130,000",,0,0,0,
+standard,San Mateo,BMP-30,2020 Bicycle Master Plan,Low,"$280,000",,0,0,0,CSM Drive & West Hillsdale Boulevard & West Perimeter Road; De Anza Boulevard & Parrott Drive
+standard,San Mateo,BMP-36,2020 Bicycle Master Plan,Low,"$200,000",,0,0,0,Laurel Creek Drive & West Hillsdale Boulevard
+standard,San Mateo,BMP-37,2020 Bicycle Master Plan,Low,"$470,000",,0,0,0,36th Avenue & Alameda de las Pulgas; Fernwood Street & West Hillsdale Boulevard
+standard,San Mateo,BMP-41,2020 Bicycle Master Plan,Low,"$1,090,000",,0,0,0,Curtiss Street & East Hillsdale Boulevard
+standard,San Mateo,BMP-50,2020 Bicycle Master Plan,Low,"$30,000",,0,0,0,
+standard,San Mateo,BMP-52,2020 Bicycle Master Plan,Low,"$40,000",,0,0,0,
+standard,San Mateo,BMP-62,2020 Bicycle Master Plan,Low,"$100,000",,0,0,0,Armada Way & Mariners Island Boulevard; Chess Drive
+standard,San Mateo,BMP-66,2020 Bicycle Master Plan,Low,"$110,000",,0,0,0,
+standard,San Mateo,BMP-69,2020 Bicycle Master Plan,Low,"$860,000",,0,0,0,
+standard,San Mateo,PMP-9,"2012 Pedestrian Master Plan priority #9 (road diet), with BMP #25's lane",Priority,,,50,50,50,
+standard,San Mateo,TOD-HPE-path,"2022 TOD plan, Hayward Park East: wider sidewalk or Class I path on Pacific",Recommended,,,227,227,227,Pacific Boulevard & South Delaware Street
+standard,San Mateo,TOD-HPE-xing,"2022 TOD plan, Hayward Park East",Recommended,,,0,0,0,
+standard,San Mateo,TOD-NSA-xing,"2022 TOD plan, North Station Access",Recommended,,,0,0,0,
+standard,San Mateo,TOD-SUN-xing,"2022 TOD plan, Hayward Park–Sunnybrae",Recommended,,,0,0,0,
+standard,San Mateo,TOD-HB-xing,"2022 TOD plan, Hillsdale Boulevard",Recommended,,,0,0,0,
+standard,San Mateo,TOD-FB-xing,"2022 TOD plan, 31st Ave / Bay Meadows",Recommended,,,0,0,0,
+standard,San Mateo,TOD-28-diet,"2022 TOD plan, Hillsdale–28th Ave (consider feasibility)",Consider,,,0,0,0,
+standard,Hayward Park,BMP-2,2020 Bicycle Master Plan,High,"$330,000","$1,410,000",0,0,0,Peninsula Avenue
+standard,Hayward Park,BMP-3,2020 Bicycle Master Plan,High,"$320,000",,0,0,0,North Humboldt Street & Peninsula Avenue
+standard,Hayward Park,BMP-5,2020 Bicycle Master Plan,High,"$70,000",,181,181,181,
+standard,Hayward Park,BMP-6,2020 Bicycle Master Plan,High,"$130,000",,0,0,0,
+standard,Hayward Park,BMP-7,2020 Bicycle Master Plan,High,"$480,000",,0,0,0,
+standard,Hayward Park,BMP-9,2020 Bicycle Master Plan,High,"$30,000",,0,0,0,
+standard,Hayward Park,BMP-12,2020 Bicycle Master Plan,High,"$290,000",,0,0,0,East 3rd Avenue & South Railroad Avenue; East 4th Avenue & South Railroad Avenue
+standard,Hayward Park,BMP-13,2020 Bicycle Master Plan,High,"$310,000",,503,503,503,
+standard,Hayward Park,BMP-14,2020 Bicycle Master Plan,High,"$260,000","$680,000",682,682,682,
+standard,Hayward Park,BMP-15,2020 Bicycle Master Plan,High,"$430,000","$1,830,000",57,63,63,East 3rd Avenue; West 3rd Avenue
+standard,Hayward Park,BMP-16,2020 Bicycle Master Plan,High,"$190,000",,0,0,0,
+standard,Hayward Park,BMP-26,2020 Bicycle Master Plan,High,"$90,000",,0,0,0,
+standard,Hayward Park,BMP-27,2020 Bicycle Master Plan,High,"$90,000",,1887,1887,1887,East 25th Avenue
+standard,Hayward Park,BMP-28,2020 Bicycle Master Plan,High,"$490,000",,0,0,0,
+standard,Hayward Park,BMP-45,2020 Bicycle Master Plan,High,"$410,000",,0,0,0,
+standard,Hayward Park,BMP-46,2020 Bicycle Master Plan,High,"$430,000","$530,000",0,0,0,28th Avenue & Alameda de las Pulgas
+standard,Hayward Park,BMP-55,2020 Bicycle Master Plan,High,"$640,000","$1,820,000",275,275,275,Charles Lane & South Delaware Street; South Delaware Street
+standard,Hayward Park,BMP-56,2020 Bicycle Master Plan,High,"$410,000","$1,720,000",0,0,0,Saratoga Drive
+standard,Hayward Park,BMP-58,2020 Bicycle Master Plan,High,"$430,000","$740,000",521,702,702,
+standard,Hayward Park,BMP-10,2020 Bicycle Master Plan,Med-High,"$200,000","$250,000",0,0,0,South Norfolk Street
+standard,Hayward Park,BMP-19,2020 Bicycle Master Plan,Med-High,"$250,000",,0,0,0,
+standard,Hayward Park,BMP-20,2020 Bicycle Master Plan,Med-High,"$170,000","$560,000",338,338,338,
+standard,Hayward Park,BMP-23,2020 Bicycle Master Plan,Med-High,"$470,000",,318,318,318,Alameda de las Pulgas & Barneson Avenue
+standard,Hayward Park,BMP-24,2020 Bicycle Master Plan,Med-High,"$230,000",,134,134,134,Alameda de las Pulgas & Notre Dame Avenue; Notre Dame Avenue & South El Camino Real
+standard,Hayward Park,BMP-25,2020 Bicycle Master Plan,Med-High,"$340,000",,1,1,42,Alameda de las Pulgas; Alameda de las Pulgas & Caribbean Way
+standard,Hayward Park,BMP-33,2020 Bicycle Master Plan,Med-High,"$130,000",,0,0,0,
+standard,Hayward Park,BMP-40,2020 Bicycle Master Plan,Med-High,"$80,000",,0,0,0,
+standard,Hayward Park,BMP-42,2020 Bicycle Master Plan,Med-High,"$60,000",,0,0,0,
+standard,Hayward Park,BMP-47,2020 Bicycle Master Plan,Med-High,"$260,000",,0,0,0,
+standard,Hayward Park,BMP-48,2020 Bicycle Master Plan,Med-High,"$90,000",,0,0,0,
+standard,Hayward Park,BMP-49,2020 Bicycle Master Plan,Med-High,"$460,000",,0,0,0,31st Avenue & Alameda de las Pulgas; East 31st Avenue
+standard,Hayward Park,BMP-54,2020 Bicycle Master Plan,Med-High,"$40,000",,0,0,0,South Norfolk Street
+standard,Hayward Park,BMP-60,2020 Bicycle Master Plan,Med-High,"$610,000","$2,610,000",1050,1591,1591,Fashion Island Boulevard
+standard,Hayward Park,BMP-61,2020 Bicycle Master Plan,Med-High,"$670,000","$1,990,000",0,0,0,East 3rd Avenue & J Hart Clinton Drive & Mariners Island Boulevard; East 3rd Avenue & Mariners Island Boulevard
+standard,Hayward Park,BMP-63,2020 Bicycle Master Plan,Med-High,"$400,000","$770,000",0,0,0,
+standard,Hayward Park,BMP-67,2020 Bicycle Master Plan,Med-High,"$220,000",,0,0,0,
+standard,Hayward Park,BMP-1,2020 Bicycle Master Plan,Med-Low,"$790,000",,0,0,0,Clark Drive & North El Camino Real
+standard,Hayward Park,BMP-4,2020 Bicycle Master Plan,Med-Low,"$950,000",,0,0,0,Airport Boulevard & Coyote Point Drive & Peninsula Avenue; Peninsula Avenue
+standard,Hayward Park,BMP-17,2020 Bicycle Master Plan,Med-Low,"$170,000",,0,0,0,
+standard,Hayward Park,BMP-21,2020 Bicycle Master Plan,Med-Low,"$710,000",,0,0,0,
+standard,Hayward Park,BMP-31,2020 Bicycle Master Plan,Med-Low,"$330,000","$1,430,000",0,0,0,
+standard,Hayward Park,BMP-32,2020 Bicycle Master Plan,Med-Low,"$160,000","$670,000",0,0,0,De Anza Boulevard & Polhemus Road
+standard,Hayward Park,BMP-34,2020 Bicycle Master Plan,Med-Low,"$330,000",,784,784,784,26th Avenue & Alameda de las Pulgas
+standard,Hayward Park,BMP-38,2020 Bicycle Master Plan,Med-Low,"$320,000",,0,0,0,Alameda de las Pulgas & West 39th Avenue; South El Camino Real & West 39th Avenue
+standard,Hayward Park,BMP-44,2020 Bicycle Master Plan,Med-Low,"$70,000","$280,000",0,0,0,
+standard,Hayward Park,BMP-57,2020 Bicycle Master Plan,Med-Low,"$100,000",,0,0,0,
+standard,Hayward Park,BMP-59,2020 Bicycle Master Plan,Med-Low,"$230,000",,0,0,0,Bermuda Drive & South Delaware Street
+standard,Hayward Park,BMP-64,2020 Bicycle Master Plan,Med-Low,"$330,000",,9,9,9,
+standard,Hayward Park,BMP-68,2020 Bicycle Master Plan,Med-Low,"$360,000",,0,0,0,East 3rd Avenue & J Hart Clinton Drive & Mariners Island Boulevard; J Hart Clinton Drive & Seal Point Park
+standard,Hayward Park,BMP-11,2020 Bicycle Master Plan,Low,"$150,000",,0,0,0,
+standard,Hayward Park,BMP-18,2020 Bicycle Master Plan,Low,"$300,000",,0,0,0,
+standard,Hayward Park,BMP-22,2020 Bicycle Master Plan,Low,"$190,000",,0,0,0,Alameda de las Pulgas & Hobart Avenue
+standard,Hayward Park,BMP-29,2020 Bicycle Master Plan,Low,"$130,000",,0,0,0,
+standard,Hayward Park,BMP-30,2020 Bicycle Master Plan,Low,"$280,000",,0,0,0,CSM Drive & West Hillsdale Boulevard & West Perimeter Road; De Anza Boulevard & Parrott Drive
+standard,Hayward Park,BMP-36,2020 Bicycle Master Plan,Low,"$200,000",,0,0,0,Laurel Creek Drive & West Hillsdale Boulevard
+standard,Hayward Park,BMP-37,2020 Bicycle Master Plan,Low,"$470,000",,0,0,0,36th Avenue & Alameda de las Pulgas; Fernwood Street & West Hillsdale Boulevard
+standard,Hayward Park,BMP-41,2020 Bicycle Master Plan,Low,"$1,090,000",,0,0,0,Curtiss Street & East Hillsdale Boulevard
+standard,Hayward Park,BMP-50,2020 Bicycle Master Plan,Low,"$30,000",,0,0,0,
+standard,Hayward Park,BMP-52,2020 Bicycle Master Plan,Low,"$40,000",,0,0,0,
+standard,Hayward Park,BMP-62,2020 Bicycle Master Plan,Low,"$100,000",,0,0,0,Armada Way & Mariners Island Boulevard; Chess Drive
+standard,Hayward Park,BMP-66,2020 Bicycle Master Plan,Low,"$110,000",,0,0,0,
+standard,Hayward Park,BMP-69,2020 Bicycle Master Plan,Low,"$860,000",,0,0,0,
+standard,Hayward Park,PMP-9,"2012 Pedestrian Master Plan priority #9 (road diet), with BMP #25's lane",Priority,,,388,388,388,
+standard,Hayward Park,TOD-HPE-path,"2022 TOD plan, Hayward Park East: wider sidewalk or Class I path on Pacific",Recommended,,,227,227,227,Pacific Boulevard & South Delaware Street
+standard,Hayward Park,TOD-HPE-xing,"2022 TOD plan, Hayward Park East",Recommended,,,0,0,0,
+standard,Hayward Park,TOD-NSA-xing,"2022 TOD plan, North Station Access",Recommended,,,0,0,0,
+standard,Hayward Park,TOD-SUN-xing,"2022 TOD plan, Hayward Park–Sunnybrae",Recommended,,,0,0,0,
+standard,Hayward Park,TOD-HB-xing,"2022 TOD plan, Hillsdale Boulevard",Recommended,,,0,0,0,
+standard,Hayward Park,TOD-FB-xing,"2022 TOD plan, 31st Ave / Bay Meadows",Recommended,,,0,0,0,
+standard,Hayward Park,TOD-28-diet,"2022 TOD plan, Hillsdale–28th Ave (consider feasibility)",Consider,,,0,0,0,
+standard,Hillsdale,BMP-2,2020 Bicycle Master Plan,High,"$330,000","$1,410,000",0,0,0,Peninsula Avenue
+standard,Hillsdale,BMP-3,2020 Bicycle Master Plan,High,"$320,000",,0,0,0,North Humboldt Street & Peninsula Avenue
+standard,Hillsdale,BMP-5,2020 Bicycle Master Plan,High,"$70,000",,0,0,0,
+standard,Hillsdale,BMP-6,2020 Bicycle Master Plan,High,"$130,000",,0,0,0,
+standard,Hillsdale,BMP-7,2020 Bicycle Master Plan,High,"$480,000",,0,0,0,
+standard,Hillsdale,BMP-9,2020 Bicycle Master Plan,High,"$30,000",,0,0,0,
+standard,Hillsdale,BMP-12,2020 Bicycle Master Plan,High,"$290,000",,0,0,0,East 3rd Avenue & South Railroad Avenue; East 4th Avenue & South Railroad Avenue
+standard,Hillsdale,BMP-13,2020 Bicycle Master Plan,High,"$310,000",,0,0,0,
+standard,Hillsdale,BMP-14,2020 Bicycle Master Plan,High,"$260,000","$680,000",0,0,0,
+standard,Hillsdale,BMP-15,2020 Bicycle Master Plan,High,"$430,000","$1,830,000",0,0,0,East 3rd Avenue; West 3rd Avenue
+standard,Hillsdale,BMP-16,2020 Bicycle Master Plan,High,"$190,000",,0,0,0,
+standard,Hillsdale,BMP-26,2020 Bicycle Master Plan,High,"$90,000",,0,0,0,
+standard,Hillsdale,BMP-27,2020 Bicycle Master Plan,High,"$90,000",,0,0,0,East 25th Avenue
+standard,Hillsdale,BMP-28,2020 Bicycle Master Plan,High,"$490,000",,0,0,0,
+standard,Hillsdale,BMP-45,2020 Bicycle Master Plan,High,"$410,000",,0,0,0,
+standard,Hillsdale,BMP-46,2020 Bicycle Master Plan,High,"$430,000","$530,000",3198,3198,3198,28th Avenue & Alameda de las Pulgas
+standard,Hillsdale,BMP-55,2020 Bicycle Master Plan,High,"$640,000","$1,820,000",2100,2774,2774,Charles Lane & South Delaware Street; South Delaware Street
+standard,Hillsdale,BMP-56,2020 Bicycle Master Plan,High,"$410,000","$1,720,000",798,798,798,Saratoga Drive
+standard,Hillsdale,BMP-58,2020 Bicycle Master Plan,High,"$430,000","$740,000",0,0,0,
+standard,Hillsdale,BMP-10,2020 Bicycle Master Plan,Med-High,"$200,000","$250,000",0,0,0,South Norfolk Street
+standard,Hillsdale,BMP-19,2020 Bicycle Master Plan,Med-High,"$250,000",,0,0,0,
+standard,Hillsdale,BMP-20,2020 Bicycle Master Plan,Med-High,"$170,000","$560,000",0,0,0,
+standard,Hillsdale,BMP-23,2020 Bicycle Master Plan,Med-High,"$470,000",,0,0,0,Alameda de las Pulgas & Barneson Avenue
+standard,Hillsdale,BMP-24,2020 Bicycle Master Plan,Med-High,"$230,000",,0,0,0,Alameda de las Pulgas & Notre Dame Avenue; Notre Dame Avenue & South El Camino Real
+standard,Hillsdale,BMP-25,2020 Bicycle Master Plan,Med-High,"$340,000",,0,0,0,Alameda de las Pulgas; Alameda de las Pulgas & Caribbean Way
+standard,Hillsdale,BMP-33,2020 Bicycle Master Plan,Med-High,"$130,000",,0,0,0,
+standard,Hillsdale,BMP-40,2020 Bicycle Master Plan,Med-High,"$80,000",,0,0,0,
+standard,Hillsdale,BMP-42,2020 Bicycle Master Plan,Med-High,"$60,000",,0,0,0,
+standard,Hillsdale,BMP-47,2020 Bicycle Master Plan,Med-High,"$260,000",,0,0,0,
+standard,Hillsdale,BMP-48,2020 Bicycle Master Plan,Med-High,"$90,000",,0,0,0,
+standard,Hillsdale,BMP-49,2020 Bicycle Master Plan,Med-High,"$460,000",,0,0,0,31st Avenue & Alameda de las Pulgas; East 31st Avenue
+standard,Hillsdale,BMP-54,2020 Bicycle Master Plan,Med-High,"$40,000",,0,0,0,South Norfolk Street
+standard,Hillsdale,BMP-60,2020 Bicycle Master Plan,Med-High,"$610,000","$2,610,000",0,0,0,Fashion Island Boulevard
+standard,Hillsdale,BMP-61,2020 Bicycle Master Plan,Med-High,"$670,000","$1,990,000",0,0,0,East 3rd Avenue & J Hart Clinton Drive & Mariners Island Boulevard; East 3rd Avenue & Mariners Island Boulevard
+standard,Hillsdale,BMP-63,2020 Bicycle Master Plan,Med-High,"$400,000","$770,000",0,0,0,
+standard,Hillsdale,BMP-67,2020 Bicycle Master Plan,Med-High,"$220,000",,0,0,0,
+standard,Hillsdale,BMP-1,2020 Bicycle Master Plan,Med-Low,"$790,000",,0,0,0,Clark Drive & North El Camino Real
+standard,Hillsdale,BMP-4,2020 Bicycle Master Plan,Med-Low,"$950,000",,0,0,0,Airport Boulevard & Coyote Point Drive & Peninsula Avenue; Peninsula Avenue
+standard,Hillsdale,BMP-17,2020 Bicycle Master Plan,Med-Low,"$170,000",,0,0,0,
+standard,Hillsdale,BMP-21,2020 Bicycle Master Plan,Med-Low,"$710,000",,0,0,0,
+standard,Hillsdale,BMP-31,2020 Bicycle Master Plan,Med-Low,"$330,000","$1,430,000",0,0,0,
+standard,Hillsdale,BMP-32,2020 Bicycle Master Plan,Med-Low,"$160,000","$670,000",0,0,0,De Anza Boulevard & Polhemus Road
+standard,Hillsdale,BMP-34,2020 Bicycle Master Plan,Med-Low,"$330,000",,0,0,0,26th Avenue & Alameda de las Pulgas
+standard,Hillsdale,BMP-38,2020 Bicycle Master Plan,Med-Low,"$320,000",,0,0,0,Alameda de las Pulgas & West 39th Avenue; South El Camino Real & West 39th Avenue
+standard,Hillsdale,BMP-44,2020 Bicycle Master Plan,Med-Low,"$70,000","$280,000",0,0,0,
+standard,Hillsdale,BMP-57,2020 Bicycle Master Plan,Med-Low,"$100,000",,0,0,0,
+standard,Hillsdale,BMP-59,2020 Bicycle Master Plan,Med-Low,"$230,000",,0,0,0,Bermuda Drive & South Delaware Street
+standard,Hillsdale,BMP-64,2020 Bicycle Master Plan,Med-Low,"$330,000",,0,0,0,
+standard,Hillsdale,BMP-68,2020 Bicycle Master Plan,Med-Low,"$360,000",,0,0,0,East 3rd Avenue & J Hart Clinton Drive & Mariners Island Boulevard; J Hart Clinton Drive & Seal Point Park
+standard,Hillsdale,BMP-11,2020 Bicycle Master Plan,Low,"$150,000",,0,0,0,
+standard,Hillsdale,BMP-18,2020 Bicycle Master Plan,Low,"$300,000",,0,0,0,
+standard,Hillsdale,BMP-22,2020 Bicycle Master Plan,Low,"$190,000",,0,0,0,Alameda de las Pulgas & Hobart Avenue
+standard,Hillsdale,BMP-29,2020 Bicycle Master Plan,Low,"$130,000",,0,0,0,
+standard,Hillsdale,BMP-30,2020 Bicycle Master Plan,Low,"$280,000",,0,0,0,CSM Drive & West Hillsdale Boulevard & West Perimeter Road; De Anza Boulevard & Parrott Drive
+standard,Hillsdale,BMP-36,2020 Bicycle Master Plan,Low,"$200,000",,0,0,0,Laurel Creek Drive & West Hillsdale Boulevard
+standard,Hillsdale,BMP-37,2020 Bicycle Master Plan,Low,"$470,000",,0,0,0,36th Avenue & Alameda de las Pulgas; Fernwood Street & West Hillsdale Boulevard
+standard,Hillsdale,BMP-41,2020 Bicycle Master Plan,Low,"$1,090,000",,0,0,0,Curtiss Street & East Hillsdale Boulevard
+standard,Hillsdale,BMP-50,2020 Bicycle Master Plan,Low,"$30,000",,0,0,0,
+standard,Hillsdale,BMP-52,2020 Bicycle Master Plan,Low,"$40,000",,0,0,0,
+standard,Hillsdale,BMP-62,2020 Bicycle Master Plan,Low,"$100,000",,0,0,0,Armada Way & Mariners Island Boulevard; Chess Drive
+standard,Hillsdale,BMP-66,2020 Bicycle Master Plan,Low,"$110,000",,0,0,0,
+standard,Hillsdale,BMP-69,2020 Bicycle Master Plan,Low,"$860,000",,0,0,0,
+standard,Hillsdale,PMP-9,"2012 Pedestrian Master Plan priority #9 (road diet), with BMP #25's lane",Priority,,,0,0,0,
+standard,Hillsdale,TOD-HPE-path,"2022 TOD plan, Hayward Park East: wider sidewalk or Class I path on Pacific",Recommended,,,0,0,0,Pacific Boulevard & South Delaware Street
+standard,Hillsdale,TOD-HPE-xing,"2022 TOD plan, Hayward Park East",Recommended,,,0,0,0,
+standard,Hillsdale,TOD-NSA-xing,"2022 TOD plan, North Station Access",Recommended,,,0,0,0,
+standard,Hillsdale,TOD-SUN-xing,"2022 TOD plan, Hayward Park–Sunnybrae",Recommended,,,0,0,0,
+standard,Hillsdale,TOD-HB-xing,"2022 TOD plan, Hillsdale Boulevard",Recommended,,,0,0,0,
+standard,Hillsdale,TOD-FB-xing,"2022 TOD plan, 31st Ave / Bay Meadows",Recommended,,,0,0,0,
+standard,Hillsdale,TOD-28-diet,"2022 TOD plan, Hillsdale–28th Ave (consider feasibility)",Consider,,,0,0,0,
+strict,Burlingame,BMP-2,2020 Bicycle Master Plan,High,"$330,000","$1,410,000",0,2345,2345,California Drive & North San Mateo Drive & Peninsula Avenue; Dwight Road & North Delaware Street & Peninsula Avenue; North Amphlett Boulevard & Peninsula Avenue; North Bayshore Boulevard & Peninsula Avenue; Peninsula Avenue
+strict,Burlingame,BMP-3,2020 Bicycle Master Plan,High,"$320,000",,0,0,0,Humboldt Street & North Humboldt Street & Peninsula Avenue
+strict,Burlingame,BMP-6,2020 Bicycle Master Plan,High,"$130,000",,0,0,0,
+strict,Burlingame,BMP-7,2020 Bicycle Master Plan,High,"$480,000",,0,0,0,East 3rd Avenue & South Claremont Street; East 4th Avenue & South Claremont Street
+strict,Burlingame,BMP-9,2020 Bicycle Master Plan,High,"$30,000",,0,0,0,North Amphlett Boulevard & Tilton Avenue
+strict,Burlingame,BMP-12,2020 Bicycle Master Plan,High,"$290,000",,0,0,0,East 4th Avenue & South Railroad Avenue
+strict,Burlingame,BMP-13,2020 Bicycle Master Plan,High,"$310,000",,0,0,0,Baldwin Avenue & Baywood Avenue & De Sabla Road & North El Camino Real & South El Camino Real
+strict,Burlingame,BMP-14,2020 Bicycle Master Plan,High,"$260,000","$680,000",0,0,0,East 3rd Avenue & South B Street; East 4th Avenue & South B Street
+strict,Burlingame,BMP-15,2020 Bicycle Master Plan,High,"$430,000","$1,830,000",0,0,0,East 3rd Avenue; East 3rd Avenue & South El Camino Real & West 3rd Avenue; East 3rd Avenue & South Grant Street; East 3rd Avenue & South Humboldt Street; East 3rd Avenue & South San Mateo Drive; East 4th Avenue & South Delaware Street; East 4th Avenue & South Grant Street; South El Camino Real & West 3rd Avenue
+strict,Burlingame,BMP-16,2020 Bicycle Master Plan,High,"$190,000",,0,0,0,East 5th Avenue & South El Camino Real & West 5th Avenue; South El Camino Real & West 5th Avenue
+strict,Burlingame,BMP-26,2020 Bicycle Master Plan,High,"$90,000",,0,0,0,Alameda de las Pulgas & West 20th Avenue; East 20th Avenue & Palm Avenue; East 20th Avenue & South El Camino Real & West 20th Avenue; South El Camino Real & West 20th Avenue
+strict,Burlingame,BMP-28,2020 Bicycle Master Plan,High,"$490,000",,0,0,0,
+strict,Burlingame,BMP-45,2020 Bicycle Master Plan,High,"$410,000",,0,0,0,
+strict,Burlingame,BMP-46,2020 Bicycle Master Plan,High,"$430,000","$530,000",0,0,0,28th Avenue & Alameda de las Pulgas; 28th Avenue & East 28th Avenue & South El Camino Real
+strict,Burlingame,BMP-55,2020 Bicycle Master Plan,High,"$640,000","$1,820,000",0,0,0,19th Avenue & South Delaware Street; Concar Drive & South Delaware Street; East 25th Avenue & South Delaware Street; East 28th Avenue & South Delaware Street; Pacific Boulevard & South Delaware Street; Saratoga Drive & South Delaware Street
+strict,Burlingame,BMP-56,2020 Bicycle Master Plan,High,"$410,000","$1,720,000",0,0,0,East Hillsdale Boulevard & Saratoga Drive; Franklin Parkway West & Saratoga Drive; Saratoga Drive; Saratoga Drive & South Delaware Street
+strict,Burlingame,BMP-58,2020 Bicycle Master Plan,High,"$430,000","$740,000",0,0,0,Concar Drive & South Delaware Street; Concar Drive & South Grant Street
+strict,Burlingame,BMP-10,2020 Bicycle Master Plan,Med-High,"$200,000","$250,000",0,0,0,East 3rd Avenue & J Hart Clinton Drive & South Norfolk Street; East Hillsdale Boulevard & South Norfolk Street; Fashion Island Boulevard & South Norfolk Street; J Hart Clinton Drive & South Norfolk Street; Shoreview Avenue & South Norfolk Street; South Norfolk Street
+strict,Burlingame,BMP-19,2020 Bicycle Master Plan,Med-High,"$250,000",,0,0,0,
+strict,Burlingame,BMP-20,2020 Bicycle Master Plan,Med-High,"$170,000","$560,000",0,0,0,17th Avenue & Bovet Road & South El Camino Real; 17th Avenue & Palm Avenue; Bovet Road & South El Camino Real
+strict,Burlingame,BMP-23,2020 Bicycle Master Plan,Med-High,"$470,000",,0,0,0,
+strict,Burlingame,BMP-24,2020 Bicycle Master Plan,Med-High,"$230,000",,0,0,0,Alameda de las Pulgas & Notre Dame Avenue; Notre Dame Avenue & South El Camino Real
+strict,Burlingame,BMP-40,2020 Bicycle Master Plan,Med-High,"$80,000",,0,0,0,East 39th Avenue & Pacific Boulevard
+strict,Burlingame,BMP-47,2020 Bicycle Master Plan,Med-High,"$260,000",,0,0,0,28th Avenue & East 28th Avenue & South El Camino Real; East 28th Avenue & South Delaware Street
+strict,Burlingame,BMP-48,2020 Bicycle Master Plan,Med-High,"$90,000",,0,0,0,East 28th Avenue & Saratoga Drive; East 28th Avenue & South Delaware Street
+strict,Burlingame,BMP-49,2020 Bicycle Master Plan,Med-High,"$460,000",,0,0,0,31st Avenue & East 31st Avenue & South El Camino Real; East 31st Avenue
+strict,Burlingame,BMP-60,2020 Bicycle Master Plan,Med-High,"$610,000","$2,610,000",0,0,0,19th Avenue & Ginniver Street & South Grant Street; 19th Avenue & South Delaware Street; Fashion Island Boulevard; Fashion Island Boulevard & Mariners Island Boulevard; Fashion Island Boulevard & South Norfolk Street
+strict,Burlingame,BMP-61,2020 Bicycle Master Plan,Med-High,"$670,000","$1,990,000",0,0,0,East 3rd Avenue & J Hart Clinton Drive & Mariners Island Boulevard; East 3rd Avenue & Mariners Island Boulevard; Fashion Island Boulevard & Mariners Island Boulevard
+strict,Burlingame,BMP-1,2020 Bicycle Master Plan,Med-Low,"$790,000",,1780,1780,1780,Clark Drive & North El Camino Real; East Bellevue Avenue & North El Camino Real & West Bellevue Avenue; Highland Avenue & Peninsula Avenue
+strict,Burlingame,BMP-4,2020 Bicycle Master Plan,Med-Low,"$950,000",,0,0,0,Airport Boulevard & Coyote Point Drive & Peninsula Avenue; Peninsula Avenue
+strict,Burlingame,BMP-17,2020 Bicycle Master Plan,Med-Low,"$170,000",,0,0,0,
+strict,Burlingame,BMP-21,2020 Bicycle Master Plan,Med-Low,"$710,000",,0,0,0,17th Avenue & Palm Avenue; 19th Avenue & Palm Avenue
+strict,Burlingame,BMP-31,2020 Bicycle Master Plan,Med-Low,"$330,000","$1,430,000",0,0,0,West Hillsdale Boulevard
+strict,Burlingame,BMP-32,2020 Bicycle Master Plan,Med-Low,"$160,000","$670,000",0,0,0,De Anza Boulevard & Polhemus Road
+strict,Burlingame,BMP-34,2020 Bicycle Master Plan,Med-Low,"$330,000",,0,0,0,26th Avenue & Alameda de las Pulgas; Campus Drive & West Hillsdale Boulevard
+strict,Burlingame,BMP-38,2020 Bicycle Master Plan,Med-Low,"$320,000",,0,0,0,Alameda de las Pulgas & West 39th Avenue; South El Camino Real & West 39th Avenue
+strict,Burlingame,BMP-44,2020 Bicycle Master Plan,Med-Low,"$70,000","$280,000",0,0,0,42nd Avenue & Dumont Street; 42nd Avenue & Olympic Avenue; 42nd Avenue & Olympic Avenue & Piccadilly Lane; 42nd Avenue & Pacific Boulevard; 42nd Avenue & South El Camino Real
+strict,Burlingame,BMP-57,2020 Bicycle Master Plan,Med-Low,"$100,000",,0,0,0,
+strict,Burlingame,BMP-59,2020 Bicycle Master Plan,Med-Low,"$230,000",,0,0,0,
+strict,Burlingame,BMP-64,2020 Bicycle Master Plan,Med-Low,"$330,000",,0,0,0,
+strict,Burlingame,BMP-68,2020 Bicycle Master Plan,Med-Low,"$360,000",,0,0,0,East 3rd Avenue & J Hart Clinton Drive & Mariners Island Boulevard; J Hart Clinton Drive & Seal Point Park; Newbridge Avenue & Shoreview Avenue
+strict,Burlingame,BMP-11,2020 Bicycle Master Plan,Low,"$150,000",,0,0,0,
+strict,Burlingame,BMP-18,2020 Bicycle Master Plan,Low,"$300,000",,0,0,0,
+strict,Burlingame,BMP-22,2020 Bicycle Master Plan,Low,"$190,000",,0,0,0,Alameda de las Pulgas & Hobart Avenue
+strict,Burlingame,BMP-29,2020 Bicycle Master Plan,Low,"$130,000",,0,0,0,De Anza Boulevard & Parkwood Drive
+strict,Burlingame,BMP-30,2020 Bicycle Master Plan,Low,"$280,000",,0,0,0,CSM Drive & West Hillsdale Boulevard & West Perimeter Road; De Anza Boulevard & Parrott Drive
+strict,Burlingame,BMP-36,2020 Bicycle Master Plan,Low,"$200,000",,0,0,0,Del Monte Street & West Hillsdale Boulevard; Laurel Creek Drive & West Hillsdale Boulevard
+strict,Burlingame,BMP-37,2020 Bicycle Master Plan,Low,"$470,000",,0,0,0,
+strict,Burlingame,BMP-41,2020 Bicycle Master Plan,Low,"$1,090,000",,0,0,0,Curtiss Street & East Hillsdale Boulevard; Otay Avenue & Pacific Boulevard
+strict,Burlingame,BMP-50,2020 Bicycle Master Plan,Low,"$30,000",,0,0,0,
+strict,Burlingame,BMP-52,2020 Bicycle Master Plan,Low,"$40,000",,0,0,0,
+strict,Burlingame,BMP-62,2020 Bicycle Master Plan,Low,"$100,000",,0,0,0,Armada Way & Mariners Island Boulevard
+strict,Burlingame,BMP-66,2020 Bicycle Master Plan,Low,"$110,000",,0,0,0,Cobb Street & Kehoe Avenue; Kehoe Avenue & Norton Street
+strict,Burlingame,BMP-69,2020 Bicycle Master Plan,Low,"$860,000",,0,0,0,Dale Avenue & Shoreview Avenue
+strict,Burlingame,TOD-HPE-path,"2022 TOD plan, Hayward Park East: wider sidewalk or Class I path on Pacific",Recommended,,,0,0,0,Pacific Boulevard & South Delaware Street
+strict,Burlingame,TOD-HPE-xing,"2022 TOD plan, Hayward Park East",Recommended,,,0,0,0,
+strict,Burlingame,TOD-NSA-xing,"2022 TOD plan, North Station Access",Recommended,,,0,0,0,
+strict,Burlingame,TOD-SUN-xing,"2022 TOD plan, Hayward Park–Sunnybrae",Recommended,,,0,0,0,
+strict,Burlingame,TOD-HB-xing,"2022 TOD plan, Hillsdale Boulevard",Recommended,,,0,0,0,
+strict,Burlingame,TOD-FB-xing,"2022 TOD plan, 31st Ave / Bay Meadows",Recommended,,,0,0,0,
+strict,Burlingame,TOD-28-diet,"2022 TOD plan, Hillsdale–28th Ave (consider feasibility)",Consider,,,0,0,0,East 28th Avenue & South Delaware Street
+strict,San Mateo,BMP-2,2020 Bicycle Master Plan,High,"$330,000","$1,410,000",0,1509,1509,California Drive & North San Mateo Drive & Peninsula Avenue; Dwight Road & North Delaware Street & Peninsula Avenue; North Amphlett Boulevard & Peninsula Avenue; North Bayshore Boulevard & Peninsula Avenue; Peninsula Avenue
+strict,San Mateo,BMP-3,2020 Bicycle Master Plan,High,"$320,000",,0,0,0,Humboldt Street & North Humboldt Street & Peninsula Avenue
+strict,San Mateo,BMP-6,2020 Bicycle Master Plan,High,"$130,000",,0,0,0,
+strict,San Mateo,BMP-7,2020 Bicycle Master Plan,High,"$480,000",,271,271,271,East 3rd Avenue & South Claremont Street; East 4th Avenue & South Claremont Street
+strict,San Mateo,BMP-9,2020 Bicycle Master Plan,High,"$30,000",,0,0,0,North Amphlett Boulevard & Tilton Avenue
+strict,San Mateo,BMP-12,2020 Bicycle Master Plan,High,"$290,000",,354,354,354,East 4th Avenue & South Railroad Avenue
+strict,San Mateo,BMP-13,2020 Bicycle Master Plan,High,"$310,000",,589,589,589,Baldwin Avenue & Baywood Avenue & De Sabla Road & North El Camino Real & South El Camino Real
+strict,San Mateo,BMP-14,2020 Bicycle Master Plan,High,"$260,000","$680,000",930,930,930,East 3rd Avenue & South B Street; East 4th Avenue & South B Street
+strict,San Mateo,BMP-15,2020 Bicycle Master Plan,High,"$430,000","$1,830,000",0,945,945,East 3rd Avenue; East 3rd Avenue & South El Camino Real & West 3rd Avenue; East 3rd Avenue & South Grant Street; East 3rd Avenue & South Humboldt Street; East 3rd Avenue & South San Mateo Drive; East 4th Avenue & South Delaware Street; East 4th Avenue & South Grant Street; South El Camino Real & West 3rd Avenue
+strict,San Mateo,BMP-16,2020 Bicycle Master Plan,High,"$190,000",,0,0,0,East 5th Avenue & South El Camino Real & West 5th Avenue; South El Camino Real & West 5th Avenue
+strict,San Mateo,BMP-26,2020 Bicycle Master Plan,High,"$90,000",,0,0,0,Alameda de las Pulgas & West 20th Avenue; East 20th Avenue & Palm Avenue; East 20th Avenue & South El Camino Real & West 20th Avenue; South El Camino Real & West 20th Avenue
+strict,San Mateo,BMP-28,2020 Bicycle Master Plan,High,"$490,000",,0,0,0,
+strict,San Mateo,BMP-45,2020 Bicycle Master Plan,High,"$410,000",,0,0,0,
+strict,San Mateo,BMP-46,2020 Bicycle Master Plan,High,"$430,000","$530,000",0,0,0,28th Avenue & Alameda de las Pulgas; 28th Avenue & East 28th Avenue & South El Camino Real
+strict,San Mateo,BMP-55,2020 Bicycle Master Plan,High,"$640,000","$1,820,000",0,0,0,19th Avenue & South Delaware Street; Concar Drive & South Delaware Street; East 25th Avenue & South Delaware Street; East 28th Avenue & South Delaware Street; Pacific Boulevard & South Delaware Street; Saratoga Drive & South Delaware Street
+strict,San Mateo,BMP-56,2020 Bicycle Master Plan,High,"$410,000","$1,720,000",0,0,0,East Hillsdale Boulevard & Saratoga Drive; Franklin Parkway West & Saratoga Drive; Saratoga Drive; Saratoga Drive & South Delaware Street
+strict,San Mateo,BMP-58,2020 Bicycle Master Plan,High,"$430,000","$740,000",0,0,0,Concar Drive & South Delaware Street; Concar Drive & South Grant Street
+strict,San Mateo,BMP-10,2020 Bicycle Master Plan,Med-High,"$200,000","$250,000",0,0,0,East 3rd Avenue & J Hart Clinton Drive & South Norfolk Street; East Hillsdale Boulevard & South Norfolk Street; Fashion Island Boulevard & South Norfolk Street; J Hart Clinton Drive & South Norfolk Street; Shoreview Avenue & South Norfolk Street; South Norfolk Street
+strict,San Mateo,BMP-19,2020 Bicycle Master Plan,Med-High,"$250,000",,0,0,0,
+strict,San Mateo,BMP-20,2020 Bicycle Master Plan,Med-High,"$170,000","$560,000",0,0,0,17th Avenue & Bovet Road & South El Camino Real; 17th Avenue & Palm Avenue; Bovet Road & South El Camino Real
+strict,San Mateo,BMP-23,2020 Bicycle Master Plan,Med-High,"$470,000",,0,0,0,
+strict,San Mateo,BMP-24,2020 Bicycle Master Plan,Med-High,"$230,000",,0,0,0,Alameda de las Pulgas & Notre Dame Avenue; Notre Dame Avenue & South El Camino Real
+strict,San Mateo,BMP-40,2020 Bicycle Master Plan,Med-High,"$80,000",,0,0,0,East 39th Avenue & Pacific Boulevard
+strict,San Mateo,BMP-47,2020 Bicycle Master Plan,Med-High,"$260,000",,0,0,0,28th Avenue & East 28th Avenue & South El Camino Real; East 28th Avenue & South Delaware Street
+strict,San Mateo,BMP-48,2020 Bicycle Master Plan,Med-High,"$90,000",,0,0,0,East 28th Avenue & Saratoga Drive; East 28th Avenue & South Delaware Street
+strict,San Mateo,BMP-49,2020 Bicycle Master Plan,Med-High,"$460,000",,0,0,0,31st Avenue & East 31st Avenue & South El Camino Real; East 31st Avenue
+strict,San Mateo,BMP-60,2020 Bicycle Master Plan,Med-High,"$610,000","$2,610,000",0,0,0,19th Avenue & Ginniver Street & South Grant Street; 19th Avenue & South Delaware Street; Fashion Island Boulevard; Fashion Island Boulevard & Mariners Island Boulevard; Fashion Island Boulevard & South Norfolk Street
+strict,San Mateo,BMP-61,2020 Bicycle Master Plan,Med-High,"$670,000","$1,990,000",0,0,0,East 3rd Avenue & J Hart Clinton Drive & Mariners Island Boulevard; East 3rd Avenue & Mariners Island Boulevard; Fashion Island Boulevard & Mariners Island Boulevard
+strict,San Mateo,BMP-1,2020 Bicycle Master Plan,Med-Low,"$790,000",,2080,2080,2080,Clark Drive & North El Camino Real; East Bellevue Avenue & North El Camino Real & West Bellevue Avenue; Highland Avenue & Peninsula Avenue
+strict,San Mateo,BMP-4,2020 Bicycle Master Plan,Med-Low,"$950,000",,0,0,0,Airport Boulevard & Coyote Point Drive & Peninsula Avenue; Peninsula Avenue
+strict,San Mateo,BMP-17,2020 Bicycle Master Plan,Med-Low,"$170,000",,0,0,0,
+strict,San Mateo,BMP-21,2020 Bicycle Master Plan,Med-Low,"$710,000",,0,0,0,17th Avenue & Palm Avenue; 19th Avenue & Palm Avenue
+strict,San Mateo,BMP-31,2020 Bicycle Master Plan,Med-Low,"$330,000","$1,430,000",0,0,0,West Hillsdale Boulevard
+strict,San Mateo,BMP-32,2020 Bicycle Master Plan,Med-Low,"$160,000","$670,000",0,0,0,De Anza Boulevard & Polhemus Road
+strict,San Mateo,BMP-34,2020 Bicycle Master Plan,Med-Low,"$330,000",,0,0,0,26th Avenue & Alameda de las Pulgas; Campus Drive & West Hillsdale Boulevard
+strict,San Mateo,BMP-38,2020 Bicycle Master Plan,Med-Low,"$320,000",,0,0,0,Alameda de las Pulgas & West 39th Avenue; South El Camino Real & West 39th Avenue
+strict,San Mateo,BMP-44,2020 Bicycle Master Plan,Med-Low,"$70,000","$280,000",0,0,0,42nd Avenue & Dumont Street; 42nd Avenue & Olympic Avenue; 42nd Avenue & Olympic Avenue & Piccadilly Lane; 42nd Avenue & Pacific Boulevard; 42nd Avenue & South El Camino Real
+strict,San Mateo,BMP-57,2020 Bicycle Master Plan,Med-Low,"$100,000",,0,0,0,
+strict,San Mateo,BMP-59,2020 Bicycle Master Plan,Med-Low,"$230,000",,0,0,0,
+strict,San Mateo,BMP-64,2020 Bicycle Master Plan,Med-Low,"$330,000",,0,0,0,
+strict,San Mateo,BMP-68,2020 Bicycle Master Plan,Med-Low,"$360,000",,0,0,0,East 3rd Avenue & J Hart Clinton Drive & Mariners Island Boulevard; J Hart Clinton Drive & Seal Point Park; Newbridge Avenue & Shoreview Avenue
+strict,San Mateo,BMP-11,2020 Bicycle Master Plan,Low,"$150,000",,0,0,0,
+strict,San Mateo,BMP-18,2020 Bicycle Master Plan,Low,"$300,000",,0,0,0,
+strict,San Mateo,BMP-22,2020 Bicycle Master Plan,Low,"$190,000",,0,0,0,Alameda de las Pulgas & Hobart Avenue
+strict,San Mateo,BMP-29,2020 Bicycle Master Plan,Low,"$130,000",,0,0,0,De Anza Boulevard & Parkwood Drive
+strict,San Mateo,BMP-30,2020 Bicycle Master Plan,Low,"$280,000",,0,0,0,CSM Drive & West Hillsdale Boulevard & West Perimeter Road; De Anza Boulevard & Parrott Drive
+strict,San Mateo,BMP-36,2020 Bicycle Master Plan,Low,"$200,000",,0,0,0,Del Monte Street & West Hillsdale Boulevard; Laurel Creek Drive & West Hillsdale Boulevard
+strict,San Mateo,BMP-37,2020 Bicycle Master Plan,Low,"$470,000",,0,0,0,
+strict,San Mateo,BMP-41,2020 Bicycle Master Plan,Low,"$1,090,000",,0,0,0,Curtiss Street & East Hillsdale Boulevard; Otay Avenue & Pacific Boulevard
+strict,San Mateo,BMP-50,2020 Bicycle Master Plan,Low,"$30,000",,0,0,0,
+strict,San Mateo,BMP-52,2020 Bicycle Master Plan,Low,"$40,000",,0,0,0,
+strict,San Mateo,BMP-62,2020 Bicycle Master Plan,Low,"$100,000",,0,0,0,Armada Way & Mariners Island Boulevard
+strict,San Mateo,BMP-66,2020 Bicycle Master Plan,Low,"$110,000",,0,0,0,Cobb Street & Kehoe Avenue; Kehoe Avenue & Norton Street
+strict,San Mateo,BMP-69,2020 Bicycle Master Plan,Low,"$860,000",,0,0,0,Dale Avenue & Shoreview Avenue
+strict,San Mateo,TOD-HPE-path,"2022 TOD plan, Hayward Park East: wider sidewalk or Class I path on Pacific",Recommended,,,0,0,0,Pacific Boulevard & South Delaware Street
+strict,San Mateo,TOD-HPE-xing,"2022 TOD plan, Hayward Park East",Recommended,,,0,0,0,
+strict,San Mateo,TOD-NSA-xing,"2022 TOD plan, North Station Access",Recommended,,,0,0,0,
+strict,San Mateo,TOD-SUN-xing,"2022 TOD plan, Hayward Park–Sunnybrae",Recommended,,,0,0,0,
+strict,San Mateo,TOD-HB-xing,"2022 TOD plan, Hillsdale Boulevard",Recommended,,,0,0,0,
+strict,San Mateo,TOD-FB-xing,"2022 TOD plan, 31st Ave / Bay Meadows",Recommended,,,0,0,0,
+strict,San Mateo,TOD-28-diet,"2022 TOD plan, Hillsdale–28th Ave (consider feasibility)",Consider,,,0,0,0,East 28th Avenue & South Delaware Street
+strict,Hayward Park,BMP-2,2020 Bicycle Master Plan,High,"$330,000","$1,410,000",0,0,0,California Drive & North San Mateo Drive & Peninsula Avenue; Dwight Road & North Delaware Street & Peninsula Avenue; North Amphlett Boulevard & Peninsula Avenue; North Bayshore Boulevard & Peninsula Avenue; Peninsula Avenue
+strict,Hayward Park,BMP-3,2020 Bicycle Master Plan,High,"$320,000",,0,0,0,Humboldt Street & North Humboldt Street & Peninsula Avenue
+strict,Hayward Park,BMP-6,2020 Bicycle Master Plan,High,"$130,000",,0,0,0,
+strict,Hayward Park,BMP-7,2020 Bicycle Master Plan,High,"$480,000",,650,650,650,East 3rd Avenue & South Claremont Street; East 4th Avenue & South Claremont Street
+strict,Hayward Park,BMP-9,2020 Bicycle Master Plan,High,"$30,000",,0,0,0,North Amphlett Boulevard & Tilton Avenue
+strict,Hayward Park,BMP-12,2020 Bicycle Master Plan,High,"$290,000",,15,15,15,East 4th Avenue & South Railroad Avenue
+strict,Hayward Park,BMP-13,2020 Bicycle Master Plan,High,"$310,000",,70,70,70,Baldwin Avenue & Baywood Avenue & De Sabla Road & North El Camino Real & South El Camino Real
+strict,Hayward Park,BMP-14,2020 Bicycle Master Plan,High,"$260,000","$680,000",7,7,7,East 3rd Avenue & South B Street; East 4th Avenue & South B Street
+strict,Hayward Park,BMP-15,2020 Bicycle Master Plan,High,"$430,000","$1,830,000",0,776,776,East 3rd Avenue; East 3rd Avenue & South El Camino Real & West 3rd Avenue; East 3rd Avenue & South Grant Street; East 3rd Avenue & South Humboldt Street; East 3rd Avenue & South San Mateo Drive; East 4th Avenue & South Delaware Street; East 4th Avenue & South Grant Street; South El Camino Real & West 3rd Avenue
+strict,Hayward Park,BMP-16,2020 Bicycle Master Plan,High,"$190,000",,873,873,873,East 5th Avenue & South El Camino Real & West 5th Avenue; South El Camino Real & West 5th Avenue
+strict,Hayward Park,BMP-26,2020 Bicycle Master Plan,High,"$90,000",,0,0,1400,Alameda de las Pulgas & West 20th Avenue; East 20th Avenue & Palm Avenue; East 20th Avenue & South El Camino Real & West 20th Avenue; South El Camino Real & West 20th Avenue
+strict,Hayward Park,BMP-28,2020 Bicycle Master Plan,High,"$490,000",,0,0,0,
+strict,Hayward Park,BMP-45,2020 Bicycle Master Plan,High,"$410,000",,0,0,0,
+strict,Hayward Park,BMP-46,2020 Bicycle Master Plan,High,"$430,000","$530,000",0,0,0,28th Avenue & Alameda de las Pulgas; 28th Avenue & East 28th Avenue & South El Camino Real
+strict,Hayward Park,BMP-55,2020 Bicycle Master Plan,High,"$640,000","$1,820,000",0,0,0,19th Avenue & South Delaware Street; Concar Drive & South Delaware Street; East 25th Avenue & South Delaware Street; East 28th Avenue & South Delaware Street; Pacific Boulevard & South Delaware Street; Saratoga Drive & South Delaware Street
+strict,Hayward Park,BMP-56,2020 Bicycle Master Plan,High,"$410,000","$1,720,000",0,0,0,East Hillsdale Boulevard & Saratoga Drive; Franklin Parkway West & Saratoga Drive; Saratoga Drive; Saratoga Drive & South Delaware Street
+strict,Hayward Park,BMP-58,2020 Bicycle Master Plan,High,"$430,000","$740,000",521,702,702,Concar Drive & South Delaware Street; Concar Drive & South Grant Street
+strict,Hayward Park,BMP-10,2020 Bicycle Master Plan,Med-High,"$200,000","$250,000",0,0,0,East 3rd Avenue & J Hart Clinton Drive & South Norfolk Street; East Hillsdale Boulevard & South Norfolk Street; Fashion Island Boulevard & South Norfolk Street; J Hart Clinton Drive & South Norfolk Street; Shoreview Avenue & South Norfolk Street; South Norfolk Street
+strict,Hayward Park,BMP-19,2020 Bicycle Master Plan,Med-High,"$250,000",,0,0,0,
+strict,Hayward Park,BMP-20,2020 Bicycle Master Plan,Med-High,"$170,000","$560,000",1842,1842,1842,17th Avenue & Bovet Road & South El Camino Real; 17th Avenue & Palm Avenue; Bovet Road & South El Camino Real
+strict,Hayward Park,BMP-23,2020 Bicycle Master Plan,Med-High,"$470,000",,0,0,0,
+strict,Hayward Park,BMP-24,2020 Bicycle Master Plan,Med-High,"$230,000",,0,0,0,Alameda de las Pulgas & Notre Dame Avenue; Notre Dame Avenue & South El Camino Real
+strict,Hayward Park,BMP-40,2020 Bicycle Master Plan,Med-High,"$80,000",,0,0,0,East 39th Avenue & Pacific Boulevard
+strict,Hayward Park,BMP-47,2020 Bicycle Master Plan,Med-High,"$260,000",,0,0,0,28th Avenue & East 28th Avenue & South El Camino Real; East 28th Avenue & South Delaware Street
+strict,Hayward Park,BMP-48,2020 Bicycle Master Plan,Med-High,"$90,000",,0,0,0,East 28th Avenue & Saratoga Drive; East 28th Avenue & South Delaware Street
+strict,Hayward Park,BMP-49,2020 Bicycle Master Plan,Med-High,"$460,000",,0,0,0,31st Avenue & East 31st Avenue & South El Camino Real; East 31st Avenue
+strict,Hayward Park,BMP-60,2020 Bicycle Master Plan,Med-High,"$610,000","$2,610,000",0,915,915,19th Avenue & Ginniver Street & South Grant Street; 19th Avenue & South Delaware Street; Fashion Island Boulevard; Fashion Island Boulevard & Mariners Island Boulevard; Fashion Island Boulevard & South Norfolk Street
+strict,Hayward Park,BMP-61,2020 Bicycle Master Plan,Med-High,"$670,000","$1,990,000",0,0,0,East 3rd Avenue & J Hart Clinton Drive & Mariners Island Boulevard; East 3rd Avenue & Mariners Island Boulevard; Fashion Island Boulevard & Mariners Island Boulevard
+strict,Hayward Park,BMP-1,2020 Bicycle Master Plan,Med-Low,"$790,000",,0,0,0,Clark Drive & North El Camino Real; East Bellevue Avenue & North El Camino Real & West Bellevue Avenue; Highland Avenue & Peninsula Avenue
+strict,Hayward Park,BMP-4,2020 Bicycle Master Plan,Med-Low,"$950,000",,0,0,0,Airport Boulevard & Coyote Point Drive & Peninsula Avenue; Peninsula Avenue
+strict,Hayward Park,BMP-17,2020 Bicycle Master Plan,Med-Low,"$170,000",,0,0,0,
+strict,Hayward Park,BMP-21,2020 Bicycle Master Plan,Med-Low,"$710,000",,104,104,104,17th Avenue & Palm Avenue; 19th Avenue & Palm Avenue
+strict,Hayward Park,BMP-31,2020 Bicycle Master Plan,Med-Low,"$330,000","$1,430,000",0,0,0,West Hillsdale Boulevard
+strict,Hayward Park,BMP-32,2020 Bicycle Master Plan,Med-Low,"$160,000","$670,000",0,0,0,De Anza Boulevard & Polhemus Road
+strict,Hayward Park,BMP-34,2020 Bicycle Master Plan,Med-Low,"$330,000",,0,0,0,26th Avenue & Alameda de las Pulgas; Campus Drive & West Hillsdale Boulevard
+strict,Hayward Park,BMP-38,2020 Bicycle Master Plan,Med-Low,"$320,000",,0,0,0,Alameda de las Pulgas & West 39th Avenue; South El Camino Real & West 39th Avenue
+strict,Hayward Park,BMP-44,2020 Bicycle Master Plan,Med-Low,"$70,000","$280,000",0,0,0,42nd Avenue & Dumont Street; 42nd Avenue & Olympic Avenue; 42nd Avenue & Olympic Avenue & Piccadilly Lane; 42nd Avenue & Pacific Boulevard; 42nd Avenue & South El Camino Real
+strict,Hayward Park,BMP-57,2020 Bicycle Master Plan,Med-Low,"$100,000",,0,0,0,
+strict,Hayward Park,BMP-59,2020 Bicycle Master Plan,Med-Low,"$230,000",,0,0,0,
+strict,Hayward Park,BMP-64,2020 Bicycle Master Plan,Med-Low,"$330,000",,9,9,9,
+strict,Hayward Park,BMP-68,2020 Bicycle Master Plan,Med-Low,"$360,000",,0,0,0,East 3rd Avenue & J Hart Clinton Drive & Mariners Island Boulevard; J Hart Clinton Drive & Seal Point Park; Newbridge Avenue & Shoreview Avenue
+strict,Hayward Park,BMP-11,2020 Bicycle Master Plan,Low,"$150,000",,0,0,0,
+strict,Hayward Park,BMP-18,2020 Bicycle Master Plan,Low,"$300,000",,0,0,0,
+strict,Hayward Park,BMP-22,2020 Bicycle Master Plan,Low,"$190,000",,0,0,0,Alameda de las Pulgas & Hobart Avenue
+strict,Hayward Park,BMP-29,2020 Bicycle Master Plan,Low,"$130,000",,0,0,0,De Anza Boulevard & Parkwood Drive
+strict,Hayward Park,BMP-30,2020 Bicycle Master Plan,Low,"$280,000",,0,0,0,CSM Drive & West Hillsdale Boulevard & West Perimeter Road; De Anza Boulevard & Parrott Drive
+strict,Hayward Park,BMP-36,2020 Bicycle Master Plan,Low,"$200,000",,0,0,0,Del Monte Street & West Hillsdale Boulevard; Laurel Creek Drive & West Hillsdale Boulevard
+strict,Hayward Park,BMP-37,2020 Bicycle Master Plan,Low,"$470,000",,0,0,0,
+strict,Hayward Park,BMP-41,2020 Bicycle Master Plan,Low,"$1,090,000",,0,0,0,Curtiss Street & East Hillsdale Boulevard; Otay Avenue & Pacific Boulevard
+strict,Hayward Park,BMP-50,2020 Bicycle Master Plan,Low,"$30,000",,0,0,0,
+strict,Hayward Park,BMP-52,2020 Bicycle Master Plan,Low,"$40,000",,0,0,0,
+strict,Hayward Park,BMP-62,2020 Bicycle Master Plan,Low,"$100,000",,0,0,0,Armada Way & Mariners Island Boulevard
+strict,Hayward Park,BMP-66,2020 Bicycle Master Plan,Low,"$110,000",,0,0,0,Cobb Street & Kehoe Avenue; Kehoe Avenue & Norton Street
+strict,Hayward Park,BMP-69,2020 Bicycle Master Plan,Low,"$860,000",,0,0,0,Dale Avenue & Shoreview Avenue
+strict,Hayward Park,TOD-HPE-path,"2022 TOD plan, Hayward Park East: wider sidewalk or Class I path on Pacific",Recommended,,,227,227,227,Pacific Boulevard & South Delaware Street
+strict,Hayward Park,TOD-HPE-xing,"2022 TOD plan, Hayward Park East",Recommended,,,0,0,0,
+strict,Hayward Park,TOD-NSA-xing,"2022 TOD plan, North Station Access",Recommended,,,0,0,0,
+strict,Hayward Park,TOD-SUN-xing,"2022 TOD plan, Hayward Park–Sunnybrae",Recommended,,,0,0,0,
+strict,Hayward Park,TOD-HB-xing,"2022 TOD plan, Hillsdale Boulevard",Recommended,,,0,0,0,
+strict,Hayward Park,TOD-FB-xing,"2022 TOD plan, 31st Ave / Bay Meadows",Recommended,,,0,0,0,
+strict,Hayward Park,TOD-28-diet,"2022 TOD plan, Hillsdale–28th Ave (consider feasibility)",Consider,,,0,0,0,East 28th Avenue & South Delaware Street
+strict,Hillsdale,BMP-2,2020 Bicycle Master Plan,High,"$330,000","$1,410,000",0,0,0,California Drive & North San Mateo Drive & Peninsula Avenue; Dwight Road & North Delaware Street & Peninsula Avenue; North Amphlett Boulevard & Peninsula Avenue; North Bayshore Boulevard & Peninsula Avenue; Peninsula Avenue
+strict,Hillsdale,BMP-3,2020 Bicycle Master Plan,High,"$320,000",,0,0,0,Humboldt Street & North Humboldt Street & Peninsula Avenue
+strict,Hillsdale,BMP-6,2020 Bicycle Master Plan,High,"$130,000",,0,0,0,
+strict,Hillsdale,BMP-7,2020 Bicycle Master Plan,High,"$480,000",,0,0,0,East 3rd Avenue & South Claremont Street; East 4th Avenue & South Claremont Street
+strict,Hillsdale,BMP-9,2020 Bicycle Master Plan,High,"$30,000",,0,0,0,North Amphlett Boulevard & Tilton Avenue
+strict,Hillsdale,BMP-12,2020 Bicycle Master Plan,High,"$290,000",,0,0,0,East 4th Avenue & South Railroad Avenue
+strict,Hillsdale,BMP-13,2020 Bicycle Master Plan,High,"$310,000",,0,0,0,Baldwin Avenue & Baywood Avenue & De Sabla Road & North El Camino Real & South El Camino Real
+strict,Hillsdale,BMP-14,2020 Bicycle Master Plan,High,"$260,000","$680,000",0,0,0,East 3rd Avenue & South B Street; East 4th Avenue & South B Street
+strict,Hillsdale,BMP-15,2020 Bicycle Master Plan,High,"$430,000","$1,830,000",0,0,0,East 3rd Avenue; East 3rd Avenue & South El Camino Real & West 3rd Avenue; East 3rd Avenue & South Grant Street; East 3rd Avenue & South Humboldt Street; East 3rd Avenue & South San Mateo Drive; East 4th Avenue & South Delaware Street; East 4th Avenue & South Grant Street; South El Camino Real & West 3rd Avenue
+strict,Hillsdale,BMP-16,2020 Bicycle Master Plan,High,"$190,000",,0,0,0,East 5th Avenue & South El Camino Real & West 5th Avenue; South El Camino Real & West 5th Avenue
+strict,Hillsdale,BMP-26,2020 Bicycle Master Plan,High,"$90,000",,0,0,0,Alameda de las Pulgas & West 20th Avenue; East 20th Avenue & Palm Avenue; East 20th Avenue & South El Camino Real & West 20th Avenue; South El Camino Real & West 20th Avenue
+strict,Hillsdale,BMP-28,2020 Bicycle Master Plan,High,"$490,000",,0,0,0,
+strict,Hillsdale,BMP-45,2020 Bicycle Master Plan,High,"$410,000",,0,0,0,
+strict,Hillsdale,BMP-46,2020 Bicycle Master Plan,High,"$430,000","$530,000",0,0,0,28th Avenue & Alameda de las Pulgas; 28th Avenue & East 28th Avenue & South El Camino Real
+strict,Hillsdale,BMP-55,2020 Bicycle Master Plan,High,"$640,000","$1,820,000",105,506,506,19th Avenue & South Delaware Street; Concar Drive & South Delaware Street; East 25th Avenue & South Delaware Street; East 28th Avenue & South Delaware Street; Pacific Boulevard & South Delaware Street; Saratoga Drive & South Delaware Street
+strict,Hillsdale,BMP-56,2020 Bicycle Master Plan,High,"$410,000","$1,720,000",0,357,357,East Hillsdale Boulevard & Saratoga Drive; Franklin Parkway West & Saratoga Drive; Saratoga Drive; Saratoga Drive & South Delaware Street
+strict,Hillsdale,BMP-58,2020 Bicycle Master Plan,High,"$430,000","$740,000",0,0,0,Concar Drive & South Delaware Street; Concar Drive & South Grant Street
+strict,Hillsdale,BMP-10,2020 Bicycle Master Plan,Med-High,"$200,000","$250,000",0,0,0,East 3rd Avenue & J Hart Clinton Drive & South Norfolk Street; East Hillsdale Boulevard & South Norfolk Street; Fashion Island Boulevard & South Norfolk Street; J Hart Clinton Drive & South Norfolk Street; Shoreview Avenue & South Norfolk Street; South Norfolk Street
+strict,Hillsdale,BMP-19,2020 Bicycle Master Plan,Med-High,"$250,000",,0,0,0,
+strict,Hillsdale,BMP-20,2020 Bicycle Master Plan,Med-High,"$170,000","$560,000",0,0,0,17th Avenue & Bovet Road & South El Camino Real; 17th Avenue & Palm Avenue; Bovet Road & South El Camino Real
+strict,Hillsdale,BMP-23,2020 Bicycle Master Plan,Med-High,"$470,000",,0,0,0,
+strict,Hillsdale,BMP-24,2020 Bicycle Master Plan,Med-High,"$230,000",,0,0,0,Alameda de las Pulgas & Notre Dame Avenue; Notre Dame Avenue & South El Camino Real
+strict,Hillsdale,BMP-40,2020 Bicycle Master Plan,Med-High,"$80,000",,0,0,0,East 39th Avenue & Pacific Boulevard
+strict,Hillsdale,BMP-47,2020 Bicycle Master Plan,Med-High,"$260,000",,0,0,0,28th Avenue & East 28th Avenue & South El Camino Real; East 28th Avenue & South Delaware Street
+strict,Hillsdale,BMP-48,2020 Bicycle Master Plan,Med-High,"$90,000",,0,0,0,East 28th Avenue & Saratoga Drive; East 28th Avenue & South Delaware Street
+strict,Hillsdale,BMP-49,2020 Bicycle Master Plan,Med-High,"$460,000",,0,0,0,31st Avenue & East 31st Avenue & South El Camino Real; East 31st Avenue
+strict,Hillsdale,BMP-60,2020 Bicycle Master Plan,Med-High,"$610,000","$2,610,000",0,0,0,19th Avenue & Ginniver Street & South Grant Street; 19th Avenue & South Delaware Street; Fashion Island Boulevard; Fashion Island Boulevard & Mariners Island Boulevard; Fashion Island Boulevard & South Norfolk Street
+strict,Hillsdale,BMP-61,2020 Bicycle Master Plan,Med-High,"$670,000","$1,990,000",0,0,0,East 3rd Avenue & J Hart Clinton Drive & Mariners Island Boulevard; East 3rd Avenue & Mariners Island Boulevard; Fashion Island Boulevard & Mariners Island Boulevard
+strict,Hillsdale,BMP-1,2020 Bicycle Master Plan,Med-Low,"$790,000",,0,0,0,Clark Drive & North El Camino Real; East Bellevue Avenue & North El Camino Real & West Bellevue Avenue; Highland Avenue & Peninsula Avenue
+strict,Hillsdale,BMP-4,2020 Bicycle Master Plan,Med-Low,"$950,000",,0,0,0,Airport Boulevard & Coyote Point Drive & Peninsula Avenue; Peninsula Avenue
+strict,Hillsdale,BMP-17,2020 Bicycle Master Plan,Med-Low,"$170,000",,0,0,0,
+strict,Hillsdale,BMP-21,2020 Bicycle Master Plan,Med-Low,"$710,000",,0,0,0,17th Avenue & Palm Avenue; 19th Avenue & Palm Avenue
+strict,Hillsdale,BMP-31,2020 Bicycle Master Plan,Med-Low,"$330,000","$1,430,000",0,0,0,West Hillsdale Boulevard
+strict,Hillsdale,BMP-32,2020 Bicycle Master Plan,Med-Low,"$160,000","$670,000",0,0,0,De Anza Boulevard & Polhemus Road
+strict,Hillsdale,BMP-34,2020 Bicycle Master Plan,Med-Low,"$330,000",,0,0,0,26th Avenue & Alameda de las Pulgas; Campus Drive & West Hillsdale Boulevard
+strict,Hillsdale,BMP-38,2020 Bicycle Master Plan,Med-Low,"$320,000",,0,0,0,Alameda de las Pulgas & West 39th Avenue; South El Camino Real & West 39th Avenue
+strict,Hillsdale,BMP-44,2020 Bicycle Master Plan,Med-Low,"$70,000","$280,000",0,0,0,42nd Avenue & Dumont Street; 42nd Avenue & Olympic Avenue; 42nd Avenue & Olympic Avenue & Piccadilly Lane; 42nd Avenue & Pacific Boulevard; 42nd Avenue & South El Camino Real
+strict,Hillsdale,BMP-57,2020 Bicycle Master Plan,Med-Low,"$100,000",,0,0,0,
+strict,Hillsdale,BMP-59,2020 Bicycle Master Plan,Med-Low,"$230,000",,0,0,0,
+strict,Hillsdale,BMP-64,2020 Bicycle Master Plan,Med-Low,"$330,000",,0,0,0,
+strict,Hillsdale,BMP-68,2020 Bicycle Master Plan,Med-Low,"$360,000",,0,0,0,East 3rd Avenue & J Hart Clinton Drive & Mariners Island Boulevard; J Hart Clinton Drive & Seal Point Park; Newbridge Avenue & Shoreview Avenue
+strict,Hillsdale,BMP-11,2020 Bicycle Master Plan,Low,"$150,000",,0,0,0,
+strict,Hillsdale,BMP-18,2020 Bicycle Master Plan,Low,"$300,000",,0,0,0,
+strict,Hillsdale,BMP-22,2020 Bicycle Master Plan,Low,"$190,000",,0,0,0,Alameda de las Pulgas & Hobart Avenue
+strict,Hillsdale,BMP-29,2020 Bicycle Master Plan,Low,"$130,000",,0,0,0,De Anza Boulevard & Parkwood Drive
+strict,Hillsdale,BMP-30,2020 Bicycle Master Plan,Low,"$280,000",,0,0,0,CSM Drive & West Hillsdale Boulevard & West Perimeter Road; De Anza Boulevard & Parrott Drive
+strict,Hillsdale,BMP-36,2020 Bicycle Master Plan,Low,"$200,000",,0,0,0,Del Monte Street & West Hillsdale Boulevard; Laurel Creek Drive & West Hillsdale Boulevard
+strict,Hillsdale,BMP-37,2020 Bicycle Master Plan,Low,"$470,000",,0,0,0,
+strict,Hillsdale,BMP-41,2020 Bicycle Master Plan,Low,"$1,090,000",,0,0,0,Curtiss Street & East Hillsdale Boulevard; Otay Avenue & Pacific Boulevard
+strict,Hillsdale,BMP-50,2020 Bicycle Master Plan,Low,"$30,000",,0,0,0,
+strict,Hillsdale,BMP-52,2020 Bicycle Master Plan,Low,"$40,000",,0,0,0,
+strict,Hillsdale,BMP-62,2020 Bicycle Master Plan,Low,"$100,000",,0,0,0,Armada Way & Mariners Island Boulevard
+strict,Hillsdale,BMP-66,2020 Bicycle Master Plan,Low,"$110,000",,0,0,0,Cobb Street & Kehoe Avenue; Kehoe Avenue & Norton Street
+strict,Hillsdale,BMP-69,2020 Bicycle Master Plan,Low,"$860,000",,0,0,0,Dale Avenue & Shoreview Avenue
+strict,Hillsdale,TOD-HPE-path,"2022 TOD plan, Hayward Park East: wider sidewalk or Class I path on Pacific",Recommended,,,0,0,0,Pacific Boulevard & South Delaware Street
+strict,Hillsdale,TOD-HPE-xing,"2022 TOD plan, Hayward Park East",Recommended,,,0,0,0,
+strict,Hillsdale,TOD-NSA-xing,"2022 TOD plan, North Station Access",Recommended,,,0,0,0,
+strict,Hillsdale,TOD-SUN-xing,"2022 TOD plan, Hayward Park–Sunnybrae",Recommended,,,0,0,0,
+strict,Hillsdale,TOD-HB-xing,"2022 TOD plan, Hillsdale Boulevard",Recommended,,,0,0,0,
+strict,Hillsdale,TOD-FB-xing,"2022 TOD plan, 31st Ave / Bay Meadows",Recommended,,,0,0,0,
+strict,Hillsdale,TOD-28-diet,"2022 TOD plan, Hillsdale–28th Ave (consider feasibility)",Consider,,,0,0,0,East 28th Avenue & South Delaware Street
