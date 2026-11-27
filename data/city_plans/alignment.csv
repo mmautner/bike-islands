@@ -1,0 +1,139 @@
+tier,where,homes_2026_11_26,destinations,verdict,plans,note
+standard,Peninsula Avenue between Anita Road and Clarendon Road & North Claremont Street,1304,"San Mateo #1; Burlingame #1 (2,289)",short,BMP #2 High (Separated BL San Mateo Dr–Bayshore),"The plan's protected lane is one of our options, but ours also needs a signal or all-way stop where routes cross at Arundel/Woodside and Clarendon/Claremont (or a 30 mph limit); the plan names neither. Not on the plan's quick-build map (Fig 6.2), so long-term."
+standard,Peninsula Avenue at Clarendon Road & North Claremont Street,1272,San Mateo #2,none,,"No plan names a crossing here. The 2020 plan's north–south route (BMP #7) meets Peninsula a block east at Delaware/Dwight. Clarendon Rd is Burlingame's, so this needs both cities. Our alternative: 30 mph on Peninsula (posted 35, 85th percentile 37, 14,734 cars a day)."
+standard,Peninsula Avenue at Arundel Road & Woodside Way,1039,San Mateo #3,none,,Same as Clarendon/Claremont: no plan names this crossing; Arundel Rd is Burlingame's.
+standard,North Delaware Street near East Bellevue Avenue,1005,San Mateo #4,adjacent,BMP #1 Med-Low (Bellevue bike blvd ends at Delaware); BMP #7 High (route moves to Claremont via State),"An 82 m jog. The plan keeps Delaware State→5th as an existing signed route (no change) and runs its north–south bike boulevard one block west on Claremont; its Bellevue bike boulevard ends right at this jog. The survey sheet's 'bike lanes: Y' here is a signed route (city 2019 map, OSM bicycle=designated), so the fix stands. 8,349 cars a day exceeds the plan's own limit for a bike route (under 3,000). TOD plan's all-way stop at Tilton/Claremont strengthens the Claremont alternative; untested whether Claremont reaches the same homes."
+standard,2nd Avenue between South Claremont Street and South Delaware Street,430,San Mateo #5,none,TOD Downtown Gateway (pedestrian work at 2nd/San Mateo Dr and 2nd/Delaware),"The 2020 plan uses 3rd/4th (protected, BMP #15) and 1st/5th downtown, not 2nd. The TOD plan only adds pedestrian treatments (split phasing, curb extensions) at 2nd's intersections; nothing touches the 8,102 cars a day. Untested whether the plan's 3rd/4th lanes reach the same homes."
+standard,East Poplar Avenue near North Humboldt Street,341,San Mateo #6,adjacent,BMP #6 High (Poplar bike lane ECR–Delaware; then Delaware → Indian Ave),"The plan's Poplar lane ends at Delaware and routes east via Indian Ave. Ours needs 2 lanes instead of 3 plus a painted lane. 2020 plan flags E Poplar/Delaware by San Mateo High as a collision hotspot; 2012 plan only retimes the Poplar/Humboldt signal."
+standard,North Humboldt Street between East Poplar Avenue and College Avenue,341,San Mateo #7,short,BMP #3 High (Humboldt bike lane Poplar–9th),"A painted lane is already there per OSM; the plan keeps it. Our map says the third traffic lane is the problem (needs 2 lanes instead of 3)."
+standard,North El Camino Real between El Cerrito Avenue & Tilton Avenue and Engle Road,309,San Mateo #8; Hayward Park #4,none,BMP long-term list (Grand Boulevard Initiative); TOD El Camino corridor study,"No bike project on El Camino in any plan; it's Caltrans's road. TOD plan (2022) asks Caltrans for a corridor study including a road diet (long-term)."
+standard,North Bayshore Boulevard between Monte Diablo Avenue and Tidal Way,305,San Mateo #9,adjacent,BMP #4 Med-Low (Bayshore path Peninsula–Poplar; Poplar → Kingston bike blvds); BMP #10,The plan's Bayshore path stops at Poplar and routes south via Kingston St bike boulevards instead.
+standard,El Camino Real between Floribunda Avenue and Bellevue Avenue,293,San Mateo #10,none,,El Camino (Burlingame/Hillsborough side); outside San Mateo's plans.
+standard,Pacific Boulevard between 19th Avenue and Mongini Court,227,San Mateo #11; Hayward Park #5,matches,TOD Hayward Park East (wider sidewalk or Class I path on Pacific + work at 19th); BMP #21 Med-Low (Pacific bike blvd Concar–Delaware),"The TOD plan's Class I path would count for both riders. The 2020 plan's bike boulevard would need traffic cut from 5,322 to 3,000 or fewer cars a day — over its own bike-boulevard limit."
+standard,9th Avenue between South B Street and South Railroad Avenue,203,San Mateo #12,short,BMP #24 Med-High (9th bike lane ECR–B St); existing lane east of B St,"Not a gap in the plan: the 2021 map shows the bike lane continuing. Our map says the third lane is the problem (2 lanes instead of 3). The survey sheet says 2 lanes here; OSM says 3 — check on Street View."
+standard,North El Camino Real at Monte Diablo Avenue,202,San Mateo #13; Hayward Park #6,adjacent,BMP #8 High (Monte Diablo bike blvd starts at San Mateo Dr),The plan's Monte Diablo bike boulevard starts two blocks east; no El Camino crossing treatment in any plan.
+standard,South B Street between East 5th Avenue and 8th Avenue,202,San Mateo #14,matches,BMP #14 High (B St buffered BL 5th–16th),"Plan's buffered lane counts for experienced riders. OSM has no bike tags here; check whether a lane already exists (if so, this fix is already done)."
+standard,South El Camino Real between 15th Avenue and Barneson Avenue,190,"San Mateo #15; Hayward Park #3 (436)",matches,BMP Table 4.4 #2 (Barneson/15th/El Camino dogleg: further study); BMP #23 (Barneson bike blvd),The 2020 plan names this exact short El Camino segment as needing bicycle treatment to join its Barneson and 15th bike boulevards. Needs Caltrans.
+standard,North San Mateo Drive between Catalpa Street and Monte Diablo Avenue,181,San Mateo #16; Hayward Park #8,matches,BMP #5 High (San Mateo Dr bike lane City Limit–Catalpa; on the quick-build map),"Monte Diablo is north of Catalpa, so this block is inside the plan's span. Today it's sharrows (OSM cycleway=shared_lane); the plan's painted lane would count. 9,341 cars a day exceeds the plan's own bike-lane limit (6,000)."
+standard,North El Camino Real between Grand Boulevard and Barroilhet Avenue,163,San Mateo #17,none,,El Camino; no plan.
+standard,1st Avenue between South Delaware Street and South Claremont Street,141,San Mateo #18; Hayward Park #9,adjacent,BMP #13 High (1st Ave bike lane B St–Railroad),Just east of the plan's span. The 2020 plan lists 1st Ave as an existing bike lane; OSM has no bike tags — check on Street View.
+standard,South El Camino Real between 11th Avenue & Avila Road and 9th Avenue,95,San Mateo #19; Hayward Park #7 (199),adjacent,BMP Table 4.4 #1 (Notre Dame/9th/El Camino dogleg: further study),Probably overlaps the plan's dogleg segment; where Notre Dame meets El Camino not confirmed.
+standard,North Amphlett Boulevard between Cypress Avenue and Indian Avenue,91,San Mateo #20; Hayward Park #10,none,,
+standard,South Amphlett Boulevard between East 5th Avenue and Folkstone Avenue,76,San Mateo #21; Hayward Park #11,matches,BMP #64 Med-Low (Amphlett bike blvd 5th–Sunnybrae); TOD calls the Sunnybrae bike boulevard an existing project,"Plan stops one block short (Sunnybrae; Folkstone is next). A bike boulevard's 20 mph target meets both riders. May already be under way."
+standard,Palm Avenue between East 20th Avenue and 24th Avenue,50,San Mateo #22; Hayward Park #12,matches,BMP #27 High (Palm bike lane South Bl–25th),
+standard,South Amphlett Boulevard between Cypress Avenue and 2nd Avenue,50,San Mateo #23; Hayward Park #13,none,,
+standard,North San Mateo Drive between State Street and California Drive & Peninsula Avenue,38,San Mateo #24,short,BMP #5 High (bike lane),Plan's lane doesn't remove the third traffic lane our map says is the problem.
+standard,South El Camino Real between West 5th Avenue and Mission Drive,38,San Mateo #25,none,TOD El Camino corridor study (road diet south of Crystal Springs),
+standard,South El Camino Real near East 20th Avenue & West 20th Avenue,32,San Mateo #26,none,TOD Hayward Park–El Camino (crossing work at 20th); BMP #26 crosses here,
+standard,Alameda de las Pulgas between Sonora Drive and Hobart Avenue,26,San Mateo #28,matches,PMP 2012 priority #9 (Alameda road diet Crystal Springs–Barneson); BMP #25 Med-High (bike lane),"Our map needs 2 lanes instead of 4 plus a painted lane: exactly the 2012 road diet plus the 2020 lane. Still 4 lanes in the 2026 survey, 14 years on."
+standard,Alameda de las Pulgas between Barneson Avenue and Macarthur Avenue,23,San Mateo #30,matches,PMP 2012 priority #9; BMP #25,Same as above (Macarthur is just north of Barneson).
+standard,Alameda de las Pulgas between Cornell Avenue and Fairfax Avenue,1,San Mateo #33,matches,PMP 2012 priority #9; BMP #25,Same as above.
+standard,South Delaware Street between East 4th Avenue and East 5th Avenue,22,San Mateo #31,adjacent,BMP #15 (Delaware 3rd–4th Separated BL); BMP #55 (5th–Concar Buffered BL); PMP 2012 audit (study Delaware road diet 2nd–5th),The 4th–5th block isn't listed in the 2020 table; the map is unclear.
+standard,North Bayshore Boulevard between Dore Avenue and Rogell Avenue,15,San Mateo #32,adjacent,BMP #4 (via Kingston),
+standard,Concar Drive between Pacific Boulevard and South Delaware Street,521,Hayward Park #1,matches,BMP #58 High (Shared-Use Path); TOD Hayward Park East (protected intersection at Concar/Delaware; study removing lanes),"Survey sheet says 4 lanes; we assume 2 — check."
+standard,1st Avenue between South Railroad Avenue and Main Street,496,Hayward Park #2,matches,BMP #13 High (1st Ave bike lane B St–Railroad); TOD Downtown Gateway (wider sidewalks on 1st),The 2020 plan lists 1st Ave as an existing bike lane; OSM has no bike tags. If a lane exists the fix is already done — check on Street View.
+standard,28th Avenue between Edison Street and South El Camino Real,3198,Hillsdale #1,matches,BMP #46 High (Separated BL Edison–ECR); TOD Hillsdale–28th (road diet study; El Camino north-leg crosswalk for the Class I path); city 28th Ave gap-closure project,"TOD plan (2022) says there was still no on-street bike facility on 28th. OSM shows none. Check whether it's built since."
+standard,South Grant Street between 10th Avenue and Birch Avenue,0,(no longer a fix),n/a,BMP #63 Med-High (Grant bike blvd 9th–Concar),"Was a fix only because survey.py put Grant south of Concar's 7,208 cars a day on it (fixed 2026-11-26). At the real 2,183 it already counts for experienced riders."
+strict,Peninsula Avenue at Clarendon Road & North Claremont Street,1448,San Mateo #1,none,,See the standard row.
+strict,Peninsula Avenue between Park Road and Highland Avenue,1269,San Mateo #2,none,BMP #2 starts at Highland; BMP #1 (Highland bike blvd ends at Peninsula),"West of the plan's Peninsula project. Kids also need a signal or all-way stop at Highland and Lorton/Prospect, where the plan's Highland bike boulevard arrives with no crossing named."
+strict,Peninsula Avenue at Arundel Road & Woodside Way,1192,San Mateo #3,none,,
+strict,Peninsula Avenue at Lorton Avenue & Prospect Row,1111,San Mateo #4,none,,
+strict,Peninsula Avenue at Highland Avenue,1111,San Mateo #5,adjacent,BMP #1 (Highland bike blvd ends here),The plan's bike boulevard ends at this crossing with no treatment named.
+strict,North Delaware Street near East Bellevue Avenue,1005,San Mateo #6,adjacent,BMP #1; BMP #7,See the standard row.
+strict,North El Camino Real at East Bellevue Avenue & West Bellevue Avenue,894,San Mateo #7,short,BMP #1 (Bellevue bike blvd crosses El Camino at this signal),"Method difference: the plan treats the signal as enough; our kids map says a signal doesn't make a 4-lane El Camino crossing work for kids (needs fewer lanes and lower speed)."
+strict,crossing North El Camino Real at East Bellevue Avenue & West Bellevue Avenue,894,San Mateo #8,short,BMP #1,Same crossing as the row above.
+strict,North El Camino Real between Grand Boulevard and Barroilhet Avenue,766,San Mateo #9,none,,
+strict,2nd Avenue between South Claremont Street and South Delaware Street,573,San Mateo #10,none,TOD Downtown Gateway,See the standard row.
+strict,North El Camino Real between El Cerrito Avenue & Tilton Avenue and Engle Road,513,San Mateo #11,none,,
+strict,North Bayshore Boulevard between Cypress Avenue and Tidal Way,389,San Mateo #12,adjacent,BMP #4; BMP #10,
+strict,North San Mateo Drive between East Bellevue Avenue and State Street,381,San Mateo #13,short,BMP #5 (painted lane),Kids need a protected lane.
+strict,North San Mateo Drive between Monte Diablo Avenue and East Santa Inez Avenue,212,San Mateo #14,short,BMP #5,Kids need a protected lane.
+strict,North El Camino Real at El Cerrito Avenue & Tilton Avenue,204,San Mateo #15,short,BMP #9 (Tilton bike lane crosses El Camino at this signal); TOD Downtown–El Camino (left-turn ban at Tilton),Same method difference as Bellevue.
+strict,crossing North El Camino Real at El Cerrito Avenue & Tilton Avenue,204,San Mateo #16,short,BMP #9,
+strict,North El Camino Real at Monte Diablo Avenue,202,San Mateo #17,adjacent,BMP #8,
+strict,East Poplar Avenue between Wisnom Avenue and Elm Street,159,San Mateo #18,short,BMP #6 (painted lane),Kids need a protected lane.
+strict,North Humboldt Street between Tilton Avenue and Monte Diablo Avenue,111,San Mateo #19,short,BMP #3 (painted lane),Kids need a protected lane.
+strict,South Grant Street between 10th Avenue and Birch Avenue,111,San Mateo #20,matches,BMP #63 Med-High (Grant bike blvd 9th–Concar),"Kids need 20 mph and 1,500 or fewer cars a day (today 2,183): a real bike boulevard would do it."
+strict,South Grant Street between Birch Avenue and 10th Avenue,111,San Mateo #21,matches,BMP #63,Same as above.
+strict,North Amphlett Boulevard between Cypress Avenue and Indian Avenue,91,San Mateo #22,none,,
+strict,South Amphlett Boulevard between Sunnybrae Boulevard and Folkstone Avenue,67,San Mateo #23,adjacent,BMP #64 (ends at Sunnybrae),The one block past the plan's bike boulevard.
+strict,South Humboldt Street between Cypress Avenue and 2nd Avenue,56,San Mateo #24,short,BMP #3 (painted lane),Kids need a protected lane.
+strict,Concar Drive between Pacific Boulevard and South Delaware Street,521,Hayward Park #1; places,matches,BMP #58 High (Shared-Use Path),
+strict,Pacific Boulevard between 19th Avenue and Mongini Court,227,Hayward Park #2,matches,TOD Hayward Park East (Class I path option); BMP #21,"A path counts for kids; the bike boulevard would need traffic cut to 1,500."
+strict,Palm Avenue at 17th Avenue,64,Hayward Park #3,adjacent,BMP #21 (17th bike blvd ends at Palm); TOD Hayward Park West (bike boulevard on 17th),No crossing treatment named at Palm.
+strict,Palm Avenue at 19th Avenue,40,Hayward Park #4,adjacent,BMP #21 (19th bike blvd ends at Palm),No crossing treatment named at Palm.
+strict,East 4th Avenue at South Claremont Street,13,Hayward Park #5,adjacent,BMP #7 (Claremont bike blvd crosses 4th),
+strict,West Kyne Street between Derby Avenue and Landing Avenue,80,Hillsdale #1,none,,Painted lane exists; kids need protected.
+strict,East Kyne Street between Landing Avenue and Derby Avenue,80,Hillsdale #2,none,,Painted lane exists; kids need protected.
+strict,North Delaware Street between State Street and Cypress Avenue,4898,places: martin-luther-king-park; safeway-delaware,adjacent,BMP #7 (route on Claremont); Delaware stays a signed route,The biggest kids fix on the place pages.
+strict,South El Camino Real between East 4th Avenue and 27th Avenue,4283,places: safeway-el-camino,none,TOD El Camino corridor study (long-term road diet),All El Camino place-page fixes: no bike project in any plan.
+strict,31st Avenue between Verdun Avenue and South El Camino Real,3391,places: east-hillsdale-park; hillsdale-library,short,BMP #49 Med-High (31st bike blvd 28th–Delaware),"Kids need 20 mph and 1,500 cars a day or a protected lane; survey counts 5,695 (Alameda–El Camino), well over even the plan's own 3,000 bike-boulevard limit."
+strict,2nd Avenue between South El Camino Real and South Amphlett Boulevard,3217,places: downtown; main-library,none,TOD Downtown Gateway (pedestrian only),
+strict,East 3rd Avenue between J Hart Clinton Drive and South El Camino Real,3051,places: downtown; gateway-park; takahashi-market,matches,BMP #15 High (3rd Separated BL ECR–Humboldt; existing bridge east of Humboldt),
+strict,East 3rd Avenue between South Humboldt Street and South San Mateo Drive,1560,places: main-library,matches,BMP #15 High,
+strict,East 3rd Avenue between Main Street and South Humboldt Street,1346,places: mi-rancho; san-mateo-caltrain,matches,BMP #15 High,
+strict,Peninsula Avenue between El Camino Real and North Bayshore Boulevard,2529,places: safeway-delaware,short,BMP #2 High,"Protected east of San Mateo Dr; painted Highland–San Mateo Dr (not enough for kids); nothing El Camino–Highland."
+strict,Peninsula Avenue between North Bayshore Boulevard and California Drive,1761,places: coyote-point,matches,BMP #2 High (Separated BL San Mateo Dr–Bayshore),
+strict,Saratoga Drive between East Hillsdale Court and Yates Way,2164,places: whole-foods,matches,BMP #56 High (Separated BL Delaware–Hillsdale),
+strict,28th Avenue between South El Camino Real and Mason Lane,2123,places: hillsdale-caltrain,matches,BMP #46 High (bike blvd Mason–Edison; Separated BL Edison–ECR),
+strict,Hacienda Street between 22nd Avenue and 37th Avenue,2042,places: hillsdale-library,matches,BMP #28 High (Hacienda bike blvd 22nd–39th),"Kids need 20 mph and 1,500 cars a day; survey counts 2,169–2,231, so the bike boulevard must cut traffic somewhat."
+strict,Hacienda Street between 24th Avenue and 37th Avenue,1717,places: east-hillsdale-park,matches,BMP #28 High,
+strict,Edison Street between 43rd Avenue and 26th Place,1616,places: east-hillsdale-park; hillsdale-library,matches,BMP #45 High (Edison bike blvd 31st–42nd),"Partial span; 2,830–2,909 cars a day."
+strict,South B Street between Baldwin Avenue and 16th Avenue,1806,places: downtown,short,BMP #14 High,Protected Baldwin–5th; buffered (not enough for kids) 5th–16th.
+strict,South Delaware Street between Garvey Way and Cypress Avenue,1595,places: central-park; takahashi-market,short,BMP #15; BMP #55,"Protected only 3rd–4th and Concar–28th; buffered elsewhere."
+strict,South Delaware Street between East 25th Avenue and 10th Avenue,1509,places: trader-joes-grant,short,BMP #55 High,Protected Concar–28th; buffered 5th–Concar.
+strict,South Grant Street between 19th Avenue and 9th Avenue,1544,places: trader-joes-grant,matches,BMP #63 (bike blvd 9th–Concar; Separated BL Concar–Bermuda),
+strict,South Norfolk Street between Dale Avenue and La Selva Street,1773,places: marina-library,short,BMP #10; BMP #54 (buffered Ciro–La Selva),Kids need protected; plan is buffered/painted here.
+strict,South Norfolk Street between East 3rd Avenue and Oxford Avenue,1487,places: shoreview-park,short,BMP #10 (Separated BL 3rd–San Mateo Creek Path),Protected only to the creek path.
+strict,Barneson Avenue between South El Camino Real and Yew Street,1381,places: safeway-el-camino,matches,BMP #23 Med-High (Barneson bike blvd Ashwood–B St),"Kids need 20 mph and 1,500 cars a day; survey 2,763."
+strict,Barneson Avenue between Foothill Drive and South El Camino Real,990,places: borel-park,matches,BMP #23,Foothill–Ashwood is just outside.
+strict,South Ellsworth Avenue between East 5th Avenue and Baldwin Avenue,1372,places: central-park; downtown,none,BMP #13 covers Ellsworth only north of Baldwin,
+strict,East 5th Avenue between South Amphlett Boulevard and South Delaware Street,1165,places: central-park; mi-rancho,matches,BMP #16 High (5th bike blvd Delaware–Amphlett),
+strict,North San Mateo Drive between Baldwin Avenue and State Street,1206,places: martin-luther-king-park,short,BMP #5 (painted lane to Catalpa),Kids need protected.
+strict,Alameda de las Pulgas between Macarthur Avenue and Dolores Court,1204,places: beresford-park,short,BMP #25 (painted/buffered); PMP 2012 road diet covers only north of Barneson,Kids need protected.
+strict,Palm Avenue between East 25th Avenue and 9th Avenue,937,places: hayward-park-caltrain; trinta-park,short,BMP #27 (painted lane),Kids need protected.
+strict,Newbridge Avenue between Shoreview Avenue and South Norfolk Street,852,places: seal-point-park,matches,BMP #68 Med-Low (Newbridge bike blvd),
+strict,the crossing of J Hart Clinton Drive at Detroit Drive,645,places: seal-point-park,adjacent,BMP #69 Low (Detroit bike blvd ends at J Hart Clinton),No crossing treatment named.
+strict,the crossing of Alameda de las Pulgas at 26th Avenue,415,places: nijiya-market; san-mateo-city-hall,adjacent,BMP #34 (26th bike blvd crosses here); BMP #25 changes facility at 26th,No crossing treatment named.
+strict,Parrott Drive between West 3rd Avenue and Jackson Street,506,places: central-park; main-library,matches,BMP #17 Med-Low (Parrott bike blvd),
+strict,Mariners Island Boulevard near Reef Drive,120,places: joinville-park,matches,BMP #61 Med-High (Separated BL),
+strict,South El Camino Real between West 39th Avenue and West 20th Avenue,2554,places: hillsdale-caltrain,none,TOD El Camino corridor study (long-term road diet south of Crystal Springs),El Camino: no bike project in any plan.
+strict,South El Camino Real between 28th Avenue and 9th Avenue,2297,places: nijiya-market,none,TOD El Camino corridor study,
+strict,South El Camino Real between Baldwin Avenue and Bovet Road,2035,places: main-library,none,TOD El Camino corridor study,
+strict,South El Camino Real between 16th Avenue and Baldwin Avenue,1185,places: central-park,none,TOD El Camino corridor study,
+strict,South El Camino Real between Crystal Springs Road and 11th Avenue,1147,places: takahashi-market,none,TOD El Camino corridor study,
+strict,South El Camino Real between Hayward Avenue and 27th Avenue,1060,places: trinta-park,none,TOD El Camino corridor study,
+strict,South El Camino Real between Avila Road and East 21st Avenue,596,places: san-mateo-city-hall,none,TOD El Camino corridor study,
+strict,North El Camino Real between Saint Matthew's Avenue and Clark Drive,998,places: mi-rancho,none,TOD Downtown–El Camino (near-term crossing work only),
+strict,North El Camino Real between El Cerrito Avenue and East Bellevue Avenue,697,places: san-mateo-caltrain,none,TOD Downtown–El Camino,
+strict,North El Camino Real between Clark Drive and Baldwin Avenue,645,places: martin-luther-king-park,none,TOD Downtown–El Camino,
+strict,South B Street between 13th Avenue and East 3rd Avenue,1397,places: san-mateo-caltrain,short,BMP #14 High,Protected Baldwin–5th only; buffered south of 5th isn't enough for kids.
+strict,South B Street between 13th Avenue and Baldwin Avenue,1219,places: mi-rancho,short,BMP #14 High,Same as above.
+strict,East 4th Avenue between East 3rd Avenue and South El Camino Real,1325,places: downtown; takahashi-market,short,BMP #15 High (4th Separated BL Delaware–Humboldt only); PMP 2012 audit (E 4th road diet to 3 lanes),"Nothing from El Camino to Delaware for bikes. Kids need 25 mph as a local street, or a protected lane. The 2026 survey shows 3 lanes El Camino–Delaware, so the 2012 road diet may be done."
+strict,East 4th Avenue between South San Mateo Drive and South Humboldt Street,1087,places: main-library,short,BMP #15 High,Protected only Delaware–Humboldt.
+strict,East 4th Avenue between South San Mateo Drive and South Grant Street,987,places: central-park,short,BMP #15 High,Protected only Delaware–Humboldt.
+strict,East 4th Avenue between South El Camino Real and South Humboldt Street,732,places: gateway-park,short,BMP #15 High,Protected only Delaware–Humboldt.
+strict,South Railroad Avenue between 9th Avenue and Cypress Avenue,1226,places: downtown,matches,BMP #12 High (Railroad bike blvds and a short path 4th–5th); BMP #21 (Railroad bike blvd 9th–16th),Mostly covered; the place page lists no 'need' for this fix — check the export.
+strict,Borel Avenue between Shafter Street and Jasmine Street,1103,places: safeway-el-camino,matches,BMP #20 Med-High (Borel bike blvd Edinburgh–Bovet),"Covers the Edinburgh end of the span. Kids need 20 mph and 1,500 cars a day; survey 2,504 at 30 mph."
+strict,North Delaware Street between East Bellevue Avenue and Cypress Avenue,1080,places: takahashi-market,adjacent,BMP #7 (route on Claremont),See the standard N Delaware row.
+strict,North Delaware Street between East Bellevue Avenue and Tilton Avenue,1080,places: san-mateo-caltrain,adjacent,BMP #7,See the standard N Delaware row.
+strict,North Delaware Street between Tilton Avenue and East Bellevue Avenue,1080,places: mi-rancho,adjacent,BMP #7,See the standard N Delaware row.
+strict,9th Avenue between South Idaho Street and Palm Avenue,1016,places: central-park,short,BMP #24 (painted lane ECR–B St); existing painted lane east of B St,Kids need protected.
+strict,South Norfolk Street between Dale Avenue and Crio Avenue,978,places: parkside-aquatic-park,short,BMP #10; BMP #54,Kids need protected; plan is buffered/painted here.
+strict,South Norfolk Street between La Selva Street and Oxford Avenue,792,places: lakeshore-park,short,BMP #54 (buffered),Kids need protected.
+strict,Palm Avenue between 19th Avenue and Hayward Avenue,857,places: central-park,short,BMP #27 (painted lane),Kids need protected.
+strict,Palm Avenue between 9th Avenue and East 21st Avenue,599,places: safeway-el-camino,short,BMP #27,Kids need protected.
+strict,Alameda de las Pulgas between West 25th Avenue and La Casa Avenue,853,places: hillsdale-library,short,BMP #25 (buffered south of 26th),Kids need protected.
+strict,North San Mateo Drive between State Street and Catalpa Street,838,places: san-mateo-caltrain,short,BMP #5 (painted lane),Kids need protected.
+strict,North San Mateo Drive between Saint Matthew's Avenue and State Street,798,places: mi-rancho,short,BMP #5 (painted lane to Catalpa; signed route south of it),Kids need protected.
+strict,North San Mateo Drive between Williams Place and Baldwin Avenue,694,places: takahashi-market,short,BMP #5,Kids need protected.
+strict,South Humboldt Street between Cypress Avenue and 9th Avenue,818,places: gateway-park,short,BMP #3 (painted lane),Kids need protected.
+strict,North Humboldt Street between Peninsula Avenue and Cypress Avenue,734,places: martin-luther-king-park,short,BMP #3 (bike blvd City Limit–Poplar; painted lane south),"A bike boulevard would count for kids only at 1,500 cars a day; survey counts 9,527 Peninsula–Poplar."
+strict,South Delaware Street between Pacific Boulevard and Garvey Way,727,places: fiesta-meadows-park,short,BMP #55 High,Protected Concar–Pacific; buffered Garvey–Concar.
+strict,Concar Drive near South Delaware Street,702,places: hayward-park-caltrain,matches,BMP #58 High; TOD Hayward Park East (protected intersection at Concar/Delaware),
+strict,West Hillsdale Boulevard between Monterey Street and East Sailer Drive,654,places: hillsdale-library,short,BMP #35 Low (painted lane 31st–Hillsdale Pl); existing painted lane,Kids need protected.
+strict,West Hillsdale Boulevard between Hacienda Street and Campus Drive,600,places: sugarloaf,short,BMP #31 Med-Low (Separated BL Perimeter–31st); BMP #35 (painted east of 31st),Protected only west of 31st.
+strict,31st Avenue between Hacienda Street and West Hillsdale Boulevard,639,places: beresford-park,short,BMP #46 High; BMP #49 Med-High (31st bike blvds),"Kids need 1,500 cars a day; survey counts 2,875 west of Alameda and 5,695 east of it."
+strict,South Grant Street between East 4th Avenue and Guildford Avenue,612,places: takahashi-market,matches,BMP #63 (bike blvd 9th–Concar),Covers 9th–Guildford; nothing 4th–9th. Grant north of 10th isn't in the speed survey.
+standard,East Lane between Howard Avenue and Burlingame Avenue,27,San Mateo #27,none,,A Burlingame street; outside San Mateo's plans.
+standard,West Poplar Avenue between Crescent Avenue and Park Lane,25,San Mateo #29,adjacent,BMP #1 Med-Low (Poplar bike blvd Hurlingham–ECR; Crescent bike blvd),Just west of the plan's Poplar bike boulevard.

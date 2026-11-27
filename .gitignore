@@ -8,3 +8,5 @@ __pycache__/
 # Quiz photos are cropped Google Street View screenshots; kept out of git until Google's terms
 # for publishing them are checked. build_site.py still copies them into dist/.
 site/img/
+# City plan PDFs (data/city_plans/README.md says which); 140 MB
+downloads/

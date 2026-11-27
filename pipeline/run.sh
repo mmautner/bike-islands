@@ -10,4 +10,5 @@ python3 pipeline/places.py "$OSM" --export
 python3 pipeline/sensitivity.py "$OSM" > /dev/null
 python3 pipeline/civic.py
 python3 pipeline/tiles.py
+python3 pipeline/plans_check.py
 echo "data/ rebuilt from $OSM"
