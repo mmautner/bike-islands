@@ -155,6 +155,7 @@
   details.ask[open] > summary { margin-bottom:8px; }
   .ask-req { background: var(--bg); border: 1px solid var(--light); border-radius: 10px; padding: 10px 12px; font-size: 14.5px; line-height: 1.5; margin: 0 0 10px; max-width: 75ch; }
   .act-item p.ask-note { font-size: 13px; color: var(--grey); max-width: 75ch; }
+  .stale { font-size:14px; background:var(--light); border-left:3px solid var(--copper); padding:6px 10px; margin:0 0 10px; }
   .mapnote { font-size:15px; line-height:1.45; color:var(--ink); margin:10px 0 0; }
   .mapnote .muted { font-size:14px; }
   .legend .ramp { display:inline-flex; vertical-align:middle; margin:0 4px; }
@@ -905,6 +906,14 @@ function stationBlock(T, I, st) {
     (o < n ? `<details class="why"><summary>Why not the rest?</summary>${why.join(" ")}</details>` : "") + `</div>`;
 }
 
+// A shared link can name a fix or island that newer data no longer has (the map is rebuilt as streets are
+// re-measured; old share pages stay live). Set by applyHash, cleared by the reader's next change (setHash).
+let stale = "";
+const STALE = {
+  fix: "The fix in the link you followed isn't one of the map's fixes anymore: the map has been updated with newer street measurements since it was shared.",
+  island: "The island in the link you followed has changed: the map has been updated with newer street measurements since it was shared, and it's now part of another island. Click near home to see yours.",
+};
+function staleNote() { return stale ? `<p class="stale" role="status">${STALE[stale]}</p>` : ""; }
 let moreOpen = false;      // "More about this island", kept open across redraws once opened
 function panel() {
   const T = DATA[tier], el = document.getElementById("panel");
@@ -917,14 +926,14 @@ function panel() {
         const [o, n] = share(T, st);
         return `<li><span>${st}</span><b>${pct(o, n)}</b><div class="bar"><i style="width:${100 * o / n}%"></i></div></li>`;
       }).join("") + `</ul></div>`;
-    el.innerHTML = `<h2>Your island</h2><p>${COARSE ? "Tap" : "Click"} a street near home. The map lights up every street you can reach from there without riding on, or crossing, a stressful one.</p><p class="muted" style="margin-bottom:4px">For ${WHO[tier]}, across San Mateo and Burlingame:</p>${school}${stations}`;
+    el.innerHTML = `<h2>Your island</h2>${staleNote()}<p>${COARSE ? "Tap" : "Click"} a street near home. The map lights up every street you can reach from there without riding on, or crossing, a stressful one.</p><p class="muted" style="margin-bottom:4px">For ${WHO[tier]}, across San Mateo and Burlingame:</p>${school}${stations}`;
     return;
   }
   const I = T.islands[sel] || {homes: 0, ok: {}, near: {}, bridges: []};
   const P = I.pl || {};
   const list = topBridges(T, sel), minor = allFixes(T, sel).length - list.length;
   const lead = leadFix(T, I, list);
-  let h = `<h2>This island</h2><div><span class="big">${fmt(I.homes)}</span> homes</div>` + summaryBlock(T, I);
+  let h = `<h2>This island</h2>${staleNote()}<div><span class="big">${fmt(I.homes)}</span> homes</div>` + summaryBlock(T, I);
   // the one fix
   if (lead && lead.kind === "bridge") h += `<h3 class="leadh">The fix that would help most</h3><ol class="br lead">${fixItem(T, lead.e)}</ol>`;
   else if (lead && lead.kind === "place") h += `<h3 class="leadh">The fix that would help most</h3>${placeFixLine(lead.F)}`;
@@ -1153,6 +1162,7 @@ function askPlaceFix(F) {
 // (a fix, the standard) replace the current one. The click rides along in the entry's state, which stays in
 // the browser, so Back brings back its riding times too.
 function setHash(push) {
+  stale = "";
   const f = sel && focusFix ? `&f=${encodeURIComponent(focusFix)}` : "";
   const url = sel ? `#t=${tier}&i=${sel}${f}` : `#t=${tier}`, state = {click: clickPt};
   if (push && url !== location.hash) history.pushState(state, "", url);
@@ -1172,6 +1182,8 @@ async function applyHash() {
     catch (err) { tier = "strict"; sel = null; document.querySelectorAll(".seg button[data-tier]").forEach(b => b.setAttribute("aria-pressed", b.dataset.tier === tier)); }
   }
   if (sel && !DATA[tier].lines.some(L => L.i === sel)) sel = null;
+  stale = q.get("i") && !sel ? "island" : focusFix && !DATA[tier].bridges.some(B => B.id === focusFix) ? "fix" : "";
+  if (stale === "fix") focusFix = null;
   if (sel && zoomIn) {
     // a share link: frame the island (and the fix, if any)
     let b = [90, 180, -90, -180];
