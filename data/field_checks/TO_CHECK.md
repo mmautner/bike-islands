@@ -1,0 +1,21 @@
+# Street View checks still to do
+
+Raised by the city-plan comparison (`data/city_plans/README.md`), 2026-11-26. Each link opens facing along the
+block. Check the image date (bottom of the screen): #7–9 are about whether something has been built recently.
+Record what's found in `overrides.csv` (bike lanes, lanes, speed) or `crossings.csv` (controls), with the source,
+then rerun `pipeline/run.sh`, and delete the row here.
+
+| # | Where | Look for | Why it matters | Street View |
+|---|---|---|---|---|
+| 1 | 1st Ave, S Railroad Ave – Main St | Painted bike lane, sharrows, or nothing? | The 2020 plan calls 1st Ave an existing bike lane; OSM has none. A lane would make the 496-home Hayward Park fix already done. | [open](https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=37.567602,-122.323308&heading=229&pitch=0&fov=90) |
+| 2 | 1st Ave, S Claremont St – S Delaware St | Same | Same, for the 141-home fix. | [open](https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=37.568414,-122.322139&heading=229&pitch=0&fov=90) |
+| 3 | S B St, E 5th Ave – 8th Ave | Painted bike lane? | Would make the 202-home fix already done. | [open](https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=37.563562,-122.32029&heading=139&pitch=0&fov=90) |
+| 4 | Concar Dr, Pacific Blvd – S Delaware St | Total traffic lanes, both directions? Bike lane? | The survey says 4 lanes; the map assumes 2. | [open](https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=37.552997,-122.308319&heading=51&pitch=0&fov=90) |
+| 5 | 9th Ave, S B St – S Railroad Ave | 2 or 3 traffic lanes? Bike lane? | OSM says 3, the survey 2; with 2 the 203-home fix may already be done. | [open](https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=37.56172,-122.318059&heading=48&pitch=0&fov=90) |
+| 6 | E Poplar Ave near N Humboldt St | 2 or 3 traffic lanes? Bike lane? | Same disagreement, for the 341-home fix. | [open](https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=37.578699,-122.326423&heading=41&pitch=0&fov=90) |
+| 7 | 28th Ave, Edison St – El Camino Real | Protected bike lane (posts, curb, planters)? Image date? | The 2020 plan's protected lane here is the top Hillsdale fix (3,198 homes). | [open](https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=37.5413,-122.3036&heading=63&pitch=0&fov=90) |
+| 8 | Sunnybrae Blvd at S Amphlett Blvd | Bike boulevard signs, big sharrows, speed humps, traffic circles? | The 2022 plan calls the Sunnybrae bike boulevard an existing project. | [open](https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=37.5644,-122.3076&heading=200&pitch=0&fov=90) |
+| 9 | S Amphlett Blvd, E 5th Ave – Folkstone Ave | Any bike boulevard treatment? Speed limit signs? | Same plan project; the 76-home fix. | [open](https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=37.566274,-122.309434&heading=139&pitch=0&fov=90) |
+| 10 | N Delaware St at E Bellevue Ave | Sharrows only, or a painted lane? | Confirms the 1,005-home #4 San Mateo fix stands (expected: sharrows only). | [open](https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=37.5765,-122.3303&heading=320&pitch=0&fov=90) |
+| 11 | The large complex east of N Delaware between State St and E Bellevue Ave | Any way out besides the driveway onto N Delaware: a gate or path to E Bellevue, N Humboldt, State St or Claremont? (Use the satellite link; the Street View link faces the driveway.) | OSM maps one driveway, onto Delaware. All 1,005 homes of the #4 San Mateo fix are this one census block, and the city's Claremont route reaches none of them. Another exit could change both. | [satellite](https://www.google.com/maps/@?api=1&map_action=map&center=37.5782,-122.3303&zoom=18&basemap=satellite) · [street view](https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=37.57745,-122.33153&heading=45&pitch=0&fov=90) |
+| 12 | S Delaware St at 2nd Ave | Traffic lanes on Delaware: 2 or 4? Is the intersection signalized? | OSM says 4 lanes, the survey says 2. With 4, a signal doesn't make the crossing work for kids, and our kids 2nd Ave fix (573 homes) needs it; with 2 and a signal, it works. | [open](https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=37.56775,-122.32105&heading=139&pitch=0&fov=90) |

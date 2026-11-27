@@ -11,6 +11,8 @@ for any fix we promote. Burlingame's plans haven't been gathered yet.
 - `bmp_2020_projects.csv`: the 2020 Bicycle Master Plan's full project list (Table 6.3), one row per segment,
   transcribed so nobody has to re-extract the PDF. `project` numbers repeat across a project's segments; cost is on
   the first row (`cost_level2` = the permanent, curb-separated version where the plan gives one).
+- `scenarios.csv` / `scenario_results.csv`: city routes tested against our fixes (below); `pipeline/plan_scenarios.py`
+  (run by `run.sh`) rewrites the results.
 - `pipeline/plans_check.py` lists fixes with no row in `alignment.csv`. Run it after the pipeline: only the fixes it
   prints need reading against the plans. It checks every fix to San Mateo, Hayward Park and Hillsdale stations,
   and San Mateo place-page fixes for 500 or more homes.
@@ -102,9 +104,46 @@ boulevard east of Alameda (5,695).
   - 28th Ave from Edison to El Camino and the Amphlett/Sunnybrae bike boulevard: built since 2022?
 - `South Railroad Avenue between 9th Avenue and Cypress Avenue` on the downtown place page has an empty `need`.
 
+## Do the city's own routes reach the same homes? (tested 2026-11-26)
+
+`pipeline/plan_scenarios.py` applies a set of plan segments at once (`scenarios.csv`) and counts homes that gain a
+low-stress route to the station, against our fix, in `scenario_results.csv`. Each plan segment gets its treatment
+(painted or buffered lane, protected lane or path, or a bike boulevard: a 20 mph local street, traffic as
+counted). Segments that still wouldn't count for that kind of rider are left out and listed. It's scored two ways:
+- "as our fixes are tested": every crossing on a fixed street treated, like `data/bridges.csv`.
+- "as written": crossings of other busy streets treated only where a plan names them. The difference is the
+  crossings the plan would also have to treat (`untreated_crossings`).
+
+Results, San Mateo station:
+
+| | Our fix | City's version | City's version reaches our fix's homes |
+|---|---|---|---|
+| Experienced riders: N Delaware jog vs plan's Delaware lane + State/Claremont/Bellevue bike boulevards + Tilton all-way stop | +1,005 | +0 | 0 of 1,005 |
+| Kids: same | +1,005 | +1,165 as written (+2,276 with its crossings treated) | 0 of 1,005 |
+| Experienced riders: 2nd Ave vs BMP #15 (3rd/4th protected lanes) | +430 | +486 | all 430 |
+| Kids: same | +573 | +945 | 540 of 573 |
+| Experienced riders: 2nd Ave vs all downtown projects (#12–#16, Claremont) | +430 | +1,653 | all 430 |
+| Kids: same | +573 | +4,193 | 540 of 573 |
+
+- **2nd Ave: promote the plan's project instead.** BMP #15 (High priority) connects everyone our 2nd Ave fix does,
+  and more, as written. That's a stronger ask: it's already adopted and grant-eligible.
+- **N Delaware: the plan misses these homes entirely.** All 1,005 are one census block: a large complex whose only
+  mapped exit is a driveway onto N Delaware between State St and E Bellevue. That's the one block of Delaware the
+  plan leaves alone: its Delaware lane stops at State, and its route moves west to Claremont. The ask is a short
+  addition to BMP #7: extend its treatment from State down to Bellevue. First check the complex has no other exit
+  (`field_checks/TO_CHECK.md` #11). If it does, the fix and this result both change.
+- **For kids, the Delaware package still helps others** (1,165 homes as written). With its crossings treated it
+  would help 2,276. The crossings it would need are Bellevue at El Camino, Highland at Peninsula, and Claremont at
+  3rd and 4th.
+- **The Tilton/Claremont all-way stop changes nothing on our map:** that crossing isn't rated a barrier today.
+- **Our kids 2nd Ave fix needs a crossing too:** S Delaware at 2nd, which OpenStreetMap tags as 4 lanes (the survey
+  says 2; `TO_CHECK.md` #12). The usual scoring hides this because it assumes crossings on a fixed street are treated.
+- **Gaps in the plan data:** Crescent Av doesn't meet Clark Dr in OpenStreetMap, so that piece of BMP #1 is left
+  out. W 3rd Av's painted lane west of El Camino doesn't count for either rider.
+
 ## Not done yet
 
-- **Test the plan's own routes through the pipeline.** For example, the Claremont bike boulevard plus an all-way
-  stop at Tilton/Claremont (which the TOD plan recommends) against our N Delaware fix, and the 3rd/4th protected
-  lanes against our 2nd Ave fix. That would show whether the city's route reaches the same homes.
+- Test more of our fixes against plan alternatives: add a scenario to `scenarios.csv` and a line to `COMPARE`
+  in `pipeline/plan_scenarios.py`. Candidates: N Bayshore vs the Kingston St bike boulevards (BMP #4/#10); E Poplar
+  vs Indian Ave (BMP #6).
 - Burlingame's plans.

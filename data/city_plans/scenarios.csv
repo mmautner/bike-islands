@@ -1,0 +1,27 @@
+scenario,kind,street,from,to,facility,source
+delaware_plan,segment,Delaware St,Peninsula Av,State St,Bike Lane,BMP #7
+delaware_plan,segment,State St,Delaware St,Claremont St,Bike Blvd,BMP #7
+delaware_plan,segment,Claremont St,State St,9th Av,Bike Blvd,BMP #7
+delaware_plan,segment,Bellevue Av,Crescent Av,Delaware St,Bike Blvd,BMP #1
+delaware_plan,segment,Highland Av,Peninsula Av,Bellevue Av,Bike Blvd,BMP #1
+delaware_plan,segment,Crescent Av,Clark Dr,Bellevue Av,Bike Blvd,BMP #1
+delaware_plan,segment,Hurlingham Av,Bellevue Av,Poplar Av,Bike Blvd,BMP #1
+delaware_plan,segment,Poplar Av,Hurlingham Av,El Camino Real,Bike Blvd,BMP #1
+delaware_plan,crossing,Tilton Av,Claremont St,,All-way stop,TOD Downtown North Station Access
+downtown_3rd_4th,segment,3rd Av,Dartmouth Rd,El Camino Real,Bike Lane,BMP #15
+downtown_3rd_4th,segment,3rd Av,El Camino Real,Humboldt St,Separated BL,BMP #15
+downtown_3rd_4th,segment,Delaware St,3rd Av,4th Av,Separated BL,BMP #15
+downtown_3rd_4th,segment,4th Av,Delaware St,Humboldt St,Separated BL,BMP #15
+downtown_all,segment,3rd Av,Dartmouth Rd,El Camino Real,Bike Lane,BMP #15
+downtown_all,segment,3rd Av,El Camino Real,Humboldt St,Separated BL,BMP #15
+downtown_all,segment,Delaware St,3rd Av,4th Av,Separated BL,BMP #15
+downtown_all,segment,4th Av,Delaware St,Humboldt St,Separated BL,BMP #15
+downtown_all,segment,1st Av,B St,Railroad Av,Bike Lane,BMP #13
+downtown_all,segment,Baldwin Av,El Camino Real,San Mateo Dr,Bike Blvd,BMP #13
+downtown_all,segment,Baldwin Av,San Mateo Dr,B St,Bike Lane,BMP #13
+downtown_all,segment,B St,Baldwin Av,5th Av,Separated BL,BMP #14
+downtown_all,segment,B St,5th Av,16th Av,Buffered BL,BMP #14
+downtown_all,segment,5th Av,Virginia Av,Delaware St,Bike Lane,BMP #16
+downtown_all,segment,5th Av,Delaware St,Amphlett Bl,Bike Blvd,BMP #16
+downtown_all,segment,Claremont St,State St,9th Av,Bike Blvd,BMP #7
+downtown_all,segment,Railroad Av,Monte Diablo Av,4th Av,Bike Blvd,BMP #12

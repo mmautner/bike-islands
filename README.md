@@ -31,6 +31,8 @@ to Caltrain. Served at
     its midpoint, so an island's bounding box always covers all of its streets.
   - `run.sh`: reruns survey, export and sensitivity from `data/raw/`.
   - `plans_check.py`: lists San Mateo fixes not yet compared with the city's plans in `data/city_plans/alignment.csv`.
+  - `plan_scenarios.py`: tests the city's own routes (`data/city_plans/scenarios.csv`) against our fixes: do they
+    connect the same homes? Writes `data/city_plans/scenario_results.csv`.
 - `data/sources/ets_2026_segments.csv`: the city's 2026 speed survey, copied from
   [san-mateo-speeds](https://github.com/mmautner/san-mateo-speeds), which parsed it from the survey summary
   sheets obtained through a public records request.
