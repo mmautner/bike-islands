@@ -420,12 +420,34 @@ def plan_status(P, f):
     return "Not in any of the city's plans yet."
 
 
+PLACE_GROUPS = 4         # groups of fixes a place page lists
+MINOR_FIX = (0.05, 50)   # and only fixes that would help at least this share of the top fix's people, and this many
+
+
+def place_fix_groups(all_fixes):
+    """The fixes a place page lists, in groups of alternatives (places.py's "g"), and each one's label: "1", or "2a",
+    "2b" for alternatives."""
+    fx = [f for f in all_fixes if f["homes"] > 0]
+    if not fx:
+        return [], {}
+    floor = max(MINOR_FIX[0] * fx[0]["homes"], MINOR_FIX[1])
+    groups = {}
+    for f in fx:
+        if f["homes"] >= floor:
+            groups.setdefault(f.get("g", f["id"]), []).append(f)
+    keep = list(groups.values())[:PLACE_GROUPS]
+    label = {f["id"]: f"{gi + 1}{'abcdef'[j]}" if len(g) > 1 else str(gi + 1)
+             for gi, g in enumerate(keep) for j, f in enumerate(g)}
+    flat = [dict(f, g=gi) for gi, g in enumerate(keep) for f in g]
+    return flat, label
+
+
 def place_body(P, civ):
     t, tot, ok = P["title"], P["total"], P["ok"]
     n, nok = tot["homes"], ok["homes"]      # people ("homes" counts residents since 2026-11-26)
     k, kok = tot["kids"], ok["kids"]
     cant = n - nok
-    fixes = [f for f in P["fixes"] if f["homes"] > 0][:4]
+    fixes, label = place_fix_groups(P["fixes"])
     lead = plan_lead(P, fixes)
     h = [f'<p class="crumb"><a href="{BASE}">Bike islands</a> · <a href="{BASE}places/">Places</a> · {PLACE_CAT[P["category"]]}</p>',
          f'<h1>Who can bike to {e(t)}?</h1>', '<div class="top"><div>',
@@ -467,20 +489,26 @@ def place_body(P, civ):
         h.append(f'<section><h2>{"Fixes this map tested" if lead else "What would change it"}</h2><p class="intro">We tested each busy stretch and crossing that cuts people off from '
                  f'{e(t)}, one at a time, treating just the part their routes use as safe for cautious riders and kids. These would help the most. '
                  'Tap one to see it on the map.</p><div class="fixes">')
-        for i, f in enumerate(fixes, 1):
+        for f in fixes:
+            g = [x for x in fixes if x["g"] == f["g"]]
+            if len(g) > 1 and f is g[0]:
+                h.append('<div class="altgroup"><p class="altnote">Any one of these would let many of the same people bike here:</p>')
             size = f" ({feet_or_miles(f['len'])})" if f["len"] else ""
             need = f'<p class="need">It would need {e("; or ".join(f["need"]))}.</p>' if f["need"] else ""
             st = plan_status(P, f)
             if st:
                 need += f'<p class="planst">{e(st)}</p>'
-            h.append(f'<button class="fix" data-fix="{e(f["id"])}" aria-pressed="false"><div class="gain">+{f["homes"]:,}<small>people</small></div>'
-                     f'<div><h3><span class="num">{i}</span>{e(fix_title(f))}</h3><p>{f["kids"]:,} of them kids. Now: {e(f["is"])}{size}.</p>{need}</div></button>')
+            h.append(f'<button class="fix" data-fix="{e(f["id"])}" data-n="{label[f["id"]]}" aria-pressed="false"><div class="gain">+{f["homes"]:,}<small>people</small></div>'
+                     f'<div><h3><span class="num">{label[f["id"]]}</span>{e(fix_title(f))}</h3><p>{f["kids"]:,} of them kids. Now: {e(f["is"])}{size}.</p>{need}</div></button>')
+            if len(g) > 1 and f is g[-1]:
+                h.append('</div>')
         h.append('</div>')
         ids = {f["id"]: f for f in fixes}
-        best = next((p for p in P["pairs"] if all(i in ids for i in p["ids"])), None)
+        # the best pair of fixes that aren't alternatives to each other
+        best = next((p for p in P["pairs"] if all(i in ids for i in p["ids"]) and ids[p["ids"][0]]["g"] != ids[p["ids"][1]]["g"]), None)
         if best and best["homes"] > max(f["homes"] for f in fixes):
             a, b = (ids[i] for i in best["ids"])
-            h.append(f'<div class="together"><strong>Fixes {fixes.index(a) + 1} and {fixes.index(b) + 1} together: +{best["homes"]:,} people.</strong> '
+            h.append(f'<div class="together"><strong>Fixes {label[a["id"]]} and {label[b["id"]]} together: +{best["homes"]:,} people.</strong> '
                      f'That would take the share who can bike to {e(t)} from {pct(nok, n)} to {pct(nok + best["homes"], n)}.</div>')
         h.append('</section>')
     else:
@@ -722,6 +750,14 @@ def fix_page(cfg, D):
                 f'<strong>{name}</strong>{f", about a {mins}-minute ride" if mins else ""}{split}. Of the {r10(c["within"][0])} people '
                 f'{who} within a mile, {r10(c["now"][0])} can bike there on quiet streets and paths today.</p></div>')
 
+    def in_all(n, summed, who):
+        """One total for a list of places, when its rows would add up to well over it (the same people, counted
+        under more than one place)."""
+        if not n or summed <= 1.15 * n:
+            return ""
+        return (f'<p class="also"><strong>In all, {r10(n)} {who}</strong> could bike to at least one of these places. '
+                'Many are counted under more than one, so the numbers above don\'t add up to it.</p>')
+
     def side_city(g):
         cs = {k.split("|")[1]: v[0] for k, v in UC.items() if k.split("|")[0] == g}
         tot = sum(cs.values())
@@ -749,6 +785,8 @@ def fix_page(cfg, D):
             h.append(f'<div class="side g{i}" data-group="{o}"><h2>{e(head_)}</h2>'
                      f'<p class="who">What this would open up for you, {other[0]} of the street</p>')
             h += [dest(r, o) for g in other for r in P[g]]
+            h.append(in_all(U.get(o, [0])[0], sum(r["groups"][o]["gain"][0] for g in other for r in P[g]),
+                            f"people {o} of {e(bare_street(st))}"))
             mine = sorted(P[o], key=lambda r: -gain_of(r, o))
             ow = notes.get("other_way", {}).get(o)
             if ow:
@@ -765,6 +803,7 @@ def fix_page(cfg, D):
     else:
         h.append('<section style="margin-top:24px"><h2>Places it would connect</h2><div class="sides one"><div class="side g0">')
         h += [dest(r, None) for r in P["all"]]
+        h.append(in_all(total, sum(gain_of(r) for r in P["all"]), "people"))
         h.append("</div></div></section>")
         legend = ('<span><i class="ln" style="background:var(--fix)"></i>The change</span>'
                   '<span><i class="sw" style="background:var(--can)"></i>People it would connect</span>')

@@ -19,7 +19,8 @@ to Caltrain. Served at
   - `export.py`: writes `data/map_*.json`, `data/access.csv`, `data/bridges.csv`, `data/schools.csv`.
   - `places.py`: everyday places (grocery stores, parks, libraries, downtown) and who can bike to each within a
     1-mile ride. `--export` writes `data/places_<tier>.json` (each island's "From here" lists, its fixes and city plan projects
-    counted by the people there they'd let bike to at least one more curated place, with each one's lines; `tiles.py`
+    counted by the people there they'd let bike to at least one more curated place, in groups of alternatives that
+    would connect most of the same people (`ALT_SHARE`), with each one's lines; `tiles.py`
     merges it into the per-island detail files the page fetches when an island is picked) and
     `data/places/<tier>/<slug>.json` (a page's data for each place in `site/places.json`: who can bike there, what's in
     the way, the fixes that would help most, alone and in pairs, and the city's plan projects that would help, with each

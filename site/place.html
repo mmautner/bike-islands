@@ -35,7 +35,9 @@
   .pop strong { color: var(--ink); display: block; font-size: 14px; }
   .pop .x { position: absolute; top: 2px; right: 4px; font: inherit; font-size: 18px; line-height: 1; background: none; border: none; color: var(--grey); cursor: pointer; padding: 2px 4px; }
   .pop a { color: var(--fix); }
-  .num { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--fix); color: var(--card);
+  .altgroup { border-left: 3px solid var(--fix); padding-left: 10px; margin: 6px 0; }
+  .altnote { margin: 0 0 4px; font-size: 14px; color: var(--grey); }
+  .num { display: inline-grid; place-items: center; min-width: 22px; padding: 0 3px; box-sizing: border-box; height: 22px; border-radius: 50%; background: var(--fix); color: var(--card);
          font-size: 12px; font-weight: 600; margin-right: 8px; vertical-align: 2px; font-variant-numeric: tabular-nums; }
   main.bp section { margin: 48px 0 0; padding: 0; border: 0; display: block; min-width: 0; }   /* site.css styles bare sections */
   .intro { max-width: 62ch; margin: 0 0 18px; line-height: 1.55; }
@@ -84,7 +86,11 @@ const DATA_URL = /*DATAURL*/;
   let D;
   try { D = await (await fetch(DATA_URL)).json(); } catch (e) { document.getElementById("hint").textContent = "The map didn't load."; return; }
   const M = D.map, FIX = {};
-  D.fixes.filter(f => f.homes > 0).slice(0, 4).forEach((f, k) => { FIX[f.id] = Object.assign({n: k + 1}, f); });
+  // the fixes the page lists, labeled as there ("1", "2a"): build_site.py decides which and how
+  document.querySelectorAll(".fix[data-n]").forEach(b => {
+    const f = D.fixes.find(x => x.id === b.dataset.fix);
+    if (f) FIX[f.id] = Object.assign({n: b.dataset.n}, f);
+  });
   // the city's project, when the page leads with it (build_site.py decides): drawn in its own color, no number
   document.querySelectorAll(".fix.plan").forEach(b => {
     const p = (D.plans || []).find(x => x.id === b.dataset.fix);

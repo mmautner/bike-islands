@@ -368,6 +368,10 @@ def place_detail(ctx, pl, plan=None):
         fixes.append(dict(describe(ctx, key, items[key]), id=f"{key[0]}:{key[1]}",
                           homes=sum(near[k][0] for k in g), kids=sum(near[k][1] for k in g)))
     fixes.sort(key=lambda f: (-(f["kids"], f["homes"])[wi == 0], f["id"]))
+    # fixes that would connect most of the same people are alternatives: "g" numbers each one's group, best first
+    for gi, g in enumerate(alt_groups([(f["id"], gained[(f["kind"], f["street"])]) for f in fixes], lambda k: near[k][0])):
+        for fid in g:
+            next(f for f in fixes if f["id"] == fid)["g"] = gi
     top = [(f["kind"], f["street"]) for f in fixes[:PAIR_TOP]]
     pairs = []
     for i in range(len(top)):
@@ -671,7 +675,9 @@ def export(path):
         print(f"[{tier}] places: {len(out)} islands, {len(summary)} place pages")
 
 
-ISLAND_FIXES = 5          # fixes the panel lists for an island, most people first
+ISLAND_FIXES = 5          # groups of fixes the panel lists for an island, most people first
+GROUP_MAX = 3             # fixes in a group of alternatives, at most
+ALT_SHARE = 0.6           # two fixes are alternatives when each would connect at least this share of the other's people
 MINOR_SHARE, MINOR_MIN = 0.02, 20     # and only those that would let at least this share of its people (and this many) reach a place
 ISLAND_PLANS = 3
 
@@ -692,6 +698,24 @@ def place_list(per, names):
     return [[s, names[s], per[s]] for s in sorted(per, key=lambda s: (-per[s], s)) if per[s] >= 0.5 * top][:3]
 
 
+def alt_groups(rows, w):
+    """rows: [(id, origin keys)], best first. Puts each fix in the first group whose leader it is an alternative to
+    (ALT_SHARE both ways: doing either would connect most of the same people), else starts a group. Returns
+    [[id, ...]] in the order of the leaders."""
+    groups = []
+    for fid, keys in rows:
+        n = sum(w(k) for k in keys)
+        for g in groups:
+            lk, ln = g[0][1], g[0][2]
+            ov = sum(w(k) for k in keys & lk)
+            if n and ln and ov >= ALT_SHARE * n and ov >= ALT_SHARE * ln:
+                g.append((fid, keys, n))
+                break
+        else:
+            groups.append([(fid, keys, n)])
+    return [[fid for fid, _, _ in g] for g in groups]
+
+
 def island_fixes(ctx, cand, fix_at, names, people):
     """An island's fixes by everyday places: each tested fix, counted by the people here it would let bike to at least
     one more of the curated places (a person counts once however many places it opens). The same bottleneck often
@@ -703,21 +727,24 @@ def island_fixes(ctx, cand, fix_at, names, people):
             continue
         rows.append((n, sum(ctx.W[k][1] for k in keys), fid, frozenset(keys), per))
     rows.sort(key=lambda r: (-r[0], -r[1], not r[2].startswith("cross:"), r[2]))
-    seen, out = set(), []
-    for n, kd, fid, keys, per in rows:
-        if keys in seen:
-            continue
-        seen.add(keys)
+    seen, kept = set(), []
+    for r in rows:
+        if r[3] not in seen:
+            seen.add(r[3])
+            kept.append(r)
+    by = {r[2]: r for r in kept}
+    groups = [g[:GROUP_MAX] for g in alt_groups([(r[2], r[3]) for r in kept], lambda k: ctx.W[k][0])][:ISLAND_FIXES]
+    out = []
+    for gi, fid in [(gi, fid) for gi, g in enumerate(groups) for fid in g]:
+        n, kd, _, keys, per = by[fid]
         best = max(per, key=lambda s: (per[s], s))         # described as on the page of the place it helps most here
         fx, (segs, nodes) = fix_at[(fid, best)]
         lines = [enc_line([ctx.coord[a], ctx.coord[b]]) for a, b in sorted(segs)] + \
                 [enc_line([ctx.coord[m]]) for m in sorted(nodes)]
         plan = fx.get("plan")
-        out.append({"id": fid, "kind": fx["kind"], "where": fx["where"], "is": fx["is"], "need": fx["need"], "len": fx["len"],
+        out.append({"id": fid, "g": gi, "kind": fx["kind"], "where": fx["where"], "is": fx["is"], "need": fx["need"], "len": fx["len"],
                     "people": n, "kids": kd, "places": place_list(per, names), "p": lines,
                     **({"plan": [plan[0].removeprefix("plan:") if plan[0] else None, *plan[1:]]} if plan else {})})
-        if len(out) == ISLAND_FIXES:
-            break
     return out
 
 

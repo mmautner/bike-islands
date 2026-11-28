@@ -103,6 +103,8 @@
   aside h3.leadh { font-family:'Newsreader', Georgia, serif; font-weight:600; color:var(--ink); font-size:19px; margin:16px 0 4px; }
   ol.br.lead { margin-top:2px; }
   aside h3.leadh.sub { font-size:16px; margin-top:12px; }
+  ol.alts { padding-left:20px; margin:4px 0 0; }
+  li.altgroup > .altlead { display:block; color:var(--ink); }
   ul.br { padding-left: 18px; margin: 6px 0; font-size:14px; }
   ul.br li { margin: 2px 0 2px -6px; padding: 4px 6px; border-radius: 8px; }
   ul.br li.hot, ul.br li.focus { background: var(--card); }
@@ -612,7 +614,7 @@ function draw() {
     const hot = f.id === focusFix || f.id === hotFix;
     ctx.strokeStyle = hot ? COPPER : INK; ctx.lineWidth = hot ? 3 : 2; ctx.fillStyle = PAPER;
     ctx.beginPath(); ctx.arc(f.x, f.y, hot ? 13 : 10, 0, 7); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = INK; ctx.font = "600 12px 'IBM Plex Sans', sans-serif"; ctx.textAlign = "center";
+    ctx.fillStyle = INK; ctx.font = `600 ${String(f.n).length > 1 ? 11 : 12}px 'IBM Plex Sans', sans-serif`; ctx.textAlign = "center";
     ctx.fillText(String(f.n), f.x, f.y + 4); ctx.textAlign = "start";
   }
   if (cv.matches(":focus-visible")) {        // keyboard focus: the crosshair Enter picks at
@@ -747,7 +749,8 @@ function fixMid(F) {         // the point of the fix nearest its middle
 }
 function mapFixes(T) {
   if (!sel || !T.islands[sel]) return [];
-  const out = placeFixes(T.islands[sel]).map((F, k) => ({id: F.id, n: k + 1, F, lines: fixLines(F), mid: fixMid(F)}));
+  const out = placeGroups(T.islands[sel]).flatMap((g, gi) => g.map((F, j) =>
+    ({id: F.id, n: groupLabel(g, gi, j), F, lines: fixLines(F), mid: fixMid(F)})));
   const e = focusFix && !out.some(f => f.id === focusFix) && allFixes(T, sel).find(e => T.bridges[e.bid].id === focusFix);
   const B = e ? T.bridges[e.bid] : focusFix && !out.some(f => f.id === focusFix) && T.bridges.find(B => B.id === focusFix);
   if (B) out.push({id: B.id, n: "C", B, e: e || {bid: T.bridges.indexOf(B), per: {[B.st]: B.gain}, max: B.gain}, lines: [B.pts], mid: B.pts[Math.floor(B.pts.length / 2)]});
@@ -865,6 +868,13 @@ function placesByKind(xs) {
     : `${andList(ns)} <span class="kind">(${ns.length > 1 ? DOOR_CATS[c] : "a " + DOOR_CAT[c]})</span>`).join("; ");
 }
 const placeFixes = I => ((I && I.pl) || {}).fixes || [];
+// the fixes in groups of alternatives (places.py's "g": fixes that would connect most of the same people), best first
+function placeGroups(I) {
+  const by = new Map();
+  placeFixes(I).forEach((F, k) => { const g = F.g ?? `k${k}`; if (!by.has(g)) by.set(g, []); by.get(g).push(F); });
+  return [...by.values()];
+}
+const groupLabel = (g, gi, j) => g.length > 1 ? `${gi + 1}${"abcdef"[j]}` : String(gi + 1);
 const ridersFor = () => tier === "strict" ? "cautious riders and kids" : "experienced riders";
 function placeFixWhat(F) {         // "A safe crossing of X at Y", "Making X between A and B (0.3 mi) safe for cautious riders and kids"
   return F.kind === "cross" ? `A safe ${F.where.replace(/^the /, "")}` : `Making ${F.where}${F.len ? ` (${ftmi(Math.max(F.len, 15))})` : ""} safe for ${ridersFor()}`;
@@ -997,27 +1007,58 @@ function summaryBlock(T, I) {
   }
   return `<dl class="sum">${rows.join("")}</dl>`;
 }
-// A fix by everyday places, numbered as on the map
-function placeFixItem(I, F) {
+// A fix by everyday places, numbered as on the map. One of a group of alternatives says only how many it would help;
+// the group's sentence says what they'd open up.
+function placeFixItem(I, F, alt) {
   const st = placePlanStatus(I, F);
   const now = `<p>Now: ${F.is}${F.len ? ` (${ftmi(Math.max(F.len, 15))})` : ""}.</p>`;
-  return `<li data-fix="${F.id}"${F.id === focusFix ? ' class="focus"' : ""}><a class="fixlink" role="button" href="#t=${tier}&i=${sel}&f=${encodeURIComponent(F.id)}" aria-pressed="${F.id === focusFix}">${placeFixWhat(F)}</a> would open up ${placeGains(F)}.` +
+  const gain = alt ? `: ${fmt(F.people)} people here.` : ` would open up ${placeGains(F)}.`;
+  return `<li data-fix="${F.id}"${F.id === focusFix ? ' class="focus"' : ""}><a class="fixlink" role="button" href="#t=${tier}&i=${sel}&f=${encodeURIComponent(F.id)}" aria-pressed="${F.id === focusFix}">${placeFixWhat(F)}</a>${gain}` +
     (F.need && F.need.length ? `<span class="need">It would need ${orList(F.need)}.</span>` : "") +
     (st ? `<span class="planst">${st}</span>` : "") +
     `<details class="fixwhy"><summary>What it's like now</summary>${now}<p>These options come from the ratings this map uses. Engineers may find a better fix.</p></details></li>`;
 }
-function fixItem(T, e) {
+// A group: one fix, or alternatives that would connect most of the same people, lettered as on the map
+function placeGroupItem(I, g) {
+  if (g.length === 1) return placeFixItem(I, g[0]);
+  const names = andList(g[0].places.map(([slug, n]) => placeLink(n, slug)));
+  return `<li class="altgroup"><span class="altlead">Any one of these would open up ${names} to many of the same people:</span>` +
+    `<ol type="a" class="alts">${g.map(F => placeFixItem(I, F, true)).join("")}</ol></li>`;
+}
+// A Caltrain fix. One of a group of crossings (bridgeGroups) is named by its corner, with its count.
+function fixItem(T, e, alt) {
   const B = T.bridges[e.bid];
   const gains = Object.entries(e.per).sort((a, b) => b[1] - a[1])
     .map(([st, hu], k) => k === 0 ? `${fmt(hu)} more people here bike to ${st} Caltrain` : `${fmt(hu)} to ${st} Caltrain`).join(" and ");
   const sp = SHARE.fixes[tier][B.id];
   const pg = (SHARE.pages || {})[B.id];   // a fix page covers it: what it would open up, side by side
-  return `<li data-fix="${B.id}"${B.id === focusFix ? ' class="focus"' : ""}><a class="fixlink" role="button" href="#t=${tier}&i=${sel}&f=${encodeURIComponent(B.id)}" aria-pressed="${B.id === focusFix}">${fixPlain(B)}</a> would let ${gains}.` +
+  const what = alt ? `At ${fixCrossing(B).split(" at ").slice(1).join(" at ")}` : fixPlain(B);
+  return `<li data-fix="${B.id}"${B.id === focusFix ? ' class="focus"' : ""}><a class="fixlink" role="button" href="#t=${tier}&i=${sel}&f=${encodeURIComponent(B.id)}" aria-pressed="${B.id === focusFix}">${what}</a>` +
+    (alt ? `: ${fmt(e.max)} people.` : ` would let ${gains}.`) +
     (needPlain(B) ? `<span class="need">${needPlain(B)}</span>` : "") +
     (planStatus(T, B) ? `<span class="planst">${planStatus(T, B)}</span>` : "") +
     whyBlock(B, [needAll(B), joinText(B)]) +
     (pg ? `<a class="fixpage" href="${pg[0]}">${pg[1]} &rarr;</a>` : "") +
     (sp ? `<a class="sharefix" href="${sp}" data-share="${sp}">Share this fix</a>` : "") + `</li>`;
+}
+// Caltrain fixes in groups: safe crossings of the same street that help the same station most are one choice,
+// since people use whichever corner is on their way (any one would do roughly the job)
+function bridgeGroups(T, list) {
+  const by = new Map();
+  for (const e of list) {
+    const x = fixCrossing(T.bridges[e.bid]), st = Object.entries(e.per).sort((a, b) => b[1] - a[1])[0][0];
+    const k = x && x.includes(" at ") ? `${x.split(" at ")[0]}|${st}` : `fix${e.bid}`;
+    if (!by.has(k)) by.set(k, []);
+    by.get(k).push(e);
+  }
+  return [...by.values()];
+}
+function bridgeGroupItem(T, g) {
+  if (g.length === 1) return fixItem(T, g[0]);
+  const x = fixCrossing(T.bridges[g[0].bid]).split(" at ")[0], st = Object.entries(g[0].per).sort((a, b) => b[1] - a[1])[0][0];
+  const ns = g.map(e => e.per[st] || 0), lo = Math.min(...ns), hi = Math.max(...ns);
+  return `<li class="altgroup"><span class="altlead">A safe crossing of ${x} at any one of these ${g.length} corners would let ${lo === hi ? fmt(hi) : `${fmt(lo)} to ${fmt(hi)}`} more people here bike to ${st} Caltrain:</span>` +
+    `<ol type="a" class="alts">${g.map(e => fixItem(T, e, true)).join("")}</ol></li>`;
 }
 function gapBlock(I) {
   const G = I.gaps;
@@ -1082,10 +1123,10 @@ function panel() {
   else if (lead && lead.kind === "gap") h += gapBlock(I);
   else h += `<p class="muted" style="margin-top:12px">${P.on || P.out ? "No single fix tested would let more people here bike to the places this map has pages for." : ""}</p>`;
   if (pf.length) {
-    const rest = lead && lead.kind === "place" ? pf.slice(1) : pf;
-    if (lead && lead.kind === "place") h += `<ol class="br lead">${placeFixItem(I, pf[0])}</ol>`;
+    const groups = placeGroups(I), rest = lead && lead.kind === "place" ? groups.slice(1) : groups;
+    if (lead && lead.kind === "place") h += `<ol class="br lead">${placeGroupItem(I, groups[0])}</ol>`;
     if (rest.length) h += `<h3 class="leadh sub">${lead && lead.kind === "plan" ? "Fixes this map tested" : "Other fixes"}</h3>` +
-      `<ol class="br" start="${pf.length - rest.length + 1}">${rest.map(F => placeFixItem(I, F)).join("")}</ol>`;
+      `<ol class="br" start="${groups.length - rest.length + 1}">${rest.map(g => placeGroupItem(I, g)).join("")}</ol>`;
   }
   h += `<p class="muted" style="margin-top:10px">${fmt(I.homes)} people live on this island of quiet streets.</p>`;
   // everything else, folded: the full place lists, route details, and getting to Caltrain
@@ -1104,9 +1145,10 @@ function panel() {
   if (I.gaps && (!lead || lead.kind !== "gap")) { more.push(gapBlock(I)); what.push("what's in the way to Caltrain"); }
   const rest = lead && lead.kind === "bridge" ? list.slice(1) : list;
   if (rest.length) {
-    more.push(`<h3>Fixes for getting to Caltrain</h3><ul class="br">${rest.map(e => fixItem(T, e)).join("")}</ul>` +
+    more.push(`<h3>Fixes for getting to Caltrain</h3><ul class="br">${bridgeGroups(T, rest).map(g => bridgeGroupItem(T, g)).join("")}</ul>` +
       (minor ? `<p class="muted">${minor === 1 ? "1 smaller fix" : `${minor} smaller fixes`}, each connecting under 2% of the people on this island to Caltrain, ${minor === 1 ? "isn't" : "aren't"} shown.</p>` : ""));
-    what.push(rest.length === 1 ? "1 Caltrain fix" : `${rest.length} Caltrain fixes`);
+    const ng = bridgeGroups(T, rest).length;
+    what.push(ng === 1 ? "1 Caltrain fix" : `${ng} Caltrain fixes`);
   }
   if (more.length) {
     const leadId = lead && lead.kind === "bridge" ? T.bridges[lead.e.bid].id : null;
