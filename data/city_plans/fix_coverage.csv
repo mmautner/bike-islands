@@ -80,13 +80,13 @@ standard,Hayward Park,8,1st Avenue between South Delaware Street and South Clare
 standard,Hayward Park,9,South B Street between Baldwin Avenue and 1st Avenue,96,San Mateo,BMP-14: B St +2 more,1.0,BMP-14: B St +2 more,1.0,BMP-14: B St +2 more,1.0,1.0,1.0,project
 standard,Hayward Park,10,Alameda de las Pulgas between Cornell Avenue and Parrott Drive,87,San Mateo,PMP-9: Alameda de las Pulgas,1.0,PMP-9: Alameda de las Pulgas,1.0,PMP-9: Alameda de las Pulgas,1.0,1.0,1.0,project
 standard,Hayward Park,11,North El Camino Real at Monte Diablo Avenue,86,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
-standard,Hayward Park,12,Alameda de las Pulgas between West Hillsdale Boulevard and 30th Avenue,76,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
-standard,Hayward Park,13,Alameda de las Pulgas at Sylvan Avenue,32,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
+standard,Hayward Park,12,Alameda de las Pulgas between West Hillsdale Boulevard and 30th Avenue,76,San Mateo,BMP-25: Alameda de las Pulgas +1 more,0.0,,0.0,,0.0,0.0,0.0,planned_weak
+standard,Hayward Park,13,Alameda de las Pulgas at Sylvan Avenue,32,San Mateo,BMP-25: Alameda de las Pulgas +1 more,0.0,,0.0,,0.0,0.0,0.0,planned_along
 standard,Hayward Park,14,East 3rd Avenue between South Claremont Street and South Railroad Avenue,22,San Mateo,BMP-12: Railroad Av (East) +3 more,0.955,BMP-15: 3rd Av +3 more,1.0,BMP-15: 3rd Av +3 more,1.0,1.0,1.0,project
 standard,Hayward Park,15,Alameda de las Pulgas between Portola Drive and 24th Avenue,15,San Mateo,,0.0,,0.0,BMP-34: Campus Dr +1 more,0.333,0.0,0.333,partly
 standard,Hayward Park,16,Alameda de las Pulgas at 36th Avenue,10,San Mateo,BMP-37: Laurelwood Dr +2 more,1.0,BMP-37: Laurelwood Dr +2 more,1.0,BMP-37: Laurelwood Dr +2 more,1.0,1.0,1.0,project
-standard,Hayward Park,17,Alameda de las Pulgas at 30th Avenue,6,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
-standard,Hayward Park,18,Alameda de las Pulgas at 24th Avenue,6,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
+standard,Hayward Park,17,Alameda de las Pulgas at 30th Avenue,6,San Mateo,BMP-25: Alameda de las Pulgas +1 more,0.0,,0.0,,0.0,0.0,0.0,planned_along
+standard,Hayward Park,18,Alameda de las Pulgas at 24th Avenue,6,San Mateo,BMP-25: Alameda de las Pulgas +1 more,0.0,,0.0,,0.0,0.0,0.0,planned_along
 standard,Hayward Park,19,South El Camino Real at 11th Avenue & Avila Road,6,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
 standard,Hayward Park,20,Alameda de las Pulgas at 26th Avenue,5,San Mateo,,0.0,,0.0,BMP-34: Campus Dr +1 more,1.0,0.0,1.0,project_with_crossings
 standard,Hillsdale,1,28th Avenue between Edison Street and South El Camino Real,8098,San Mateo,BMP-46: 31st Av +3 more,1.0,BMP-46: 31st Av +3 more,1.0,BMP-46: 31st Av +3 more,1.0,1.0,1.0,project
@@ -125,7 +125,7 @@ strict,San Mateo,18,North El Camino Real at Monte Diablo Avenue,86,San Mateo,,0.
 strict,San Mateo,19,North San Mateo Drive at Villa Terrace,80,San Mateo,BMP-13: Baywood Av +6 more,1.0,BMP-13: Baywood Av +6 more,1.0,BMP-13: Baywood Av +6 more,1.0,1.0,1.0,project
 strict,San Mateo,20,North San Mateo Drive at East Santa Inez Avenue,74,San Mateo,BMP-13: Baywood Av +6 more,1.0,BMP-13: Baywood Av +6 more,1.0,BMP-13: Baywood Av +6 more,1.0,1.0,1.0,project
 strict,Hayward Park,1,Concar Drive between Pacific Boulevard and South Delaware Street,1513,San Mateo,BMP-58: Concar Dr +1 more,1.0,BMP-58: Concar Dr +1 more,1.0,BMP-58: Concar Dr +1 more,1.0,1.0,1.0,project
-strict,Hayward Park,2,South Boulevard between Gum Street and 16th Avenue,219,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
+strict,Hayward Park,2,South Boulevard between Gum Street and 16th Avenue,219,San Mateo,BMP-14: B St +2 more,0.0,,0.0,,0.0,0.0,0.0,planned_weak
 strict,Hayward Park,3,Palm Avenue at 19th Avenue,190,San Mateo,BMP-21: 17th Av +5 more,1.0,BMP-21: 17th Av +5 more,1.0,BMP-21: 17th Av +5 more,1.0,1.0,1.0,project
 strict,Hayward Park,4,South Railroad Avenue between East 5th Avenue and 6th Avenue,190,San Mateo,,0.0,,0.0,,0.0,0.0,0.0,none
 strict,Hayward Park,5,Palm Avenue at 17th Avenue,141,San Mateo,BMP-20: Borel Av +2 more,1.0,BMP-20: Borel Av +2 more,1.0,BMP-20: Borel Av +2 more,1.0,1.0,1.0,project

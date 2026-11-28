@@ -17,6 +17,7 @@ import datetime
 import hashlib
 import html
 import json
+import math
 import os
 import shutil
 import urllib.parse
@@ -273,16 +274,17 @@ def share_entries():
             if v["homes"] < ISLAND_SHARE_MIN or not v.get("names"):
                 continue
             names = " & ".join(short(n) for n in v["names"])
-            title = f"The bike island around {names}"
-            # where you can bike from it, as the map's panel leads (places.py's lists)
+            # what a shared link says first is where you can bike from there, as the map's panel leads (places.py's lists)
             L = PLACE_LISTS[tier].get(iid, {})
-            on, out = [r[1] for r in L.get("on", [])], [r[1] for r in L.get("out", [])]
-            desc = f"{v['homes']:,} people share this island of quiet streets."
-            if on:
-                desc += f" For {WHO[tier]}, it reaches {and_list(on[:3])}" + (f", but not {and_list(out[:2], 'or')}." if out else ".")
-            elif out:
-                desc += f" For {WHO[tier]}, it doesn't reach {and_list(out[:3], 'or')}."
-            desc += " See where you can bike from here, and the fixes that would open up more."
+            rows = L.get("on", [])
+            # one of each kind first (a grocery store and a park, not two supermarkets)
+            firsts = list(dict.fromkeys([next(r[1] for r in rows if r[0] == c) for c in dict.fromkeys(r[0] for r in rows)] + [r[1] for r in rows]))
+            on, out = firsts, [r[1] for r in L.get("out", [])]
+            title = (f"From {names}, you can bike to " + (f"{on[0]}, {on[1]} and {len(on) - 2} more places" if len(on) > 2 else and_list(on)) if on else
+                     f"From {names}, you can't bike to {and_list(out[:2], 'or')}" if out else f"Where you can bike from {names}")
+            desc = (f"For {WHO[tier]}: {v['homes']:,} people share this island of quiet streets"
+                    + (f", cut off from {and_list(out[:2])}" if on and out else "")
+                    + ". See where you can bike from here, and the fixes that would open up more.")
             slug = unique(slugify(" ".join(v["names"])) + suffix, "island", tier, iid)
             path = f"{BASE}island/{slug}/"
             entries.append({"kind": "island", "tier": tier, "slug": slug, "path": path, "title": title, "desc": desc,
@@ -417,6 +419,17 @@ def plan_status(P, f):
         return "The city's plans would cover it, with safe crossings they don't name yet."
     if b == "partly" and p:
         return f"{plan_name(p)[0].upper() + plan_name(p)[1:]} would reach about {round(sw * 100)}% of these people; the rest isn't in the city's plans."
+    # a project on this street that reaches none of these people (plan_model.planned_here): say so, and why
+    if b == "planned_weak" and p:
+        return f"In the city's plans, but not as anything cautious riders and kids could use: {plan_name(p)} would still leave it too stressful for them."
+    if b == "planned_mixed" and p:
+        return (f"In the city's plans, but only partly as something cautious riders and kids could use: {plan_name(p)} would leave "
+                "some of this stretch too stressful for them.")
+    if b == "planned_along" and p:
+        return f"{plan_name(p)[0].upper() + plan_name(p)[1:]} runs along the street this crosses, but a lane along a street doesn't make crossing it any easier."
+    if b == "planned_not_enough" and p:
+        return (f"{plan_name(p)[0].upper() + plan_name(p)[1:]} would make this stretch low-stress, but on its own it wouldn't connect "
+                "these people: other parts of their routes are still stressful.")
     return "Not in any of the city's plans yet."
 
 
@@ -440,6 +453,10 @@ def place_fix_groups(all_fixes):
              for gi, g in enumerate(keep) for j, f in enumerate(g)}
     flat = [dict(f, g=gi) for gi, g in enumerate(keep) for f in g]
     return flat, label
+
+
+PLAN_COVERS = {"project", "project_if_its_street_crossed", "partly", "project_with_crossings", "planned_weak", "planned_along",
+               "planned_not_enough", "planned_mixed"}   # buckets where a fix's plan project relates
 
 
 def place_body(P, civ):
@@ -484,7 +501,8 @@ def place_body(P, civ):
                  'it isn\'t necessarily funded. Asking the city to finish its own plan is the easiest ask. Tap it to see it on the map.</p>'
                  f'<div class="fixes"><button class="fix plan" data-fix="{e(p["id"])}" aria-pressed="false"><div class="gain">+{gain:,}<small>people</small></div>'
                  f'<div><h3>Finish the city\'s planned {e(p["what"] or plan_ref(p))}</h3><p>{e(p["ref"][:1].upper() + p["ref"][1:])} in its {e(p["doc"])}.</p><p class="need">{e(how)}'
-                 + (f' {e(meta[0].upper() + meta[1:])}.' if meta else '') + '</p></div></button></div></section>')
+                 + (f' {e(meta[0].upper() + meta[1:])}.' if meta else '') + '</p></div></button>'
+                 + city_line(city_pages(plan=p["id"][5:]), "citypg").replace("Related city project", "The city's project page") + '</div></section>')
     if fixes:
         h.append(f'<section><h2>{"Fixes this map tested" if lead else "What would change it"}</h2><p class="intro">We tested each busy stretch and crossing that cuts people off from '
                  f'{e(t)}, one at a time, treating just the part their routes use as safe for cautious riders and kids. These would help the most. '
@@ -502,6 +520,10 @@ def place_body(P, civ):
                      f'<div><h3><span class="num">{label[f["id"]]}</span>{e(fix_title(f))}</h3>'
                      + (f'<p>{e(f["why"])}</p>' if f.get("why") else "")
                      + f'{need}<p class="seen">{f["kids"]:,} of them kids. What the map sees: {e(f["is"])}{size}.</p></div></button>')
+            c0, c1 = P["center"]
+            pts = [(c0 + sg[i] / 1e5, c1 + sg[i + 1] / 1e5) for sg in f.get("map", []) for i in range(0, len(sg), 2)]
+            q = f.get("plan") or [None, None]
+            h.append(city_line(city_pages(f["id"], q[0][5:] if q[0] and q[1] in PLAN_COVERS else None, pts), "citypg"))
             if len(g) > 1 and f is g[-1]:
                 h.append('</div>')
         h.append('</div>')
@@ -687,8 +709,42 @@ def needs(text):
     return " or ".join(opts) if len(opts) < 3 else ", ".join(opts[:-1]) + " or " + opts[-1]
 
 
+# the city's own project pages (data/city_plans/city_pages.json), linked wherever a fix or plan project relates
+CITY_PAGES = json.load(open(os.path.join(HERE, "data", "city_plans", "city_pages.json")))
+CITY_ASOF = datetime.date.fromisoformat(CITY_PAGES["as_of"]).strftime("%b %Y")
+
+
+def city_pages(fid=None, plan=None, pts=(), page=None):
+    """The city's project pages related to a fix (its id 'along:<street>' / 'cross:<name>', a plan project id, its
+    points as (lat, lon)) or to a street page (its slug), by the rules in city_pages.json; at most two."""
+    kind, _, name = (fid or "").partition(":")
+    lc = str.lower
+    def near(C):
+        return any(math.hypot((a - p[0]) * 111320, (b - p[1]) * 111320 * math.cos(math.radians(37.55))) <= C.get("radius_m", 60)
+                   for p in C.get("near", []) for a, b in pts)
+    def inbox(C):
+        b = C.get("bbox")
+        return not b or any(b[0] <= a <= b[2] and b[1] <= o <= b[3] for a, o in pts)
+    def rank(C):      # named or planned first, then along its street, then its crossing, then nearby
+        if (fid and fid in C.get("fixes", [])) or (plan and plan in C.get("bmp", [])) or (page and page in C.get("pages", [])):
+            return 0
+        if kind == "along" and name in C.get("along", []) and inbox(C):
+            return 1
+        if kind == "cross" and any(lc(a) in lc(name) and lc(b) in lc(name) for a, b in C.get("cross", [])):
+            return 2
+        return 3 if near(C) else None
+    out = sorted((r, i, C) for i, C in enumerate(CITY_PAGES["projects"]) if (r := rank(C)) is not None)
+    return [C for _, _, C in out[:2]]
+
+
+def city_line(Cs, cls="planst"):
+    return "".join(f'<p class="{cls}">{e(C["note"]) + ". " if C.get("note") else "Related city project: "}<a href="{e(C["url"])}">{e(C["name"])}</a> · '
+                   f'{e(C["status"])} (as of {CITY_ASOF}).</p>' for C in Cs)
+
+
 # the rider a street page counts for, said where it can't be missed (the page and the list of streets)
 RIDER_TAG = {"strict": "Counts for cautious riders and kids", "standard": "Counts for experienced riders"}
+WHO_CAP = {"strict": "For cautious riders and kids", "standard": "For experienced riders"}
 
 
 def fix_page(cfg, D):
@@ -783,6 +839,7 @@ def fix_page(cfg, D):
                  + (f', if it also makes crossing {e(plan_cross(pj))} safe' if crossed else "") + '. '
                  + (e(plan_meta(pj)[:1].upper() + plan_meta(pj)[1:]) + '. ' if plan_meta(pj) else "")
                  + 'Asking the city to build it is the simplest ask.</div>')
+    h.append(city_line(city_pages(plan=city_plan[0]["id"] if city_plan else None, page=cfg["slug"]), "intro citypg"))
     legend = ""
     if across:
         h.append('<div class="switch" role="group" aria-label="Where you live">' + "".join(
@@ -961,7 +1018,8 @@ def fix_page(cfg, D):
             + f'\n  <meta http-equiv="refresh" content="0; url={e(path)}">\n  <script>location.replace({json.dumps(path)} + location.hash);</script>'
             + f'\n</head>\n<body><p><a href="{e(path)}">{e(title)}</a></p></body>\n</html>\n')
         print(f"{old} sends people to {path}")
-    return {"path": path, "title": title, "lede": lede, "street": st, "lead": lead, "ids": fix_ids(cfg, D)}
+    return {"path": path, "title": title, "lede": lede, "street": st, "lead": lead, "ids": fix_ids(cfg, D),
+            "total": total, "planned": bool(city_plan)}
 
 
 def fix_ids(cfg, D):
@@ -988,8 +1046,10 @@ def fixes_index(built):
     desc = "One change to one street, and the everyday places it would let neighbors on each side bike to."
     h = [f'<p class="crumb"><a href="{BASE}">Bike islands</a> · Streets</p>', f"<h1>{e(title)}</h1>",
          f'<p class="lede">{e(desc)} Each page says what the city already plans there, and what to ask for.</p><ul class="fixlist">']
-    h += [f'<li><a href="{f["path"]}"><strong>{e(f["title"])}</strong></a><p class="rider">{e(RIDER_TAG[f["lead"]])}</p>'
-          f'<p>{e(f["lede"])}</p></li>' for f in built]
+    # a card per street, the whole card the link: who it would connect, big, then who it counts for and what it is
+    h += [f'<li><a class="streetcard" href="{f["path"]}"><div class="gain">{r10(f["total"])}<small>people</small></div><div>'
+          f'<p class="meta">{e(WHO_CAP[f["lead"]])}' + (' · <span class="planned">The city already plans this</span>' if f["planned"] else "") + '</p>'
+          f'<h2>{e(f["title"])}</h2><p>{e(f["lede"])}</p><span class="go">What it would open up &rarr;</span></div></a></li>' for f in built]
     h.append("</ul>")
     page = (open(os.path.join(HERE, "site", "fix.html")).read()
             .replace("/*HEAD*/", head(title, desc, f"{BASE}fixes/")).replace("/*HEADER*/", HEADER).replace("/*FOOTER*/", footer())
@@ -1046,6 +1106,7 @@ def main():
                 .replace("/*HEADLINE*/", json.dumps(HEADLINE)).replace("/*REACH*/", json.dumps(reach(), separators=(",", ":"))).replace("<!--PLACESTRIP-->", place_strip())
                 .replace('<h1 id="title"></h1>', f'<h1 id="title">{e(HEADLINE)}</h1>')
                 .replace("/*SHARE*/", json.dumps(manifest, separators=(",", ":")))
+                .replace("/*CITY*/", json.dumps(CITY_PAGES, separators=(",", ":"), ensure_ascii=False))
                 .replace("/*TILEBASE*/", json.dumps(f"{BASE}data/tiles/")).replace("/*TILEV*/", json.dumps(tile_v))
                 .replace("/*DATA*/", json.dumps({"strict": OV["strict"]}, separators=(",", ":")))
                 .replace("/*FETCHED*/", json.dumps(CFG["osm_fetched"])))

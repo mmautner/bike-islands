@@ -36,7 +36,7 @@ from islands import islands as mk_islands, dist
 from connectivity import setup, low_adj, Overlay, dj, dj_prevs, base, DETOUR, CITIES, street_names, crossing_name
 from schools import inside, edge_dist, kid_origins
 from treatments import Explainer
-from plan_model import MODES
+from plan_model import MODES, planned_here
 
 HERE = os.path.dirname(__file__)
 ROOT = os.path.join(HERE, "..")
@@ -419,8 +419,13 @@ def place_detail(ctx, pl, plan=None):
                    "all_plans_share_generous": kw(all_got["generous"] & G) / tot_g}
             b = plan_bucket(row)
             mode = "bare" if b == "project" else ("written" if share["written"][0] > 0 else "generous")
-            fx["plan"] = [share[mode][1] if share[mode][0] > 0 else None, b,
-                          round(share["bare"][0], 3), round(share["written"][0], 3)]
+            pid = share[mode][1] if share[mode][0] > 0 else None
+            if b == "none":     # no project reaches these people: is one on this street anyway?
+                v = items[(fx["kind"], fx["street"])]
+                hit = planned_here(plan["applied"], {frozenset(sg) for sg in v["segs"]}, v["nodes"])
+                if hit:
+                    pid, b = hit
+            fx["plan"] = [pid, b, round(share["bare"][0], 3), round(share["written"][0], 3)]
 
     # map: streets in a frame around the place, its outline, a dot per snapped block
     lat0, lon0 = pl["p"]

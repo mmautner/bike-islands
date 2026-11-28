@@ -33,7 +33,7 @@ import time
 from connectivity import STATIONS
 from export import enc, island_ids
 from islands import islands as mk_islands, barrier, lts
-from plan_model import PlanModel, MODES
+from plan_model import PlanModel, MODES, planned_here
 
 HERE = os.path.dirname(__file__)
 PLANS = os.path.join(HERE, "..", "data", "city_plans")
@@ -219,12 +219,17 @@ def main():
                 for k in ("written", "generous"):
                     row[f"all_plans_share_{k}"] = round(share(allp[k][1]), 3)
                 row["bucket"] = bucket(row)
-                cover.append(row)
                 # the page: the project behind the bucket (bare for "project", else written, else generous)
                 mode = {"project": "bare"}.get(row["bucket"], "written" if row["best_share_written"] > 0 else "generous")
                 b = max(got, key=lambda p: (share(got[p][mode][1]), got[p][mode][0]))
-                page["fixes"][f"{kind}{oid}|{st}"] = [page_project(b) if share(got[b][mode][1]) > 0 else None,
-                                                     row["bucket"], row["best_share_bare"], row["best_share_written"]]
+                pi = page_project(b) if share(got[b][mode][1]) > 0 else None
+                if row["bucket"] == "none":     # no project reaches these people: is one on this street anyway?
+                    hit = planned_here(plans, {frozenset((u, v)) for u, v, _ in fix["steps"]}, set(fix["named"]))
+                    if hit:
+                        pi, row["bucket"] = page_project(hit[0]), hit[1]
+                        row["best_project_bare"] = row["best_project_bare"] or label(hit[0], P[hit[0]])
+                cover.append(row)
+                page["fixes"][f"{kind}{oid}|{st}"] = [pi, row["bucket"], row["best_share_bare"], row["best_share_written"]]
             print(f"[{tier}] {st}: {len(plans)} projects scored ({time.time() - t0:.0f}s); all projects together "
                   f"+{allp['bare'][0]:,.0f} bare, +{allp['written'][0]:,.0f} written, +{allp['generous'][0]:,.0f} generous, of {S.homes(S.near):,.0f} homes near", flush=True)
         page["islands"] = dict(page["islands"])

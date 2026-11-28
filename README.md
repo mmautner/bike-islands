@@ -48,13 +48,19 @@ to Caltrain. Served at
   - `plan_scenarios.py`: tests the city's own routes (`data/city_plans/scenarios.csv`) against our fixes: do they
     connect the same homes? Writes `data/city_plans/scenario_results.csv`.
   - `plan_projects.py`: scores every city plan project for each station, and how much of each of our station fixes
-    they cover (`data/city_plans/project_scores.csv`, `fix_coverage.csv`). `plan_model.py`: what both share.
+    they cover (`data/city_plans/project_scores.csv`, `fix_coverage.csv`). `plan_model.py`: what both share. A fix
+    no project reaches still gets its street's project when there is one (`planned_here`: the plan's treatment there
+    wouldn't count for the rider, it runs along the street the fix crosses, or other pieces stay stressful), so a page
+    never calls a planned street unplanned.
 - `data/sources/ets_2026_segments.csv`: the city's 2026 speed survey, copied from
   [san-mateo-speeds](https://github.com/mmautner/san-mateo-speeds), which parsed it from the survey summary
   sheets obtained through a public records request.
 - `data/city_plans/`: our fixes compared with San Mateo's 2020 Bicycle Master Plan, 2022 TOD Pedestrian Access Plan
   and 2012 Pedestrian Master Plan (`README.md` has the findings and page references; `alignment.csv` the hand review of each fix;
-  `bmp_2020_projects.csv` the 2020 plan's project list). The PDFs live in `downloads/`, not in git.
+  `bmp_2020_projects.csv` the 2020 plan's project list). The PDFs live in `downloads/`, not in git. `city_pages.json`:
+  the city's own project pages (from its Transportation Safety page), each with its status on the date read and the
+  rules that relate it to plan projects, streets, crossings and points; the map, place pages and street pages link them
+  under each fix ("Related city project"). Re-read the pages and update `as_of` when statuses change.
 - `data/field_checks/`: speed limits and one-way streets (`overrides.csv`) and intersection controls (`crossings.csv`)
   checked in person or on Street View, each with its source. An override can also set `bi:lts`, a rating judged in
   the field where the tags can't say why (South Railroad Ave by San Mateo station); `lts()` returns it as is.

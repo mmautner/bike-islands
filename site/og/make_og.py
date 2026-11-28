@@ -103,7 +103,7 @@ def share_image(ent):
     img.paste(mimg, (box[0], box[1]))
     shade = Image.new("RGB", (50, H - 10), BG)
     img.paste(shade, (box[0], 0), Image.linear_gradient("L").rotate(90).resize((50, H - 10)))
-    who = "KIDS AND CAUTIOUS RIDERS" if ent["tier"] == "strict" else "EXPERIENCED RIDERS"
+    who = "CAUTIOUS RIDERS AND KIDS" if ent["tier"] == "strict" else "EXPERIENCED RIDERS"
     d.text((PAD, PAD - 6), f"BIKE ISLANDS · {who}", font=font("IBMPlexSans.ttf", 20, 600), fill=TEXT3)
     for size in (46, 42, 38, 34, 30):
         f = font("Newsreader.ttf", size, 600)
@@ -115,7 +115,8 @@ def share_image(ent):
         d.text((PAD, y), line, font=f, fill=TEXT, anchor="ls"); y += int(size * 1.18)
     small = font("IBMPlexSans.ttf", 22, 400)
     y += 14
-    sub = ent["desc"] if ent["kind"] == "island" else ent.get("sub", "See the bike islands it would join.")
+    # an island's first sentence (who it's for, its people, what it's cut off from); the link text has the rest
+    sub = ent["desc"].split(". See ")[0] + "." if ent["kind"] == "island" else ent.get("sub", "See the bike islands it would join.")
     for line in wrap(d, sub, small, 470)[:4]:
         d.text((PAD, y), line, font=small, fill=TEXT2, anchor="ls"); y += 31
     d.text((PAD, H - PAD + 26), f"maxmautner.com{B.BASE.rstrip('/')}", font=font("IBMPlexSans.ttf", 22, 400), fill=TEXT3, anchor="ls")

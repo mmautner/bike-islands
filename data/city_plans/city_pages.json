@@ -1,0 +1,91 @@
+{
+  "source": "https://www.cityofsanmateo.org/4727/Transportation-Safety",
+  "as_of": "2026-11-27",
+  "about": "The City of San Mateo's own pages for projects that touch this map's fixes, linked as the source of truth for what the city is building and when. Read from the city's Transportation Safety page and each project's page on the date in as_of; statuses change, so re-read them before relying on one. Matching: a project relates to a city plan project in 'bmp'; to a fix along a street in 'along' (if 'bbox' [south, west, north, east] is given, only where the fix comes inside it); to a crossing whose name holds both streets of a pair in 'cross'; to any fix within 'radius_m' of a point in 'near'; and to the fixes and street pages listed in 'fixes' and 'pages'. 'note' replaces the generic wording where the relation needs saying.",
+  "projects": [
+    {
+      "name": "28th Avenue / Hillsdale Caltrain Station Bicycle Access Gap Closure",
+      "url": "https://www.cityofsanmateo.org/4697/28th-AveHillsdale-Caltrain-Station-Bicyc",
+      "status": "in design",
+      "scope": "A separated (Class IV) bike lane on 28th Ave from Edison St to El Camino Real, and a painted (Class II) lane from Delaware St to Kyne St, as proposed in the 2020 Bicycle Master Plan.",
+      "bmp": ["BMP-46", "BMP-48"],
+      "along": ["28th Avenue", "East 28th Avenue"],
+      "pages": ["28th-ave-edison"]
+    },
+    {
+      "name": "19th Avenue and Fashion Island Boulevard Multimodal Improvements",
+      "url": "https://www.cityofsanmateo.org/4880/19th-Ave-Fashion-Island-Bike-Project",
+      "status": "design nearly done; construction bids expected around summer 2027",
+      "scope": "Roadway and intersection improvements along 19th Ave and Fashion Island Blvd, including the protected bike lane from the earlier Smart Corridor concept.",
+      "bmp": ["BMP-60"],
+      "along": ["19th Avenue", "Fashion Island Boulevard"],
+      "bbox": [37.54, -122.31, 37.57, -122.26]
+    },
+    {
+      "name": "Delaware Street Safe Routes to School Corridor Bicycle Improvements",
+      "url": "https://www.cityofsanmateo.org/4794/Delaware-Street-Safe-Routes-to-School-Co",
+      "status": "under construction; the last stage is expected around May 2027",
+      "scope": "S Delaware St from just south of 19th Ave to Pacific Blvd: protected (Class IV) bike lanes from Bermuda Dr to 28th Ave, bike boulevard treatments south of 28th, an all-way pedestrian phase at 28th Ave.",
+      "bmp": ["BMP-55"],
+      "along": ["South Delaware Street"],
+      "bbox": [37.53, -122.32, 37.5515, -122.29],
+      "cross": [["28th Avenue", "Delaware"]],
+      "near": [[37.54306, -122.30037]],
+      "radius_m": 60
+    },
+    {
+      "name": "Peninsula Avenue and Delaware Street Intersection Improvements",
+      "url": "https://www.cityofsanmateo.org/4909/Peninsula-Avenue-and-Delaware-Street-Int",
+      "status": "bids opened October 2026; construction expected spring 2027",
+      "scope": "Left-turn signal arrows on Peninsula Ave, a right-turn signal that protects people crossing Peninsula, curb extensions, high-visibility crosswalks, new ramps. No bike lanes. Burlingame is a design and funding partner.",
+      "cross": [["Peninsula Avenue", "Delaware"]],
+      "near": [[37.58041, -122.33458]],
+      "radius_m": 60,
+      "pages": ["peninsula"]
+    },
+    {
+      "name": "Delaware Street and State Street Intersection Safety Improvements",
+      "url": "https://www.cityofsanmateo.org/4727/Transportation-Safety",
+      "status": "quick-build beacons and painted curb extensions done; permanent curb extensions planned",
+      "scope": "Pedestrian crossings of Delaware St at State St: flashing beacons, shorter crossings, lighting; concrete curb extensions and high-visibility crosswalks to follow. No bike lanes.",
+      "near": [[37.5787, -122.33269]],
+      "radius_m": 60
+    },
+    {
+      "name": "Humboldt Street Bike Lane Alternatives",
+      "url": "https://www.cityofsanmateo.org/4871/Humboldt-St-Bike-Lane-Alternatives",
+      "status": "a study; workshops held in 2025",
+      "scope": "Explores bike connections, pedestrian safety and lighting on Humboldt, Fremont and Idaho streets, including a bikeway on Idaho and Fremont. Nothing chosen yet.",
+      "along": ["North Humboldt Street", "South Humboldt Street"],
+      "fixes": ["along:North Delaware Street"],
+      "note": "The city is studying a parallel north–south bikeway a few blocks east, on Idaho and Fremont streets"
+    },
+    {
+      "name": "Hillsdale Boulevard and Alameda de las Pulgas Traffic Signal",
+      "url": "https://www.cityofsanmateo.org/4768/Hillsdale-Blvd-Alameda-de-las-Pulgas-Tra",
+      "status": "out to bid; construction expected summer 2027",
+      "scope": "A new traffic signal, a partially protected intersection for bikes, shorter crossings, protected left turns on Alameda.",
+      "cross": [["Alameda de las Pulgas", "Hillsdale"]],
+      "near": [[37.53185, -122.30823]],
+      "radius_m": 80
+    },
+    {
+      "name": "31st Avenue Safe Routes to School Corridor Improvements",
+      "url": "https://www.cityofsanmateo.org/4727/Transportation-Safety",
+      "status": "selecting a design consultant",
+      "scope": "Traffic calming on 31st Ave in front of Hillsdale High School, and a signal and other safety work at 31st Ave and Alameda de las Pulgas.",
+      "along": ["31st Avenue"],
+      "bbox": [37.525, -122.325, 37.54, -122.3],
+      "near": [[37.5345, -122.31]],
+      "radius_m": 60
+    },
+    {
+      "name": "Alameda de las Pulgas Corridor: Multimodal Complete Streets",
+      "url": "https://www.cityofsanmateo.org/4727/Transportation-Safety",
+      "status": "long term; unfunded",
+      "scope": "Bike facilities along Alameda de las Pulgas, as in the 2020 Bicycle Master Plan; ranked a top-five priority in the county's transportation plan. Quick-build crossing work at Aragon, Hobart, Nevada and Kentucky is done.",
+      "bmp": ["BMP-25"],
+      "along": ["Alameda de las Pulgas"]
+    }
+  ]
+}

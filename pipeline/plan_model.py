@@ -191,9 +191,11 @@ class PlanModel:
         return out
 
     def apply(self, rows, label=""):
-        """A plan as {"steps", "own", "named", "notes"}: the street pieces whose treatment counts for this standard,
-        the way ids being fixed, and the crossing nodes it names."""
-        steps, own, named, notes, after = [], set(), set(), [], {}
+        """A plan as {"steps", "own", "named", "notes", "after", "weak"}: the street pieces whose treatment counts for
+        this standard, the way ids being fixed, the crossing nodes it names, and its own streets' pieces whose planned
+        treatment still wouldn't count ("weak": frozenset of the piece's two nodes -> the plan's facility), so a page
+        can say the street is in the plans, just not as anything this rider could use."""
+        steps, own, named, notes, after, weak = [], set(), set(), [], {}, {}
         for r in rows:
             where = f"{r['street']} {r['from']}–{r['to']} ({r['facility']})"
             if r["kind"] == "crossing":
@@ -224,11 +226,13 @@ class PlanModel:
                 tt = treated(t, r["facility"])
                 if tt is not None and counts(tt, self.tier):
                     kept.append((u, v, wid)); own.add(wid); after[wid] = tt
+                else:
+                    weak[frozenset((u, v))] = r["facility"]
             if len(kept) < len(sp):
                 notes.append(f"{label}: {where}: {len(sp) - len(kept)} of {len(sp)} pieces still wouldn't count")
             steps += kept
             own |= {wid for _, _, wid in kept if wid in street_ids}
-        return {"steps": steps, "own": own, "named": named, "notes": notes, "after": after}
+        return {"steps": steps, "own": own, "named": named, "notes": notes, "after": after, "weak": weak}
 
     def still_busy(self, n, plan):
         """The busy streets at node n that are still barriers after the plan's treatments."""
@@ -313,3 +317,24 @@ class Station:
 
     def homes(self, origins):
         return sum(self.near[o] for o in origins)
+
+
+def planned_here(applied, fix_segs, cross_nodes):
+    """For a fix no city project reaches the people of: a project on its street anyway, as (project, bucket), or None.
+    "planned_weak": the project treats the fix's own street, but not with anything this rider could use.
+    "planned_along": the project runs along the street the fix crosses, which doesn't make crossing it easier.
+    "planned_not_enough": the project would make the fix's street count, but other pieces of the routes stay stressful.
+    "planned_mixed": the project treats the fix's street, part with something this rider could use and part not.
+    Pieces are matched node to node (fix_segs: frozensets of a piece's two nodes), so a plan that ends partway along an
+    OpenStreetMap way isn't credited with the rest of it. The project touching the most of the fix wins (ties by id)."""
+    best = None
+    for pid, P in sorted(applied.items()):
+        weak = set(P.get("weak", {}))
+        own = {frozenset((u, v)) for u, v, _ in P.get("steps", ())}
+        w, o = len(fix_segs & weak), len(fix_segs & own)
+        along = len({n for sg in own | weak for n in sg} & set(cross_nodes))
+        bucket, hit = (("planned_mixed", w + o) if w and o else ("planned_weak", w) if w else
+                       ("planned_not_enough", o) if o else ("planned_along", along))
+        if hit and (best is None or hit > best[0]):
+            best = (hit, pid, bucket)
+    return (best[1], best[2]) if best else None

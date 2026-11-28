@@ -131,6 +131,8 @@
   .fixline { margin:10px 0 0; padding:10px 12px; background:var(--card); border-left:3px solid var(--copper); font-size:14px; color:var(--ink); }
   .need { display:block; font-size:13.5px; color:var(--ink); margin-top:2px; }
   .why { display:block; font-size:13.5px; color:var(--body); margin-top:3px; }
+  .citypg a { color:var(--copper); }
+  details.fixwhy details.fixwhy { margin-top:4px; }
   .need b { font-weight:600; }
   details.fixwhy { font-size:13px; color:var(--grey); margin-top:2px; }
   details.fixwhy summary { cursor:pointer; color:var(--copper); width:max-content; }
@@ -255,7 +257,8 @@ const STD_URL = /*STDURL*/;
 const TILE_BASE = /*TILEBASE*/, TILE_V = /*TILEV*/;   // detail tiles: TILE_BASE + "<standard>/<tile>.json"
 const STREETS = /*STREETS*/;
 const CIVIC = /*CIVIC*/;
-const SHARE = /*SHARE*/;       // share-page paths for islands and fixes, per standard
+const SHARE = /*SHARE*/;
+const CITY = /*CITY*/;         // the city's own project pages (data/city_plans/city_pages.json)       // share-page paths for islands and fixes, per standard
 const ftmi = m => { const ft = m * 3.28084; return ft < 1000 ? `${(Math.round(ft / 50) * 50).toLocaleString("en-US")} ft` : `${(m / 1609.34).toFixed(1)} mi`; };
 const shareURL = () => {
   const p = sel && SHARE.islands[tier][String(sel)];
@@ -976,8 +979,10 @@ function planItem(T, L) {
     ? `It would open up ${gains}, if it also made crossing ${crossList(P)} safe${L.p.people ? ` (${fmt(L.p.people)} people as planned)` : ""}.`
     : `It would open up ${gains}.`;
   const meta = [PRIORITY[P.priority] && P.num ? `${PRIORITY[P.priority]} priority in the plan` : "", planCost(P)].filter(Boolean).join("; ");
+  const pg = (CITY.projects || []).find(C => (C.bmp || []).includes(L.p.id));
   return `<p class="planline"><strong>Finish the city's planned ${P.what || planRef(P)}</strong>${P.what ? ` (${P.ref} in its ${P.doc})` : ""}. ${gain}` +
-    (meta ? `<span class="need">${capFirst(meta)}.</span>` : "") + `</p>`;
+    (meta ? `<span class="need">${capFirst(meta)}.</span>` : "") +
+    (pg ? `<span class="need">The city's project page: <a href="${pg.url}">${pg.name}</a> · ${pg.status} (as of ${CITY_ASOF}).</span>` : "") + `</p>`;
 }
 // Where one of this map's fixes stands in the city's plans: q is [project, bucket, share as it stands, share with
 // its street crossed], P the project
@@ -989,11 +994,43 @@ function planWords(q, P) {
   if (bucket === "project_if_its_street_crossed" && P) return `${capFirst(planName(P))} would cover it, if it also made crossing ${crossList(P)} safe.`;
   if ((bucket === "project_with_crossings" || bucket === "plans_together") && P) return `The city's plans would cover it, with safe crossings they don't name yet.`;
   if (bucket === "partly" && P) return `${capFirst(planName(P))} would reach about ${Math.round(sw * 100)}% of these people; the rest isn't in the city's plans.`;
+  // a project on this street that reaches none of these people (plan_model.planned_here): say so, and why
+  if (bucket === "planned_weak" && P) return `In the city's plans, but not as anything ${WHO[tier]} could use: ${planName(P)} would still leave it too stressful for them.`;
+  if (bucket === "planned_along" && P) return `${capFirst(planName(P))} runs along the street this crosses, but a lane along a street doesn't make crossing it any easier.`;
+  if (bucket === "planned_mixed" && P) return `In the city's plans, but only partly as something ${WHO[tier]} could use: ${planName(P)} would leave some of this stretch too stressful for them.`;
+  if (bucket === "planned_not_enough" && P) return `${capFirst(planName(P))} would make this stretch low-stress, but on its own it wouldn't connect these people: other parts of their routes are still stressful.`;
   return "Not in any of the city's plans yet.";
 }
 function planStatus(T, B) {        // a Caltrain fix
   const q = B.plan, pi = q && q[0];
   return planWords(q, pi === null || pi === undefined ? null : T.projects[pi]);
+}
+// --- the city's own project pages: what it's building and when, linked as the source of truth ---
+// o: {street, cross, pts, plan} for a fix; a project relates by its plan project, street (within its box), crossing,
+// a point near the fix, or by name (city_pages.json says how)
+function cityPages(o) {
+  const inBox = (b, pts) => !b || pts.some(([la, lo]) => la >= b[0] && la <= b[2] && lo >= b[1] && lo <= b[3]);
+  const lc = x => (x || "").toLowerCase();
+  const rank = C =>       // named or planned first, then along its street, then its crossing, then nearby
+    (C.fixes || []).includes(o.id) || (o.plan && (C.bmp || []).includes(o.plan)) ? 0 :
+    o.street && (C.along || []).includes(o.street) && inBox(C.bbox, o.pts) ? 1 :
+    o.cross && (C.cross || []).some(([a, b]) => lc(o.cross).includes(lc(a)) && lc(o.cross).includes(lc(b))) ? 2 :
+    (C.near || []).some(p => o.pts.some(q => metres(p, q) <= (C.radius_m || 60))) ? 3 : null;
+  return (CITY.projects || []).map((C, i) => [rank(C), i, C]).filter(([r]) => r !== null)
+    .sort((a, b) => a[0] - b[0] || a[1] - b[1]).slice(0, 2).map(x => x[2]);
+}
+const cityLine = Cs => Cs.map(C => `<span class="planst citypg">${C.note ? C.note + ". " : "Related city project: "}<a href="${C.url}">${C.name}</a> · ${C.status} (as of ${CITY_ASOF}).</span>`).join("");
+const CITY_ASOF = (() => { const d = new Date((CITY.as_of || "") + "T12:00"); return isNaN(d) ? "" : d.toLocaleDateString("en-US", {month: "short", year: "numeric"}); })();
+const COVERS = new Set(["project", "project_if_its_street_crossed", "partly", "project_with_crossings", "planned_weak", "planned_along", "planned_not_enough", "planned_mixed"]);
+function placeFixCity(I, F) {
+  const [kind, name] = [F.id.split(":")[0], F.id.slice(F.id.indexOf(":") + 1)];
+  return cityPages({id: F.id, street: kind === "along" ? name : null, cross: kind === "cross" ? name : null,
+                    pts: fixLines(F).flat(), plan: F.plan && COVERS.has(F.plan[1]) ? F.plan[0] : null});
+}
+function bridgeCity(T, B) {
+  const q = B.plan, P = q && q[0] !== null && q[0] !== undefined ? T.projects[q[0]] : null;
+  return cityPages({id: B.id, street: B.kind === "w" ? B.name : null, cross: B.kind === "x" ? B.name : null,
+                    pts: B.pts, plan: P && COVERS.has(q[1]) ? P.id : null});
 }
 function placePlanStatus(I, F) {   // a fix by everyday places
   const q = F.plan;
@@ -1063,24 +1100,27 @@ function summaryBlock(T, I) {
 }
 // A fix by everyday places, numbered as on the map. One of a group of alternatives says only how many it would help;
 // the group's sentence says what they'd open up.
-function placeFixItem(I, F, alt) {
-  const st = placePlanStatus(I, F);
+function placeFixItem(I, F, alt, brief) {
+  const st = placePlanStatus(I, F), city = cityLine(placeFixCity(I, F));
   const now = `<p>What the map sees: ${F.is}${F.len ? ` (${ftmi(Math.max(F.len, 15))})` : ""}.</p>`;
   const gain = alt ? `: ${fmt(F.people)} people ${here}.` : ` would open up ${placeGains(F)}.`;
   const far = isBig(DATA[tier], sel) && clickPt ? metres(clickPt, fixMid(F)) : 0;
-  return `<li data-fix="${F.id}"${F.id === focusFix ? ' class="focus"' : ""}><a class="fixlink" role="button" href="#t=${tier}&i=${sel}&f=${encodeURIComponent(F.id)}" aria-pressed="${F.id === focusFix}">${placeFixWhat(F)}</a>${gain}` +
-    (far > 400 ? `<span class="planst">About ${far >= 1609 ? `${(far / 1609).toFixed(1)} miles` : `${Math.round(far / 3.048 / 10) * 10} ft`} from where you clicked.</span>` : "") +
-    (F.why ? `<span class="why">${F.why}</span>` : "") +
+  const dist = far > 400 ? `<span class="planst">About ${far >= 1609 ? `${(far / 1609).toFixed(1)} miles` : `${Math.round(far / 3.048 / 10) * 10} ft`} from where you clicked.</span>` : "";
+  const body = (F.why ? `<span class="why">${F.why}</span>` : "") +
     (F.need && F.need.length ? `<span class="need">It would need ${orList(F.need)}.</span>` : "") +
-    (st ? `<span class="planst">${st}</span>` : "") +
-    `<details class="fixwhy"><summary>What the map sees</summary>${now}<p>These options come from the ratings this map uses. Engineers may find a better fix.</p></details></li>`;
+    (st ? `<span class="planst">${st}</span>` : "") + city;
+  const seen = `${now}<p>These options come from the ratings this map uses. Engineers may find a better fix.</p>`;
+  const head = `<li data-fix="${F.id}"${F.id === focusFix ? ' class="focus"' : ""}><a class="fixlink" role="button" href="#t=${tier}&i=${sel}&f=${encodeURIComponent(F.id)}" aria-pressed="${F.id === focusFix}">${placeFixWhat(F)}</a>${gain}`;
+  // the lead fix in full; the rest in a line each, the rest a tap away (open when the fix is chosen on the map)
+  if (brief) return head + dist + `<details class="fixwhy"${F.id === focusFix ? " open" : ""}><summary>Why, and what it would take</summary>${body}<details class="fixwhy"><summary>What the map sees</summary>${seen}</details></details></li>`;
+  return head + dist + body + `<details class="fixwhy"><summary>What the map sees</summary>${seen}</details></li>`;
 }
 // A group: one fix, or alternatives that would connect most of the same people, lettered as on the map
-function placeGroupItem(I, g) {
-  if (g.length === 1) return placeFixItem(I, g[0]);
+function placeGroupItem(I, g, lead) {
+  if (g.length === 1) return placeFixItem(I, g[0], false, !lead);
   const names = andList(g[0].places.map(([slug, n]) => placeLink(n, slug)));
   return `<li class="altgroup"><span class="altlead">Any one of these would open up ${names} to many of the same people:</span>` +
-    `<ol type="a" class="alts">${g.map(F => placeFixItem(I, F, true)).join("")}</ol></li>`;
+    `<ol type="a" class="alts">${g.map((F, j) => placeFixItem(I, F, true, !(lead && j === 0))).join("")}</ol></li>`;
 }
 // A Caltrain fix. One of a group of crossings (bridgeGroups) is named by its corner, with its count.
 function fixItem(T, e, alt) {
@@ -1094,7 +1134,7 @@ function fixItem(T, e, alt) {
     (alt ? `: ${fmt(e.max)} people.` : ` would let ${gains}.`) +
     (whyNow(B) ? `<span class="why">${whyNow(B)}</span>` : "") +
     (needPlain(B) ? `<span class="need">${needPlain(B)}</span>` : "") +
-    (planStatus(T, B) ? `<span class="planst">${planStatus(T, B)}</span>` : "") +
+    (planStatus(T, B) ? `<span class="planst">${planStatus(T, B)}</span>` : "") + cityLine(bridgeCity(T, B)) +
     whyBlock(B, [needAll(B), joinText(B)]) +
     (pg ? `<a class="fixpage" href="${pg[0]}">${pg[1]} &rarr;</a>` : "") +
     (sp ? `<a class="sharefix" href="${sp}" data-share="${sp}">Share this fix</a>` : "") + `</li>`;
@@ -1188,7 +1228,7 @@ function panel() {
   else h += `<p class="muted" style="margin-top:12px">${P.on || P.out ? "No single fix tested would let more people here bike to the places this map has pages for." : ""}</p>`;
   if (pf.length) {
     const groups = placeGroups(I), rest = lead && lead.kind === "place" ? groups.slice(1) : groups;
-    if (lead && lead.kind === "place") h += `<ol class="br lead">${placeGroupItem(I, groups[0])}</ol>`;
+    if (lead && lead.kind === "place") h += `<ol class="br lead">${placeGroupItem(I, groups[0], true)}</ol>`;
     if (rest.length) h += `<h3 class="leadh sub">${lead && lead.kind === "plan" ? "Fixes this map tested" : "Other fixes"}</h3>` +
       `<ol class="br" start="${groups.length - rest.length + 1}">${rest.map(g => placeGroupItem(I, g)).join("")}</ol>`;
   }
