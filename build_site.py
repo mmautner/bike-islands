@@ -58,13 +58,15 @@ FEATURED_PLACES = [("downtown", "Downtown San Mateo"), ("central-park", "Central
 
 
 def place_strip():
-    """The homepage's line of links into the place pages, and to the list of all of them."""
+    """The homepage's two lines into the place pages and the street (fix) pages, by name."""
     n = len(json.load(open(os.path.join(HERE, "site", "places.json")))["places"])
-    links = " · ".join(f'<a href="places/{s}/">{e(name)}</a>' for s, name in FEATURED_PLACES)
-    return (f'<p class="placestrip">Or start from a place: who can bike to {links}? '
-            f'<a class="allplaces" href="places/">See all {n} places &rarr;</a> '
-            f'Or a street: <a href="peninsula/">what\'s on the other side of Peninsula Avenue</a>, '
-            f'and <a href="fixes/">{len(json.load(open(os.path.join(HERE, "data", "fixes.json")))) - 1} more streets</a>.</p>')
+    places = [f'<a href="places/{s}/">{e(name)}</a>' for s, name in FEATURED_PLACES]
+    fx = json.load(open(os.path.join(HERE, "data", "fixes.json")))
+    streets = [f'<a href="{c.get("path", "fixes/" + c["slug"] + "/")}">{e(c.get("label") or c["street"])}</a>' for c in fx]
+    return (f'<p class="placestrip"><strong>Who can bike to</strong> {and_list(places, "or")}? '
+            f'<a class="allplaces" href="places/">All {n} places &rarr;</a></p>'
+            f'<p class="placestrip"><strong>What would fixing one street open up?</strong> {and_list(streets)}. '
+            f'<a class="allplaces" href="fixes/">All {len(fx)} streets &rarr;</a></p>')
 
 
 TITLE = "Find your bike island: San Mateo and Burlingame"
@@ -363,6 +365,11 @@ def plan_ref(p):
     return f"{p['ref']} of the city's {p['doc']}"
 
 
+def plan_name(p):
+    """What it is first, then the plan's number for city staff."""
+    return f"the city's planned {p['what']} ({p['ref']} in its {p['doc']})" if p.get("what") else plan_ref(p)
+
+
 def plan_cross(p):
     xs = p.get("cross", [])
     return xs[0] if len(xs) == 1 else ", ".join(xs[:-1]) + " and " + xs[-1] if xs else ""
@@ -402,13 +409,13 @@ def plan_status(P, f):
     if b == "outside":
         return ""
     if b == "project" and p:
-        return f"In the city's plans: {plan_ref(p)} covers it."
+        return f"The city already plans this: {plan_name(p)}."
     if b == "project_if_its_street_crossed" and p:
-        return f"{plan_ref(p)[0].upper() + plan_ref(p)[1:]} covers it only if it also makes crossing {plan_cross(p)} safe."
+        return f"{plan_name(p)[0].upper() + plan_name(p)[1:]} would cover it, if it also made crossing {plan_cross(p)} safe."
     if b in ("project_with_crossings", "plans_together"):
         return "The city's plans would cover it, with safe crossings they don't name yet."
     if b == "partly" and p:
-        return f"{plan_ref(p)[0].upper() + plan_ref(p)[1:]} reaches about {round(sw * 100)}% of these kids; the rest isn't in the city's plans."
+        return f"{plan_name(p)[0].upper() + plan_name(p)[1:]} would reach about {round(sw * 100)}% of these kids; the rest isn't in the city's plans."
     return "Not in any of the city's plans yet."
 
 
@@ -450,7 +457,7 @@ def place_body(P, civ):
         h.append('<section><h2>The city\'s own project that would help most</h2><p class="intro">San Mateo has already adopted this project; '
                  'it isn\'t necessarily funded. Asking the city to finish its own plan is the easiest ask. Tap it to see it on the map.</p>'
                  f'<div class="fixes"><button class="fix plan" data-fix="{e(p["id"])}" aria-pressed="false"><div class="gain">+{gain:,}<small>kids</small></div>'
-                 f'<div><h3>Finish {e(plan_ref(p))}</h3><p>{e(p["what"][0].upper() + p["what"][1:])}.</p><p class="need">{e(how)}'
+                 f'<div><h3>Finish the city\'s planned {e(p["what"] or plan_ref(p))}</h3><p>{e(p["ref"][:1].upper() + p["ref"][1:])} in its {e(p["doc"])}.</p><p class="need">{e(how)}'
                  + (f' {e(meta[0].upper() + meta[1:])}.' if meta else '') + '</p></div></button></div></section>')
     if fixes:
         h.append(f'<section><h2>{"Fixes this map tested" if lead else "What would change it"}</h2><p class="intro">We tested each busy stretch and crossing that cuts kids off from '
@@ -486,7 +493,7 @@ def place_body(P, civ):
         if lead:
             p, crossed = lead
             gain = p["kids_crossed"] if crossed else p["kids"]
-            req = (f"Please prioritize {plan_ref(p)}: {p['what']}. {k:,} kids live within a mile of {t}, but only {kok:,} can bike "
+            req = (f"Please prioritize {plan_name(p)}. {k:,} kids live within a mile of {t}, but only {kok:,} can bike "
                    f"there without riding on a busy street. This project would let {gain:,} more"
                    + (f", if it also made crossing {plan_cross(p)} safe" if crossed else "") + f". Details: {url}")
         else:
@@ -509,7 +516,7 @@ def place_body(P, civ):
     if civ["email_card"] and m:
         body = (f"Dear {m['salutation']},\n\n{k:,} kids live within a 1-mile ride of {t}, but only {kok:,} of them can get there "
                 f"without riding on a busy street.\n\n" +
-                (f"The city's {lead[0]['doc']} already includes a project that would help: {lead[0]['ref']} ({lead[0]['what']}). "
+                (f"The city already plans {plan_name(lead[0])[len('the city' + chr(39) + 's planned '):]}, which would help. "
                  f"It would let {(lead[0]['kids_crossed'] if lead[1] else lead[0]['kids']):,} more kids bike there"
                  + (f", if it also made crossing {plan_cross(lead[0])} safe" if lead[1] else "") + ". Could the city fund and build it?\n\n" if lead else
                  f"{fix_title(fixes[0])} would let {fixes[0]['kids']:,} more kids bike there. Could the city consider it?\n\n" if fixes else "") +
@@ -601,9 +608,9 @@ def bare_street(s):
     return " ".join(ts[:-1]) if len(ts) > 1 and ts[-1] in ("Av", "Ave", "Rd", "St", "Dr", "Bl", "Blvd", "Way", "Ln") else s
 
 
-def and_list(xs):
+def and_list(xs, conj="and"):
     xs = list(xs)
-    return xs[0] if len(xs) == 1 else ", ".join(xs[:-1]) + " and " + xs[-1] if xs else ""
+    return xs[0] if len(xs) == 1 else ", ".join(xs[:-1]) + f" {conj} " + xs[-1] if xs else ""
 
 
 def street_key(s):
@@ -720,8 +727,8 @@ def fix_page(cfg, D):
          f"<h1>{e(title)}</h1>", f'<p class="lede">{e(lede)}</p>']
     if city_plan:
         pj, crossed, share = city_plan
-        h.append(f'<div class="callout" style="margin:0 0 24px">The city already plans this. {e(plan_ref(pj)[:1].upper() + plan_ref(pj)[1:])}, '
-                 f'{e(pj["what"])}, would do {"nearly all" if share >= 0.95 else "most"} of what this change does'
+        h.append(f'<div class="callout" style="margin:0 0 24px">The city already plans this. {e(plan_name(pj)[:1].upper() + plan_name(pj)[1:])} '
+                 f'would do {"nearly all" if share >= 0.95 else "most"} of what this change does'
                  + (f', if it also makes crossing {e(plan_cross(pj))} safe' if crossed else "") + '. '
                  + (e(plan_meta(pj)[:1].upper() + plan_meta(pj)[1:]) + '. ' if plan_meta(pj) else "")
                  + 'Asking the city to build it is the simplest ask.</div>')
@@ -842,7 +849,7 @@ def fix_page(cfg, D):
         req_bits.append(f"make {short(w['where'])} safe for {WHO[lead]}" + (f" ({first})" if first else ""))
     if city_plan:
         pj, crossed, _ = city_plan
-        req_bits = [f"build {plan_ref(pj)}: {pj['what']}" + (f", with safe crossings of {plan_cross(pj)}" if crossed else "")]
+        req_bits = [f"build {plan_name(pj)}" + (f", with safe crossings of {plan_cross(pj)}" if crossed else "")]
     if speed:
         req_bits.append(f"lower {st}'s limit to {speed['value']}")
     involved = [c for c, n in city_n.most_common() if n >= 50]

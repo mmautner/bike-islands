@@ -58,7 +58,6 @@ def label(p, P):
     return f"{p}: {first['street']}" + (f" +{len(P['rows']) - 1} more" if len(P["rows"]) > 1 else "")
 
 
-MAX_PARTS = 4     # a project's description lists this many pieces at most
 # the page's words for the plan's abbreviations and facilities
 WORDS = {"Av": "Ave", "Bl": "Blvd", "Pk": "Pkwy", "Wy": "Way", "Ci": "Cir", "Ciro": "Crio"}
 FACILITY = {"Bike Lane": "a bike lane", "Buffered BL": "a buffered bike lane", "Separated BL": "a protected bike lane",
@@ -71,40 +70,47 @@ def words(name):
     return " ".join(WORDS.get(t, t) for t in name.split())
 
 
+# a facility without its article, and in the plural (for several streets)
+FAC1 = {"Bike Lane": "bike lane", "Buffered BL": "buffered bike lane", "Separated BL": "protected bike lane",
+        "Shared-Use Path": "bike path", "Bike Blvd": "bike boulevard (a traffic-calmed street)",
+        "Road diet + Bike Lane": "lane reduction and bike lane", "Road diet": "lane reduction"}
+FACN = {"Bike Lane": "bike lanes", "Buffered BL": "buffered bike lanes", "Separated BL": "protected bike lanes",
+        "Shared-Use Path": "bike paths", "Bike Blvd": "bike boulevards (traffic-calmed streets)",
+        "Road diet + Bike Lane": "lane reductions and bike lanes", "Road diet": "lane reductions"}
+MAX_STREETS = 3   # past this many streets, a project's description names them without "Ave", "St"
+
+
 def describe(p, P):
-    """{"title", "what", "doc", "ref"}: "Peninsula Ave", and "a bike lane on Peninsula Ave from Highland Ave to San Mateo
-    Dr; a protected bike lane on Peninsula Ave from San Mateo Dr to Bayshore Blvd". Connected segments of one street
-    with one treatment are one stretch; a treatment's explanation appears once; past MAX_PARTS, the rest are counted.
-    A named crossing reads as "a safer crossing at A and B"."""
-    runs = []    # [facility, street, from, to]
-    for r in P["rows"]:
-        if r["kind"] == "crossing" or r["facility"] not in FACILITY or not r.get("to"):
-            continue
-        if runs and runs[-1][0] == r["facility"] and runs[-1][1] == r["street"] and runs[-1][3] == r["from"]:
-            runs[-1][3] = r["to"]
-        else:
-            runs.append([r["facility"], r["street"], r["from"], r["to"]])
-    parts = []
-    for fac, st, a, b in runs:
-        where = f"{words(st)} from {words(a)} to {words(b)}"
-        if parts and parts[-1][0] == fac:
-            parts[-1][1].append(where)
-        else:
-            parts.append([fac, [where]])
+    """{"title", "what", "doc", "ref"}. "what" is a noun phrase without an article, to follow "the city's planned":
+    "bike lane and protected bike lane on Peninsula Ave from Highland Ave to Bayshore Blvd" for one street;
+    "bike boulevards (traffic-calmed streets) on Occidental, Clark, Crescent, Bellevue, Highland, Hurlingham and Poplar".
+    Named crossings add "and safer crossings at A and B". The plan's segment table is for staff; "ref" points them to it."""
     lst = lambda ws: ws[0] if len(ws) == 1 else ", ".join(ws[:-1]) + " and " + ws[-1]
-    segs = [f"{FACILITY[fac]} on {lst(ws)}" for fac, ws in parts]
-    if len(segs) > MAX_PARTS:
-        segs = segs[:MAX_PARTS - 1] + [f"and {len(segs) - MAX_PARTS + 1} more pieces"]
-    xs = [f"a safer crossing at {words(r['street'])} and {words(r['from'])}" for r in P["rows"] if r["kind"] == "crossing"]
-    streets = list(dict.fromkeys(words(r["street"]) for r in P["rows"]))
-    title = streets[0] if len(streets) == 1 else (", ".join(streets[:2]) + (" and more" if len(streets) > 2 else ""))
+    segs = [r for r in P["rows"] if r["kind"] != "crossing" and r["facility"] in FACILITY and r.get("to")]
+    streets = list(dict.fromkeys(words(r["street"]) for r in segs))
+    facs = list(dict.fromkeys(r["facility"] for r in segs))
+    what = ""
+    if len(streets) == 1:
+        a, b = words(segs[0]["from"]), words(segs[-1]["to"])
+        what = f"{lst([FAC1[f] for f in facs])} on {streets[0]}" + (f" from {a} to {b}" if a != b else "")
+    elif streets:
+        if len(streets) > MAX_STREETS:     # many streets: by name alone ("Occidental, Clark, ... and Poplar"), all of them
+            sfx = {"Ave", "St", "Dr", "Blvd", "Rd", "Way", "Ln", "Pkwy"}
+            streets = [" ".join(n.split()[:-1]) if n.split()[-1] in sfx and len(n.split()) > 1 else n for n in streets]
+        what = f"{lst([FACN[f] for f in facs])} on {lst(streets)}"
+    xs = [f"{words(r['street'])} and {words(r['from'])}" for r in P["rows"] if r["kind"] == "crossing"]
+    if xs:
+        cross = f"{'a safer crossing' if len(xs) == 1 else 'safer crossings'} at {lst(xs)}"
+        what = f"{what}, with {cross}" if what else cross
+    allst = list(dict.fromkeys(words(r["street"]) for r in P["rows"]))
+    title = allst[0] if len(allst) == 1 else (", ".join(allst[:2]) + (" and more" if len(allst) > 2 else ""))
     if p.startswith("BMP-"):
         doc, ref = "2020 Bicycle Master Plan", f"project {p.split('-', 1)[1]}"
     elif p.startswith("PMP-"):
         doc, ref = "2012 Pedestrian Master Plan", f"priority project {p.split('-', 1)[1]}"
     else:
         doc, ref = "2022 plan for walking to Caltrain", "a recommendation"
-    return {"title": title, "what": "; ".join(segs + xs), "doc": doc, "ref": ref}
+    return {"title": title, "what": what, "doc": doc, "ref": ref}
 
 
 def cross_names(names):

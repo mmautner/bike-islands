@@ -860,6 +860,9 @@ function allPlans(T, id) {
 }
 const capFirst = x => x[0].toUpperCase() + x.slice(1);
 const planRef = P => `${P.ref} of the city's ${P.doc}`;                 // "project 15 of the city's 2020 Bicycle Master Plan"
+// what it is first, then the plan's number for city staff: "the city's planned bike lanes ... (project 15 in its 2020 Bicycle Master Plan)"
+const planName = P => P.what ? `the city's planned ${P.what} (${P.ref} in its ${P.doc})` : planRef(P);
+const about = n => n >= 1000 ? fmt(Math.round(n / 100) * 100) : fmt(Math.round(n / 10) * 10);   // the counts are estimates
 const crossList = P => andList(P.cross);       // already short, once each (plan_projects.cross_names)
 const PRIORITY = {"High": "high", "Med-High": "medium-high", "Med-Low": "medium-low", "Low": "low"};   // the plan's shorthand
 function planCost(P) {
@@ -890,7 +893,7 @@ function planItem(T, L) {
     ? `It would let ${fmt(hu)} more people here bike to ${st} Caltrain if it also made crossing ${crossList(P)} safe${asIs ? ` (${fmt(asIs)} as planned)` : ""}.`
     : `It would let ${fmt(hu)} more people here bike to ${st} Caltrain.`;
   const meta = [PRIORITY[P.priority] && P.num ? `${PRIORITY[P.priority]} priority in the plan` : "", planCost(P)].filter(Boolean).join("; ");
-  return `<p class="planline"><strong>Finish ${planRef(P)}</strong>${P.what ? `: ${P.what}` : ""}. ${gain}` +
+  return `<p class="planline"><strong>Finish the city's planned ${P.what || planRef(P)}</strong>${P.what ? ` (${P.ref} in its ${P.doc})` : ""}. ${gain}` +
     (meta ? `<span class="need">${capFirst(meta)}.</span>` : "") + `</p>`;
 }
 // Where one of this map's fixes stands in the city's plans
@@ -899,10 +902,10 @@ function planStatus(T, B) {
   if (!q) return "";
   const [pi, bucket, , sw] = q, P = pi === null || pi === undefined ? null : T.projects[pi];
   if (bucket === "outside") return "";
-  if (bucket === "project" && P) return `In the city's plans: ${planRef(P)} covers it.`;
-  if (bucket === "project_if_its_street_crossed" && P) return `${capFirst(planRef(P))} covers it only if it also makes crossing ${crossList(P)} safe.`;
+  if (bucket === "project" && P) return `The city already plans this: ${planName(P)}.`;
+  if (bucket === "project_if_its_street_crossed" && P) return `${capFirst(planName(P))} would cover it, if it also made crossing ${crossList(P)} safe.`;
   if ((bucket === "project_with_crossings" || bucket === "plans_together") && P) return `The city's plans would cover it, with safe crossings they don't name yet.`;
-  if (bucket === "partly" && P) return `${capFirst(planRef(P))} reaches about ${Math.round(sw * 100)}% of these people; the rest isn't in the city's plans.`;
+  if (bucket === "partly" && P) return `${capFirst(planName(P))} would reach about ${Math.round(sw * 100)}% of these people; the rest isn't in the city's plans.`;
   return "Not in any of the city's plans yet.";
 }
 
@@ -1157,7 +1160,7 @@ function actionCards(T, I, list, fixText, lead) {
     const consider = city === "San Mateo" ? "Could the city consider it for the Quick Build Mobility Program?" : "Could the city consider it?";
     if (LP) {
       const [pst, hu] = planStation(LP), P = LP.P;
-      lines.push("", `The city's ${P.doc} already includes a fix that would help here: ${P.ref}${P.what ? ` (${P.what})` : ""}. ` +
+      lines.push("", `The city already plans ${P.what ? `${P.what} (${P.ref} in its ${P.doc})` : planRef(P)}, which would help here. ` +
         `It would connect ${fmt(hu)} more people to ${pst} Caltrain` + (LP.crossed ? `, if it also made crossing ${crossList(P)} safe` : "") +
         `. Could the city fund and build it?`);
     } else if (top) {
@@ -1193,7 +1196,7 @@ function actionCards(T, I, list, fixText, lead) {
     const c = askCityName;
     const form = `<a href="${askCfg.service_request}" data-act="city_concern_clicked" data-city="${c}">Open ${c}'s service request form</a>` +
       (c === "San Mateo" && askCfg.traffic_calming ? `, or <a href="${askCfg.traffic_calming}" data-act="calming_request_clicked" data-city="${c}">request a traffic calming study</a> for your street` : "");
-    h += `<details class="ask"><summary>Or ask the city to ${askPlan ? "prioritize" : "look at"} ${ask.place}</summary>`;
+    h += `<details class="ask"><summary>Or ask the city to ${askPlan ? "build the bike route it already plans here" : "look at " + ask.place}</summary>`;
     if (ask.text) {
       h += `<p>Copy this into the city's service request form:</p><div class="ask-req" id="askreq">${ask.text}</div>` +
            `<p><button type="button" class="btn btn-primary" id="askcopy">Copy request</button> <span class="muted" id="askcopied"></span></p>` +
@@ -1257,9 +1260,11 @@ function askCity(T, I, top) {
 // The request when a city project leads: finish it
 function askCityPlan(L) {
   const P = L.P, [st, hu] = planStation(L);
-  const parts = [`Please prioritize ${planRef(P)}${P.what ? `: ${P.what}` : ""}.`,
-    `On the bike islands map (maxmautner.com/bike-islands), it would give about ${fmt(hu)} people nearby a low-stress bike route to ${st} Caltrain` +
-    (L.crossed ? `, if it also made crossing ${crossList(P)} safe for ${WHO[tier]}.` : ` for ${WHO[tier]}.`)];
+  const calm = tier === "strict" ? "on streets calm enough for kids" : "on streets most experienced riders are comfortable on";
+  const parts = [`Please prioritize ${planName(P)}.`,
+    `It would let about ${about(hu)} people nearby bike to ${st} Caltrain ${calm}` +
+    (L.crossed ? `, if it also made crossing ${crossList(P)} safe.` : ".") +
+    " (Counted on the bike islands map, maxmautner.com/bike-islands.)"];
   return {place: P.ref, text: parts.join(" "), assumed: ""};
 }
 
