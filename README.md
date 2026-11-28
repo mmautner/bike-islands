@@ -35,6 +35,12 @@ to Caltrain. Served at
   - `checklist.py`: Street View checks worth doing: where OpenStreetMap and the survey disagree on lanes in a way
     that changes whether either rider can ride or cross a street, most people's fixes first
     (`data/field_checks/checklist_auto.md`, run by `run.sh`).
+  - `fix_pages.py`: fix pages, one per package of changes in `data/fixes.json` (our fixes, crossings, plan rows,
+    a speed limit): which places it would let people bike to, by side of the street ("across", as on the Peninsula
+    page) or by city ("along"); scored for both rider standards, leading with experienced riders only when it does next
+    to nothing for cautious riders and kids (`data/fixes/<slug>.json`, run by `run.sh`). `build_site.py` builds the
+    pages from `site/fix.html`, leading with the city's own project when it covers the fix (plans-first), and with
+    each package's notes (copy that's a judgment call: the Safeway "last block", the crosswalk story).
   - `plan_scenarios.py`: tests the city's own routes (`data/city_plans/scenarios.csv`) against our fixes: do they
     connect the same homes? Writes `data/city_plans/scenario_results.csv`.
   - `plan_projects.py`: scores every city plan project for each station, and how much of each of our station fixes

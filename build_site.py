@@ -11,9 +11,10 @@ Reads data/map_strict.json and data/map_standard.json (from pipeline/export.py).
 Head tags, the maxmautner.com header and the footer are shared, as in ../san-mateo-speeds.
 The 1200x630 preview image (og/index.png) is drawn by site/og/make_og.py, which deploy.sh runs.
 """
+import collections
+import csv
 import datetime
 import hashlib
-import csv
 import html
 import json
 import os
@@ -62,7 +63,8 @@ def place_strip():
     links = " · ".join(f'<a href="places/{s}/">{e(name)}</a>' for s, name in FEATURED_PLACES)
     return (f'<p class="placestrip">Or start from a place: who can bike to {links}? '
             f'<a class="allplaces" href="places/">See all {n} places &rarr;</a> '
-            f'Or a street: <a href="peninsula/">what\'s on the other side of Peninsula Avenue</a>.</p>')
+            f'Or a street: <a href="peninsula/">what\'s on the other side of Peninsula Avenue</a>, '
+            f'and <a href="fixes/">{len(json.load(open(os.path.join(HERE, "data", "fixes.json")))) - 1} more streets</a>.</p>')
 
 
 TITLE = "Find your bike island: San Mateo and Burlingame"
@@ -583,138 +585,284 @@ def place_pages(civ):
     return len(rows)
 
 
-PEN_PAGES = {"Safeway on Delaware": "safeway-delaware", "Burlingame Caltrain": "burlingame-caltrain",
-             "Martin Luther King Park": "martin-luther-king-park", "Mi Rancho Supermarket": "mi-rancho"}
-SMALL_ACTS = "https://maxmautner.com/2026/11/21/small-acts.html"
+CAT_WORDS = {"grocery": "grocery stores", "park": "parks", "downtown": "shops and restaurants", "caltrain": "Caltrain",
+             "library": "the library", "city_hall": "City Hall"}
+FIX_DOT = ("var(--g0)", "var(--g1)")
 
 
 def r10(n):
-    """People counts on the Peninsula page, to the nearest ten (they're estimates spread from Census blocks)."""
+    """People counts on fix pages, to the nearest ten (they're estimates spread from Census blocks)."""
     return f"{max(0, round(n / 10) * 10):,}"
 
 
-def peninsula_page():
-    """bike-islands/peninsula/: Peninsula Avenue's crossings, for neighbors on both sides (data from peninsula.py)."""
-    src = os.path.join(HERE, "data", "peninsula.json")
-    if not os.path.exists(src):
-        print("warning: data/peninsula.json missing; run pipeline/peninsula.py. No Peninsula page.")
-        return False
-    D = json.load(open(src))
-    rows = {r["label"]: r for r in D["dests"]["strict"]}
-    U = D["union"]["strict"]
-    Ustd = D["union"]["standard"]
-    survey = [r for r in csv.DictReader(open(os.path.join(HERE, "data", "sources", "ets_2026_segments.csv")))
-              if r["street"] == "Peninsula Ave"]
-    east = next(r for r in survey if r["to"] == "Airport Blvd")
-    west = next(r for r in survey if r["from"] == "El Camino Real")
-    home = {"north": "Burlingame", "south": "San Mateo"}
-    path = f"{BASE}peninsula/"
+def bare_street(s):
+    """'Highland Av' -> 'Highland', for a list of cross streets along one street."""
+    ts = s.split()
+    return " ".join(ts[:-1]) if len(ts) > 1 and ts[-1] in ("Av", "Ave", "Rd", "St", "Dr", "Bl", "Blvd", "Way", "Ln") else s
+
+
+def and_list(xs):
+    xs = list(xs)
+    return xs[0] if len(xs) == 1 else ", ".join(xs[:-1]) + " and " + xs[-1] if xs else ""
+
+
+def street_key(s):
+    """'North El Camino Real' / 'N El Camino Real' / 'El Camino Real' -> 'el camino real', for matching survey rows."""
+    ts = short(s).split()
+    if ts and ts[0] in ("N", "S", "E", "W"):
+        ts = ts[1:]
+    return " ".join(ts).lower()
+
+
+PLAN_RANK = {"project": 0, "project_with_crossings": 1, "project_if_its_street_crossed": 2}
+
+
+def fix_plan_lead(cfg, lead):
+    """The city's project that leads a fix page, as (project, crossed, share), or None: the best plan coverage of the
+    package's fixes (data/plans_<tier>.json, any station), when it reaches PLAN_COVER of what the fix does."""
+    PJ = json.load(open(os.path.join(HERE, "data", f"plans_{lead}.json")))
+    best = None
+    for it in cfg["items"]:
+        if "fix" not in it:
+            continue
+        kind, oid = it["fix"].split(":")
+        for k, (pi, b, sb, sw) in PJ["fixes"].items():
+            if not k.startswith(f"{kind}{oid}|") or b not in PLAN_RANK or pi is None:
+                continue
+            share = sw if b == "project_if_its_street_crossed" else sb
+            if share < PLAN_COVER:
+                continue
+            cand = (PLAN_RANK[b], -share, pi, b == "project_if_its_street_crossed", share)
+            best = min(best, cand) if best else cand
+    if not best:
+        return None
+    return PJ["projects"][best[2]], best[3], best[4]
+
+
+def needs(text):
+    """bridges.csv's 'a | b | c' options as words."""
+    opts = [o.strip() for o in (text or "").split("|") if o.strip()]
+    return " or ".join(opts) if len(opts) < 3 else ", ".join(opts[:-1]) + " or " + opts[-1]
+
+
+def fix_page(cfg, D):
+    """One fix page (bike-islands/<path>): the package in data/fixes.json, its numbers from pipeline/fix_pages.py."""
+    st = short(D["street"])
+    across = D["layout"] == "across"
+    groups = D["groups"]
+    notes = cfg.get("notes", {})
+    path = f"{BASE}{cfg.get('path', 'fixes/' + cfg['slug'] + '/')}"
     url = f"{CFG['site_url']}{path}"
+    lead = D.get("lead", "strict")          # cautious riders and kids, unless the package does next to nothing for them
+    P, U, UC = D["places"][lead], D["union"][lead], D["union_city"][lead]
+    total = sum(v[0] for v in U.values())
+    total_std = sum(v[0] for v in D["union"]["standard"].values()) if lead == "strict" else 0
+    city_n = collections.Counter()
+    for k, v in UC.items():
+        city_n[k.split("|")[1]] += v[0]
+    words = D["words"]
+    cross_items = [it["cross"][1] for it in cfg["items"] if "cross" in it]
+    fixes = [w for w in words if w["kind"] in ("w", "x")]
+    speed = cfg.get("speed")
+    survey = [r for r in D["survey"] if street_key(r["street"]) == street_key(D["street"])]
+    busiest = max(survey, key=lambda r: int(r["adt"] or 0)) if survey else None
+    city_plan = None if notes.get("plan") else fix_plan_lead(cfg, lead)
+    cross_names = [" / ".join(dict.fromkeys(short(n) for n, _ in x["legs"])) for x in D["crossings"]]
 
-    def dest(label, home_city):
-        c = rows[label]["cities"][home_city]
-        name = (f'<a href="{BASE}places/{PEN_PAGES[label]}/">{e(label)}</a>' if label in PEN_PAGES else e(label))
-        if label == "Safeway on Delaware":
-            return ('<div class="dest"><div class="gain words">The last block</div><p>'
-                    f'<strong>{name}</strong> sits on the San Mateo corner of Peninsula and Delaware. The map already counts '
-                    f'{r10(c["now"][0])} Burlingame residents as able to get there, because it lets you walk your bike the last '
-                    'block of any trip to a store. For everyone north of Peninsula, that last block is across Peninsula, on foot.</p></div>')
-        mins = f", about a {c['minutes']}-minute ride" if c.get("minutes") else ""
+    # the ask, in a phrase
+    bits = []
+    if cross_items:
+        bits.append(f"{'A safe crossing' if len(cross_items) == 1 else str(len(cross_items)).replace('5', 'Five').replace('4', 'Four').replace('3', 'Three').replace('2', 'Two') + ' safe crossings'}")
+    for w in fixes:
+        bits.append(f"a safe crossing at {short(w['where'].split(' at ', 1)[1])}" if w["kind"] == "x"
+                    else f"a safer {short(w['where'])}")
+    if speed:
+        bits.append(f"a {speed['value']} limit")
+    phrase = and_list(bits)
+    phrase = phrase[:1].upper() + phrase[1:]
+    cats = list(dict.fromkeys(CAT_WORDS.get(r["cat"], r["cat"]) for rs in P.values() for r in rs))
+    title = cfg.get("title") or (f"What's on the other side of {st}" if across else f"Where a safer {st} would take you")
+    lede = (cfg["lede"].format(total=r10(total)) if cfg.get("lede") else
+            f"{phrase} would let {r10(total)} people bike to {and_list(cats)}"
+            + (f" on the other side of {st}." if across else " on quiet streets and paths.")
+            + f" These counts are for {WHO[lead]}.")
+
+    def gain_of(r, exclude=None):
+        return sum(v["gain"][0] for g, v in r["groups"].items() if g != exclude)
+
+    def dest(r, origin):
+        """One place, for people in origin (a side; None for every group together)."""
+        c = (r["groups"][origin] if origin else
+             {k: [sum(v[k][i] for v in r["groups"].values()) for i in (0, 1)] for k in ("within", "now", "gain")})
+        mins = r["groups"][origin]["minutes"] if origin else next((v["minutes"] for v in r["groups"].values() if v["minutes"]), None)
+        lab = r["label"][:1].upper() + r["label"][1:]
+        name = f'<a href="{BASE}places/{r["slug"]}/">{e(lab)}</a>' if r.get("slug") else e(lab)
+        note = notes.get(r.get("slug") or "") or notes.get(r["label"])
+        if note:
+            return (f'<div class="dest"><div class="gain words">The last block</div><p><strong>{name}</strong> '
+                    f'{note.format(now=r10(c["now"][0]))}</p></div>')
+        who = "on your side" if origin else "nearby"
+        split = ""
+        if not origin:
+            parts = [f"{r10(v['gain'][0])} in {g}" for g, v in r["groups"].items() if v["gain"][0] >= 10]
+            split = f" ({and_list(parts)})" if len(parts) > 1 else ""
         return (f'<div class="dest"><div class="gain">+{r10(c["gain"][0])}<small>{r10(c["gain"][1])} of them kids</small></div><p>'
-                f'<strong>{name}</strong>{mins}. Of the {r10(c["within"][0])} {home_city} residents within a mile, '
-                f'{r10(c["now"][0])} can bike there on quiet streets and paths today.</p></div>')
+                f'<strong>{name}</strong>{f", about a {mins}-minute ride" if mins else ""}{split}. Of the {r10(c["within"][0])} people '
+                f'{who} within a mile, {r10(c["now"][0])} can bike there on quiet streets and paths today.</p></div>')
 
-    h = ['<p class="crumb"><a href="' + BASE + '">Bike islands</a> · <a href="' + BASE + 'places/">Places</a> · Peninsula Avenue</p>',
-         "<h1>What's on the other side of Peninsula Avenue</h1>",
-         f'<p class="lede">Peninsula Avenue divides Burlingame and San Mateo. Five safe crossings and a 30 mph limit would let '
-         f'<strong>{r10(sum(v[0] for v in U.values()))} neighbors</strong> bike to parks, shops and Caltrain on the other side.</p>',
-         '<div class="switch" role="group" aria-label="Where you live">'
-         '<button type="button" data-side="north" aria-pressed="false">I live north of Peninsula</button>'
-         '<button type="button" data-side="south" aria-pressed="false">I live south of Peninsula</button></div>',
-         '<div class="sides">',
-         '<div class="side north"><h2>North of Peninsula, in Burlingame</h2>'
-         '<p class="who">What safe crossings would open up for you, south of the street</p>',
-         dest("Safeway on Delaware", "Burlingame"), dest("Martin Luther King Park", "Burlingame"),
-         dest("Mi Rancho Supermarket", "Burlingame"),
-         f'<p class="also">And the other way: {r10(rows["Burlingame Avenue"]["cities"]["San Mateo"]["gain"][0])} more San Mateo '
-         'neighbors could bike to Burlingame Avenue\'s shops and restaurants.</p></div>',
-         '<div class="side south"><h2>South of Peninsula, in San Mateo</h2>'
-         '<p class="who">What safe crossings would open up for you, north of the street</p>',
-         dest("Burlingame Avenue", "San Mateo"), dest("Washington Park", "San Mateo"), dest("Victoria Park", "San Mateo"),
-         dest("Burlingame Caltrain", "San Mateo"), '</div>',
-         '</div>',
-         '<div class="mapwrap"><canvas id="map" role="img" aria-label="Map of Peninsula Avenue between El Camino Real and '
-         'Highway 101, with its five crossings circled and dots where the people they would connect live"></canvas>'
-         '<div class="legend"><span><i class="ln" style="background:var(--copper)"></i>Peninsula Avenue</span>'
-         '<span><i class="sw" style="background:var(--card);border:2.5px solid var(--ink)"></i>The five crossings</span>'
-         '<span><i class="sw" style="background:var(--north)"></i>Burlingame residents it would connect</span>'
-         '<span><i class="sw" style="background:var(--south)"></i>San Mateo residents it would connect</span>'
-         '<span><i class="ln" style="background:var(--quiet)"></i>Quiet street</span>'
-         '<span><i class="ln" style="background:var(--busy)"></i>Busy street</span></div></div>']
+    def side_city(g):
+        cs = {k.split("|")[1]: v[0] for k, v in UC.items() if k.split("|")[0] == g}
+        tot = sum(cs.values())
+        best = max(cs, key=cs.get) if cs else None
+        return best if best and cs[best] >= 0.9 * tot else None
 
-    # crossing it today
-    lim = {x["at"]: x["speed"] for x in D["crossings"]}
-    h.append('<section><h2>Crossing it today</h2>'
-             '<div class="facts">'
-             f'<div class="fact"><b>{int(east["adt"]):,}</b><span>cars a day east of San Mateo Drive ({int(west["adt"]):,} west of it), '
-             'from the city\'s 2026 speed survey</span></div>'
-             f'<div class="fact"><b>{east["p85"]} mph</b><span>the speed 15% of drivers go faster than, east of San Mateo Drive. '
-             f'It\'s posted {east["existing"]} there, {west["existing"]} west of Anita Road</span></div>'
-             '<div class="fact"><b>0 of 5</b><span>of the crossings below have a traffic signal or an all-way stop</span></div></div>'
-             '<table class="x"><thead><tr><th>Crossing</th><th>Peninsula\'s limit there</th><th>The side streets</th></tr></thead><tbody>')
-    for x in D["crossings"]:
-        legs = "; ".join(f"{e(short(n))} ({e(c)})" for n, c in x["legs"])
-        h.append(f'<tr><td>{e(x["at"])}</td><td>{e(x["speed"] or "")}</td><td>{legs}</td></tr>')
-    h.append('</tbody></table>'
-             '<p class="intro" style="margin-top:14px">The map counts a crossing of Peninsula as safe for cautious riders and kids '
-             'where a signal or an all-way stop gives them a turn and traffic is going 30 mph or slower. Where it\'s 35, it takes both. '
-             f'The same is true on foot with a stroller or a dog. The painted crosswalks and flashing beacons at Highland '
-             f'Avenue started as a single service request; it took almost three years (<a href="{SMALL_ACTS}">how it went</a>).</p></section>')
+    h = [f'<p class="crumb"><a href="{BASE}">Bike islands</a> · <a href="{BASE}places/">Places</a> · {e(st)}</p>',
+         f"<h1>{e(title)}</h1>", f'<p class="lede">{e(lede)}</p>']
+    if city_plan:
+        pj, crossed, share = city_plan
+        h.append(f'<div class="callout" style="margin:0 0 24px">The city already plans this. {e(plan_ref(pj)[:1].upper() + plan_ref(pj)[1:])}, '
+                 f'{e(pj["what"])}, would do {"nearly all" if share >= 0.95 else "most"} of what this change does'
+                 + (f', if it also makes crossing {e(plan_cross(pj))} safe' if crossed else "") + '. '
+                 + (e(plan_meta(pj)[:1].upper() + plan_meta(pj)[1:]) + '. ' if plan_meta(pj) else "")
+                 + 'Asking the city to build it is the simplest ask.</div>')
+    legend = ""
+    if across:
+        h.append('<div class="switch" role="group" aria-label="Where you live">' + "".join(
+            f'<button type="button" data-side="{g}" aria-pressed="false">I live {g} of {e(bare_street(st))}</button>' for g in groups)
+            + '</div><div class="sides">')
+        for i, o in enumerate(groups):
+            other = [g for g in groups if g != o]
+            c = side_city(o)
+            head_ = cfg.get("side_names", {}).get(o) or f"{o.capitalize()} of {bare_street(st)}" + (f", in {c}" if c else "")
+            h.append(f'<div class="side g{i}" data-group="{o}"><h2>{e(head_)}</h2>'
+                     f'<p class="who">What this would open up for you, {other[0]} of the street</p>')
+            h += [dest(r, o) for g in other for r in P[g]]
+            mine = sorted(P[o], key=lambda r: -gain_of(r, o))
+            ow = notes.get("other_way", {}).get(o)
+            if ow:
+                r = next(r for r in P[o] if r["label"] == ow[0] or r.get("slug") == ow[0])
+                h.append(f'<p class="also">{e(ow[1].format(n=r10(gain_of(r, o))))}</p>')
+            elif mine and gain_of(mine[0], o) >= 50:
+                h.append(f'<p class="also">And the other way: {r10(gain_of(mine[0], o))} more neighbors from {other[0]} of '
+                         f'{e(bare_street(st))} could bike to {e(mine[0]["label"])}.</p>')
+            h.append("</div>")
+        h.append("</div>")
+        legend = ('<span><i class="ln" style="background:var(--copper)"></i>' + e(st) + '</span>'
+                  + "".join(f'<span><i class="sw" style="background:var(--g{i})"></i>People {g} of {e(bare_street(st))} it would connect</span>'
+                            for i, g in enumerate(groups)))
+    else:
+        h.append('<section style="margin-top:24px"><h2>Places it would connect</h2><div class="sides one"><div class="side g0">')
+        h += [dest(r, None) for r in P["all"]]
+        h.append("</div></div></section>")
+        legend = ('<span><i class="ln" style="background:var(--fix)"></i>The change</span>'
+                  '<span><i class="sw" style="background:var(--can)"></i>People it would connect</span>')
+    if D["map"]["crossings"]:
+        legend += '<span><i class="sw" style="background:var(--card);border:2.5px solid var(--ink)"></i>The crossings</span>'
+    legend += ('<span><i class="sq"></i>The places</span><span><i class="ln" style="background:var(--quiet)"></i>Quiet street</span>'
+               '<span><i class="ln" style="background:var(--busy)"></i>Busy street</span>')
+    h.append(f'<div class="mapwrap"><canvas id="map" role="img" aria-label="Map of {e(st)} and the change, with dots where '
+             f'the people it would connect live"></canvas><div class="legend">{legend}</div></div>')
+
+    # today
+    h.append(f'<section><h2>{"Crossing it" if across else "Riding it"} today</h2>')
+    if busiest:
+        rest = [r for r in survey if r is not busiest]
+        h.append('<div class="facts">'
+                 f'<div class="fact"><b>{int(busiest["adt"]):,}</b><span>cars a day on {e(st)} between {e(busiest["from"])} and '
+                 f'{e(busiest["to"])}, from the city\'s 2026 speed survey</span></div>'
+                 f'<div class="fact"><b>{e(busiest["p85"])} mph</b><span>the speed 15% of drivers go faster than there. '
+                 f'It\'s posted {e(busiest["existing"])}</span></div>'
+                 + (f'<div class="fact"><b>0 of {len(D["crossings"])}</b><span>of the crossings below have a traffic signal or '
+                    'an all-way stop</span></div>' if notes.get("no_signal") else "") + '</div>')
+        if rest:
+            h.append('<p class="intro">' + " ".join(
+                f'Between {e(r["from"])} and {e(r["to"])}: {int(r["adt"]):,} cars a day, posted {e(r["existing"])} mph.'
+                for r in rest) + '</p>')
+    for w in fixes:
+        if w["now"]:
+            h.append(f'<p class="intro"><strong>{e(short(w["where"]))}</strong>: {e(w["now"])}.</p>')
+    if D["crossings"] and across:
+        h.append('<table class="x"><thead><tr><th>Crossing</th><th>' + e(bare_street(st)) + '\'s limit there</th>'
+                 '<th>The side streets</th></tr></thead><tbody>')
+        for x, nm in zip(D["crossings"], cross_names):
+            legs = "; ".join(f"{e(short(n))} ({e(c)})" for n, c in x["legs"] if short(n) != st)
+            h.append(f'<tr><td>{e(nm)}</td><td>{e(x["speed"] or "")}</td><td>{legs}</td></tr>')
+        h.append('</tbody></table>')
+        if cross_items:
+            h.append(f'<p class="intro" style="margin-top:14px">The map counts a crossing of {e(bare_street(st))} as safe for cautious '
+                     'riders and kids where a signal or an all-way stop gives them a turn and traffic is going 30 mph or slower. '
+                     'Where it\'s 35, it takes both. The same is true on foot with a stroller or a dog. ' + notes.get("today", "") + '</p>')
+    elif notes.get("today"):
+        h.append(f'<p class="intro">{notes["today"]}</p>')
+    h.append('</section>')
 
     # what it would take
-    secs = round(D["stretch_35_m"] / 1609.34 * (1 / 30 - 1 / 35) * 3600)
-    h.append('<section><h2>What it would take</h2><ol class="asks">'
-             '<li><strong>A safe way across at all five intersections</strong>: a signal or an all-way stop at Highland, Lorton, '
-             'Arundel, Clarendon and Humboldt, or a design the cities\' engineers find works as well, like curb extensions '
-             'that shorten the crossing or a raised crosswalk.</li>'
-             f'<li><strong>30 mph along all of Peninsula.</strong> East of Anita Road it\'s 35 today. Over that '
-             f'{D["stretch_35_m"] / 1609.34:.1f}-mile stretch, 30 mph adds about {secs} seconds to a drive, and most drivers already '
-             f'go close to it: half go {east["p50"]} or slower.</li></ol>'
-             '<p class="intro">Neither takes away a traffic lane or a parking space.</p>'
-             '<p class="intro">For experienced riders, 30 mph alone would do most of it: '
-             f'{r10(Ustd.get("San Mateo", [0])[0])} San Mateo and {r10(Ustd.get("Burlingame", [0])[0])} Burlingame residents '
-             'could ride to these places across Peninsula.</p>'
-             '<div class="callout">San Mateo\'s 2020 Bicycle Master Plan already lists bike lanes along Peninsula (project 2, '
-             'high priority). Lanes help people riding along Peninsula. For people going across it, the crossings are what '
-             'matter, so if the project is built, it\'s the chance to add them, along with curb extensions that slow '
-             'turning cars and shorten every crossing.</div></section>')
+    asks = []
+    if cross_items:
+        asks.append(f'<li><strong>A safe way across at {"all " + str(len(cross_items)) + " intersections" if len(cross_items) > 2 else and_list(map(bare_street, cross_items))}</strong>: '
+                    f'a signal or an all-way stop at {and_list([bare_street(c) for c in cross_items])}, or a design the '
+                    'engineers find works as well, like curb extensions that shorten the crossing or a raised crosswalk.</li>')
+    for w in fixes:
+        order = [lead] + [t for t in ("strict", "standard") if t != lead]
+        parts = [f"for {WHO[t]}, " + ("it already works" if w[t].strip() == "counts" else needs(w[t])) for t in order if needs(w[t])]
+        asks.append(f'<li><strong>{e(short(w["where"]))}</strong>: {e("; ".join(parts)) or "no single change"}.</li>')
+    if cfg.get("asks"):                     # the package's own words, when what our fix needs can't happen (El Camino)
+        asks = (asks[:1] if cross_items else []) + cfg["asks"]
+    for w in words:
+        if w["kind"] == "plan":
+            asks.append(f'<li><strong>{e(w["street"])} from {e(w["from"])} to {e(w["to"])}</strong>: {e(w["facility"].lower())}.</li>')
+    if speed:
+        L = D.get("stretch_m") or 0
+        secs = round(L / 1609.34 * (1 / int(speed["value"].split()[0]) - 1 / (int(speed["value"].split()[0]) + 5)) * 3600)
+        asks.append(f'<li><strong>{e(speed["value"])} along all of {e(bare_street(st))}.</strong> '
+                    + (f'Over the {L / 1609.34:.1f}-mile stretch posted faster today, it adds about {secs} seconds to a drive'
+                       + (f', and most drivers already go close to it: half go {e(busiest["p50"])} or slower' if busiest else "") + '.' if L else "")
+                    + '</li>')
+    h.append('<section><h2>What it would take</h2><ol class="asks">' + "".join(asks) + '</ol>')
+    if not fixes and not any(w["kind"] == "plan" for w in words):
+        h.append('<p class="intro">None of it takes away a traffic lane or a parking space.</p>')
+    if total_std:
+        h.append('<p class="intro">' + (e(notes["experienced"].format(n=r10(total_std))) if notes.get("experienced") else
+                                       f'For experienced riders, it would connect {r10(total_std)} people to these places.') + '</p>')
+    if notes.get("plan"):
+        h.append(f'<div class="callout">{notes["plan"]}</div>')
+    h.append('</section>')
 
     # what you can do
-    req = {"Burlingame": (
-        "Please make it safe to cross Peninsula Avenue at Highland Ave, Lorton Ave, Arundel Rd, Clarendon Rd and "
-        "Humboldt St, with a signal or all-way stop or an equivalent design, and work with San Mateo to lower Peninsula's "
-        f"limit to 30 mph east of Anita Rd. {r10(U.get('Burlingame', [0])[0])} Burlingame residents could then bike to Martin "
-        f"Luther King Park on calm streets, and {r10(rows['Burlingame Avenue']['cities']['San Mateo']['gain'][0])} more San "
-        f"Mateo neighbors to Burlingame Avenue. Details: {url}"),
-        "San Mateo": (
-        "Please make it safe to cross Peninsula Avenue at Highland Ave, Lorton Ave/Prospect Row, Woodside Way/Arundel Rd, "
-        "N Claremont St/Clarendon Rd and N Humboldt St, with a signal or all-way stop or an equivalent design, and lower "
-        "Peninsula's limit to 30 mph east of Anita Rd, working with Burlingame. When Bicycle Master Plan project 2 is "
-        f"built, please include these crossings. {r10(U.get('San Mateo', [0])[0])} San Mateo residents could then bike to "
-        f"Burlingame Avenue, Washington Park, Victoria Park and Burlingame Caltrain on calm streets. Details: {url}")}
-    h.append('<section><h2>What you can do</h2>'
-             '<p class="intro">Peninsula belongs to both cities, so ask yours. A short request to the city, followed up, '
-             'is how the Highland crosswalk happened.</p><div class="act-grid">'
-             '<div class="act-item"><h3>Send it across the street</h3><p>Send this page to a neighbor on the other side of '
-             'Peninsula, a parent group or a school newsletter.</p>'
+    h.append('<section><h2>What you can do</h2>' + (f'<p class="intro">{notes["ask"]}</p>' if notes.get("ask") else "")
+             + '<div class="act-grid"><div class="act-item"><h3>Send it to a neighbor</h3><p>Send this page to a neighbor'
+             + (f' on the other side of {e(bare_street(st))}' if across else "") + ', a parent group or a school newsletter.</p>'
              '<button type="button" class="btn" id="share">Share link</button> <span class="muted" id="copied"></span></div>')
-    for side, city in (("north", "Burlingame"), ("south", "San Mateo")):
+    req_bits = []
+    if cross_items:
+        req_bits.append(f"make it safe to cross {st} at {and_list(cross_names[:len(cross_items)] if len(cross_names) >= len(cross_items) else cross_items)}, "
+                        "with a signal or all-way stop or an equivalent design")
+    for w in fixes:
+        first = next((o.strip() for o in (w[lead] or "").split("|") if o.strip()), "")
+        req_bits.append(f"make {short(w['where'])} safe for {WHO[lead]}" + (f" ({first})" if first else ""))
+    if city_plan:
+        pj, crossed, _ = city_plan
+        req_bits = [f"build {plan_ref(pj)}: {pj['what']}" + (f", with safe crossings of {plan_cross(pj)}" if crossed else "")]
+    if speed:
+        req_bits.append(f"lower {st}'s limit to {speed['value']}")
+    involved = [c for c, n in city_n.most_common() if n >= 50]
+    for city in involved:
         cc = CFG["cities"].get(city, {})
         if not cc.get("service_request"):
             continue
-        rid = "req-" + side
-        h.append(f'<div class="act-item" data-for="{side}"><h3>If you live in {city}</h3><p>Copy this into {city}\'s service request form:</p>'
-                 f'<div class="ask-req" id="{rid}">{e(req[city])}</div>'
+        sides_ = [k.split("|")[0] for k, v in UC.items() if k.endswith("|" + city)]
+        home = max(sides_, key=lambda g: UC[f"{g}|{city}"][0]) if across else None
+        there = [r for g in groups if g != home for r in P[g]] if across else P["all"]
+        mine_gain = (lambda r: r["groups"][home]["gain"][0]) if across else gain_of
+        top = [r["label"] for r in sorted(there, key=lambda r: -mine_gain(r)) if mine_gain(r) >= 10][:3]
+        others = [c for c in involved if c != city]
+        req = (f"Please {req_bits[0] if len(req_bits) == 1 else ', '.join(req_bits[:-1]) + ', and ' + req_bits[-1]}" + (f", working with {others[0]}" if others else "") + ". "
+               + (f"{r10(city_n[city])} {city} residents could then bike to {and_list(top)} on calm streets. " if top else "")
+               + (cfg.get("request_extra", {}).get(city, "") + " " if cfg.get("request_extra", {}).get(city) else "")
+               + f"Details: {url}")
+        rid = "req-" + slugify(city)
+        h.append(f'<div class="act-item"{f" data-for={chr(34)}{home}{chr(34)}" if home else ""}><h3>If you live in {city}</h3>'
+                 f'<p>Copy this into {city}\'s service request form:</p><div class="ask-req" id="{rid}">{e(req)}</div>'
                  f'<p><button type="button" class="btn" data-copy="{rid}">Copy request</button> <span class="muted"></span></p>'
                  f'<p><a href="{e(cc["service_request"])}">Open {city}\'s service request form</a>'
                  + (f', or <a href="{e(cc["traffic_calming"])}">request a traffic calming study</a>' if cc.get("traffic_calming") else "")
@@ -724,23 +872,68 @@ def peninsula_page():
     h.append('<div class="how"><h2>How this is counted</h2>'
              '<p>Someone can bike to a place when a route on paths and quiet streets reaches it and is no more than 25% longer than '
              'the shortest ride on any street, within a 1-mile ride. Parks are reached at their edge; shops within about a block, '
-             'walking the bike the rest. People and kids are from the 2020 Census, by block, spread along each block\'s streets, '
-             'and counted by the city they live in. These counts are for cautious riders and kids unless noted.</p>'
-             '<p>The crossings are tested by treating each as having a signal or all-way stop, with Peninsula at 30 mph, then counting '
-             'again. Speeds and traffic counts come from the City of San Mateo\'s 2026 speed survey and Street View checks; the '
-             f'rating rules are on the <a href="{BASE}methodology/">methodology page</a>. Engineers may find better designs; the '
-             'counts show who a safe crossing would connect, not which design to build.</p></div>')
+             'walking the bike the rest. People and kids are from the 2020 Census, by block, spread along each block\'s streets'
+             + (f', and counted by the side of {e(bare_street(st))} they live on' if across else "") + f'. These counts are for {WHO[lead]} unless noted.</p>'
+             '<p>The change is tested by treating it as built, then counting again. Speeds and traffic counts come from the City of '
+             'San Mateo\'s 2026 speed survey and Street View checks; the rating rules are on the '
+             f'<a href="{BASE}methodology/">methodology page</a>. Engineers may find better designs; the counts show who a change '
+             'would connect, not which design to build.</p></div>')
 
-    d = os.path.join(OUT, "peninsula")
+    desc = lede if len(lede) < 200 else lede[:197] + "..."
+    d = os.path.join(OUT, path[len(BASE):])
     os.makedirs(d, exist_ok=True)
-    title = "What's on the other side of Peninsula Avenue"
-    desc = (f"Safe crossings of Peninsula Avenue would let {r10(U.get('San Mateo', [0])[0])} San Mateo and "
-            f"{r10(U.get('Burlingame', [0])[0])} Burlingame residents bike to parks, shops and Caltrain across the street.")
-    page = (open(os.path.join(HERE, "site", "peninsula.html")).read()
+    M = dict(D["map"], layout=D["layout"])
+    page = (open(os.path.join(HERE, "site", "fix.html")).read()
             .replace("/*HEAD*/", head(title, desc, path)).replace("/*HEADER*/", HEADER).replace("/*FOOTER*/", footer())
-            .replace("/*BODY*/", "\n".join(h)).replace("/*MAP*/", json.dumps(D["map"], separators=(",", ":"))))
+            .replace("/*BODY*/", "\n".join(h)).replace("/*MAP*/", json.dumps(M, separators=(",", ":"))))
     open(os.path.join(d, "index.html"), "w").write(page)
-    return True
+    return {"path": path, "title": title, "lede": lede, "street": st, "ids": fix_ids(cfg, D)}
+
+
+def fix_ids(cfg, D):
+    """The map's fixes (bridge ids, both standards) a fix page covers, so the map panel can link to it."""
+    ids = {it["fix"].replace(":", "") for it in cfg["items"] if "fix" in it}
+    crosses = [it["cross"] for it in cfg["items"] if "cross" in it]
+    sp = cfg.get("speed")
+    for t in ("strict", "standard"):
+        for B in DATA[t]["bridges"]:
+            nm = B["name"]
+            on, _, at = nm.partition(" at ")
+            if B["kind"] == "x" and any(bare_street(short(on)) == bare_street(short(a)) and bare_street(short(c)).lower() in short(at).lower() for a, c in crosses):
+                ids.add(B["id"])
+            elif sp and B["kind"] == "w" and street_key(nm) == street_key(D["street"]):
+                s, w_, n, e_ = map(float, sp["bbox"].split())
+                if s <= B["p"][0] / 1e5 <= n and w_ <= B["p"][1] / 1e5 <= e_:
+                    ids.add(B["id"])
+    return sorted(ids)
+
+
+def fixes_index(built):
+    """bike-islands/fixes/: every fix page, with its lede."""
+    title = "Streets that would connect neighbors"
+    desc = "One change to one street, and the everyday places it would let neighbors on each side bike to."
+    h = [f'<p class="crumb"><a href="{BASE}">Bike islands</a> · Streets</p>', f"<h1>{e(title)}</h1>",
+         f'<p class="lede">{e(desc)} Each page says what the city already plans there, and what to ask for.</p><ul class="fixlist">']
+    h += [f'<li><a href="{f["path"]}"><strong>{e(f["title"])}</strong></a><p>{e(f["lede"])}</p></li>' for f in built]
+    h.append("</ul>")
+    page = (open(os.path.join(HERE, "site", "fix.html")).read()
+            .replace("/*HEAD*/", head(title, desc, f"{BASE}fixes/")).replace("/*HEADER*/", HEADER).replace("/*FOOTER*/", footer())
+            .replace("/*BODY*/", "\n".join(h)).replace("/*MAP*/", "null"))
+    os.makedirs(os.path.join(OUT, "fixes"), exist_ok=True)
+    open(os.path.join(OUT, "fixes", "index.html"), "w").write(page)
+
+
+def fix_pages():
+    """Every package in data/fixes.json that pipeline/fix_pages.py has scored."""
+    built = []
+    for cfg in json.load(open(os.path.join(HERE, "data", "fixes.json"))):
+        src = os.path.join(HERE, "data", "fixes", f"{cfg['slug']}.json")
+        if not os.path.exists(src):
+            print(f"warning: {src} missing; run pipeline/fix_pages.py. No page for {cfg['slug']}.")
+            continue
+        built.append(fix_page(cfg, json.load(open(src))))
+    fixes_index(built)
+    return built
 
 
 def main():
@@ -766,6 +959,8 @@ def main():
         d = os.path.join(OUT, ent["path"][len(BASE):])
         os.makedirs(d, exist_ok=True)
         open(os.path.join(d, "index.html"), "w").write(share_page(ent))
+    fx = fix_pages()
+    manifest["pages"] = {i: [f["path"], f["title"]] for f in fx for i in f["ids"]}
     page = open(os.path.join(HERE, "site", "template.html")).read()
     page = (page.replace("/*HEAD*/", head(TITLE, DESCRIPTION, BASE))
                 .replace("/*HEADER*/", HEADER)
@@ -791,8 +986,7 @@ def main():
         + "\n</main>\n</body>\n</html>\n")
 
     print(f"{place_pages(civic())} place pages")
-    if peninsula_page():
-        print("Peninsula Avenue page")
+    print(f"{len(fx)} fix pages")
     img = os.path.join(HERE, "site", "img")
     if os.path.isdir(img):
         shutil.copytree(img, os.path.join(OUT, "img"))

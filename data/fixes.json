@@ -1,0 +1,119 @@
+[
+ {
+  "slug": "peninsula",
+  "path": "peninsula/",
+  "street": "Peninsula Avenue",
+  "layout": "across",
+  "mode": "bare",
+  "title": "What's on the other side of Peninsula Avenue",
+  "lede": "Peninsula Avenue divides Burlingame and San Mateo. Five safe crossings and a 30 mph limit would let {total} neighbors bike to parks, shops and Caltrain on the other side.",
+  "items": [
+   {
+    "cross": [
+     "Peninsula Av",
+     "Highland Av"
+    ]
+   },
+   {
+    "cross": [
+     "Peninsula Av",
+     "Lorton Av"
+    ]
+   },
+   {
+    "cross": [
+     "Peninsula Av",
+     "Arundel Rd"
+    ]
+   },
+   {
+    "cross": [
+     "Peninsula Av",
+     "Clarendon Rd"
+    ]
+   },
+   {
+    "cross": [
+     "Peninsula Av",
+     "Humboldt St"
+    ]
+   }
+  ],
+  "speed": {
+   "value": "30 mph",
+   "bbox": "37.570 -122.346 37.590 -122.320"
+  },
+  "places": {
+   "north": [
+    "Burlingame Avenue",
+    "Washington Park",
+    "Victoria Park",
+    "burlingame-caltrain"
+   ],
+   "south": [
+    "safeway-delaware",
+    "Martin Luther King Park",
+    "Mi Rancho Supermarket"
+   ]
+  },
+  "side_names": {
+   "north": "North of Peninsula, in Burlingame",
+   "south": "South of Peninsula, in San Mateo"
+  },
+  "notes": {
+   "safeway-delaware": "sits on the San Mateo corner of Peninsula and Delaware. The map already counts {now} Burlingame residents as able to get there, because it lets you walk your bike the last block of any trip to a store. For everyone north of Peninsula, that last block is across Peninsula, on foot.",
+   "today": "The painted crosswalks and flashing beacons at Highland Avenue started as a single service request; it took almost three years (<a href=\"https://maxmautner.com/2026/11/21/small-acts.html\">how it went</a>).",
+   "plan": "San Mateo's 2020 Bicycle Master Plan already lists bike lanes along Peninsula (project 2, high priority). Lanes help people riding along Peninsula. For people going across it, the crossings are what matter, so if the project is built, it's the chance to add them, along with curb extensions that slow turning cars and shorten every crossing.",
+   "ask": "Peninsula belongs to both cities, so ask yours. A short request to the city, followed up, is how the Highland crosswalk happened.",
+   "no_signal": true,
+   "other_way": {
+    "north": [
+     "Burlingame Avenue",
+     "And the other way: {n} more San Mateo neighbors could bike to Burlingame Avenue's shops and restaurants."
+    ]
+   },
+   "experienced": "For experienced riders, 30 mph alone would do most of it: {n} neighbors could ride to these places across Peninsula."
+  },
+  "request_extra": {
+   "San Mateo": "When Bicycle Master Plan project 2 is built, please include these crossings."
+  }
+ },
+ {
+  "slug": "28th-ave-edison",
+  "street": "28th Avenue",
+  "layout": "along",
+  "items": [
+   {
+    "fix": "w:1387073683"
+   }
+  ]
+ },
+ {
+  "slug": "2nd-ave-claremont-delaware",
+  "street": "2nd Avenue",
+  "layout": "along",
+  "items": [
+   {
+    "fix": "w:1381682462"
+   }
+  ]
+ },
+ {
+  "slug": "el-camino-bellevue",
+  "street": "North El Camino Real",
+  "layout": "across",
+  "items": [
+   {
+    "fix": "x:65432065"
+   },
+   {
+    "fix": "w:505631079"
+   }
+  ],
+  "sides": "east-west",
+  "lede": "Caltrans is repaving El Camino Real for the first time in decades, and it isn't adding bike lanes. So the way across at Bellevue Avenue has to come from the streets on either side: a safe route there would let {total} people bike to parks, grocery stores and Caltrain on the other side of El Camino. These counts are for cautious riders and kids.",
+  "asks": [
+   "<li><strong>Project 1's bike boulevard on Bellevue and Highland Avenues</strong>, with a crossing of El Camino Real at the Bellevue signal that cautious riders and kids can use. Nothing on El Camino itself changes, so it doesn't wait on Caltrans.</li>"
+  ]
+ }
+]

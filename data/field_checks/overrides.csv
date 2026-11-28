@@ -14,3 +14,5 @@ North Humboldt Street,lanes,2,37.5787 -122.3264 37.5790 -122.3261,"Max Mautner, 
 South Delaware Street,lanes,2,37.5670 -122.3202 37.5673 -122.3199,"Max Mautner, 2026-11-26, Street View: 2 lanes with a traffic light at 2nd Ave (OSM said 4), 2nd Ave to 3rd Ave"
 Peninsula Avenue,maxspeed,30 mph,37.5770 -122.3395 37.5775 -122.3389,"Max Mautner, 2026-11-27, Street View: posted 30 mph from N San Mateo Dr across the tracks to Anita Rd; 35 mph begins just east of Anita (the survey's 35 mph segment starts at San Mateo Dr)"
 way:59031688,maxspeed,30 mph,,"Max Mautner, 2026-11-27, Street View: the westbound piece from Anita Rd toward the tracks is in the 30 mph zone (it starts where the 35 mph piece east of Anita starts, so it's named by OSM id)"
+way:505631079,maxspeed,35 mph,,"Max Mautner, 2026-11-27: El Camino Real at Bellevue Ave is posted 35 mph"
+way:505631082,maxspeed,35 mph,,"Max Mautner, 2026-11-27: El Camino Real at Bellevue Ave is posted 35 mph"

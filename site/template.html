@@ -143,6 +143,7 @@
   .act h2 { font-family:'Newsreader', Georgia, serif; font-weight:600; color:var(--ink); font-size:22px; margin:0 0 10px; }
   ol.br li.focus { background: var(--card); box-shadow: inset 3px 0 0 var(--copper); }
   a.sharefix { display:inline-block; font-size: 13px; color: var(--copper); margin-top: 2px; }
+  a.fixpage { display:block; font-size: 14px; font-weight: 600; color: var(--copper); margin-top: 6px; }
   input.linkbox { font:inherit; font-size:13px; width:100%; max-width:320px; margin-top:4px; padding:4px 6px; border:1px solid var(--light); background:var(--bg); color:var(--ink); }
   .act-item { background: var(--card); border-radius: 14px; padding: 14px 16px; margin: 0; }
   .act-item h3 { font-size: 16px; font-weight: 600; color: var(--ink); margin: 0 0 4px; font-family: var(--font-sans); }
@@ -968,10 +969,12 @@ function fixItem(T, e) {
   const gains = Object.entries(e.per).sort((a, b) => b[1] - a[1])
     .map(([st, hu], k) => k === 0 ? `${fmt(hu)} more people here bike to ${st} Caltrain` : `${fmt(hu)} to ${st} Caltrain`).join(" and ");
   const sp = SHARE.fixes[tier][B.id];
+  const pg = (SHARE.pages || {})[B.id];   // a fix page covers it: what it would open up, side by side
   return `<li data-fix="${B.id}"${B.id === focusFix ? ' class="focus"' : ""}><a class="fixlink" role="button" href="#t=${tier}&i=${sel}&f=${encodeURIComponent(B.id)}" aria-pressed="${B.id === focusFix}">${fixPlain(B)}</a> would let ${gains}.` +
     (needPlain(B) ? `<span class="need">${needPlain(B)}</span>` : "") +
     (planStatus(T, B) ? `<span class="planst">${planStatus(T, B)}</span>` : "") +
     whyBlock(B, [needAll(B), joinText(B)]) +
+    (pg ? `<a class="fixpage" href="${pg[0]}">${pg[1]} &rarr;</a>` : "") +
     (sp ? `<a class="sharefix" href="${sp}" data-share="${sp}">Share this fix</a>` : "") + `</li>`;
 }
 function gapBlock(I) {

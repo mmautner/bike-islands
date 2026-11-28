@@ -197,7 +197,7 @@ def untamable(t):
 
 
 OVERRIDES = os.path.join(os.path.dirname(__file__), "..", "data", "field_checks", "overrides.csv")
-EXTRA_OVERRIDES = []   # rows like overrides.csv's, added in code to test a change (peninsula.py's 30 mph); not field checks
+EXTRA_OVERRIDES = []   # rows like overrides.csv's, added in code to test a change (fix_pages.py's speed asks); not field checks
 
 
 SURVEY = os.path.join(os.path.dirname(__file__), "..", "data", "survey_matches.csv")
