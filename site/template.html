@@ -50,7 +50,11 @@
   .zoom { position:absolute; right:10px; top:10px; display:flex; flex-direction:column; }
   .zoom button { font:inherit; width:32px; height:32px; border:1px solid var(--grey); background:var(--bg); color:var(--ink); cursor:pointer; font-size:18px; }
   .zoom button + button { border-top:none; }
-  .clearsel { position:absolute; left:10px; top:10px; font:inherit; font-size:14px; padding:5px 10px; border:1px solid var(--grey); background:var(--bg); color:var(--ink); cursor:pointer; }
+  .mapbar { position:absolute; left:10px; top:10px; display:flex; gap:6px; z-index:3; }
+  .findbtn { display:inline-flex; align-items:center; gap:6px; font:inherit; font-size:14px; padding:5px 10px; border:1px solid var(--grey); background:var(--bg); color:var(--ink); cursor:pointer; }
+  .findbtn:hover, .findbtn[aria-expanded="true"] { border-color:var(--ink); }
+  .findbtn.compact span { display:none; }
+  .clearsel { font:inherit; font-size:14px; padding:5px 10px; border:1px solid var(--grey); background:var(--bg); color:var(--ink); cursor:pointer; }
   .clearsel:hover { border-color:var(--ink); }
   .hint { position:absolute; left:10px; bottom:10px; font-size:13px; background:var(--bg); color:var(--body); padding:4px 8px; opacity:.92; }
   .tip { position:absolute; z-index:2; pointer-events:none; max-width:240px; font-size:13px; line-height:1.4; padding:7px 10px; background:var(--bg); color:var(--body); border:1px solid var(--light); box-shadow:0 4px 14px rgba(0,0,0,.15); }
@@ -137,7 +141,11 @@
   .muted { color:var(--grey); font-size:13px; }
   button.share { font:inherit; font-size:14px; padding:6px 12px; border:1px solid var(--copper); color:var(--copper); background:transparent; cursor:pointer; margin-top:8px; }
   .legend { display:flex; gap:16px; flex-wrap:wrap; font-size:13px; margin:10px 0 0; }
-  .find { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:0 0 10px; }
+  .find { position:absolute; left:10px; right:52px; top:48px; z-index:4; display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+          padding:8px; background:var(--bg); border:1px solid var(--grey); box-shadow:0 6px 20px rgba(0,0,0,.25); max-width:520px; }
+  .find[hidden] { display:none; }
+  .findmsg { font-size:13px; margin-top:6px; }
+  .findmsg:empty { display:none; }
   .combo { position:relative; flex: 1 1 260px; max-width: 420px; }
   #street { width:100%; font:inherit; font-size:15px; padding:8px 10px; border:1px solid var(--light); background:var(--card); color:var(--ink); }
   #street:focus { outline: 2px solid var(--copper); outline-offset: 0; }
@@ -146,7 +154,6 @@
   #streetlist li span { color:var(--grey); margin-left:6px; font-size:13px; }
   #streetlist li[aria-selected="true"], #streetlist li:hover { background:var(--card); }
   #locate { font:inherit; font-size:14px; padding:8px 12px; border:1px solid var(--ink); background:transparent; color:var(--ink); cursor:pointer; }
-  #findmsg { font-size:13px; }
   /* "What you can do" sits under the map and the panel, full width, so the panel stays about as tall as the map */
   .act { margin: 28px 0 0; padding: 0; }      /* site.css pads <section>; line up with the map */
   .act h2 { font-family:'Newsreader', Georgia, serif; font-weight:600; color:var(--ink); font-size:22px; margin:0 0 10px; }
@@ -198,22 +205,28 @@
   <dialog id="quiz" aria-label="Which rider are you?"><div class="qwrap" id="qbody" tabindex="-1" style="outline:none"></div></dialog>
   <div class="wrap">
     <div>
-      <div class="find">
-        <div class="combo">
-          <input id="street" type="text" placeholder="Find your street" autocomplete="off" spellcheck="false"
-                 role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="streetlist" aria-label="Find your street">
-          <ul id="streetlist" role="listbox" hidden></ul>
-        </div>
-        <button id="locate" type="button">Use my location</button>
-        <span id="findmsg" class="muted" aria-live="polite"></span>
-      </div>
       <div id="mapbox">
         <canvas id="bimap" tabindex="0" aria-label="Map of San Mateo and Burlingame streets. Click a street to see its bike island. With the keyboard: arrow keys move the map, plus and minus zoom, 0 shows the whole map, Enter picks the island under the crosshair, Escape clears it."></canvas>
         <div class="zoom"><button id="zin" aria-label="Zoom in">+</button><button id="zout" aria-label="Zoom out">&minus;</button><button id="zreset" aria-label="Show the whole map" title="Show the whole map">&#10530;</button></div>
-        <button id="clear" class="clearsel" type="button" hidden aria-label="Clear the selected island">&times; Clear</button>
+        <div class="mapbar">
+          <button id="clear" class="clearsel" type="button" hidden aria-label="Clear the selected island">&times; Clear</button>
+          <button id="findbtn" class="findbtn" type="button" aria-expanded="false" aria-controls="find" aria-label="Find your street">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg><span>Find your street</span>
+          </button>
+        </div>
+        <!-- clicking the map is the way in; finding a street or using your location is tucked behind the button -->
+        <div class="find" id="find" hidden>
+          <div class="combo">
+            <input id="street" type="text" placeholder="Type your street" autocomplete="off" spellcheck="false"
+                   role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="streetlist" aria-label="Find your street">
+            <ul id="streetlist" role="listbox" hidden></ul>
+          </div>
+          <button id="locate" type="button">Use my location</button>
+        </div>
         <div class="hint" id="hint"></div>
         <div class="tip" id="tip" hidden></div>
       </div>
+      <div class="muted findmsg" id="findmsg" aria-live="polite"></div>
       <div class="mapnote" id="mapnote" aria-live="polite"></div>
       <div class="legend">
         <span id="lg-island"><i style="border-color:var(--copper)"></i>Your island</span>
@@ -1540,6 +1553,7 @@ function render() {
     if (p) p.then(() => { if (sel === want && tier === wantTier) render(); }).catch(() => {});
   }
   document.getElementById("clear").hidden = !sel;
+  document.getElementById("findbtn").classList.toggle("compact", !!sel);     // beside Clear, just the magnifier
   hover = null; hotFix = null; hotGap = null; tip.hidden = true;   // a click, search or new standard: the preview starts over on the next move
   computeHeat();
   hint();
@@ -1706,6 +1720,10 @@ cv.addEventListener("pointermove", e => {
 // Pick an island (from the map, a search or your location), or let go of it with id null.
 function selectIsland(id, pt, how) {
   const changed = id !== sel;
+  if (how === "map" || how === "keyboard" || !id) {      // picked on the map: the street box and its message go away
+    document.getElementById("find").hidden = true; document.getElementById("findbtn").setAttribute("aria-expanded", "false");
+    document.getElementById("findmsg").textContent = "";
+  }
   if (changed) moreOpen = false;
   sel = id; clickPt = id ? pt : null; focusFix = null; focusGap = null;
   if (id) {
@@ -1924,6 +1942,13 @@ function zoomTo(s, w, n, e, maxScale) {
   draw();
 }
 const sIn = document.getElementById("street"), sList = document.getElementById("streetlist"), fMsg = document.getElementById("findmsg");
+const findBox = document.getElementById("find"), findBtn = document.getElementById("findbtn");
+function openFind(open) {
+  findBox.hidden = !open; findBtn.setAttribute("aria-expanded", String(open));
+  if (open) { sIn.focus(); track("find_opened", {standard: tier}); }
+}
+findBtn.onclick = () => openFind(findBox.hidden);
+findBox.addEventListener("keydown", e => { if (e.key === "Escape" && sList.hidden) { openFind(false); findBtn.focus(); } });
 let sHits = [], sIdx = -1;
 function showList() {
   sList.innerHTML = sHits.map((r, i) => `<li role="option" id="st${i}" aria-selected="${i === sIdx}">${r[0]}<span>${r[1]}</span></li>`).join("");
@@ -1931,7 +1956,7 @@ function showList() {
   if (sIdx >= 0) sIn.setAttribute("aria-activedescendant", "st" + sIdx); else sIn.removeAttribute("aria-activedescendant");
 }
 function chooseStreet(r) {
-  sIn.value = r[0]; sHits = []; showList();
+  sIn.value = r[0]; sHits = []; showList(); openFind(false);
   const [s, w, n, e] = r[2];
   zoomTo(s, w, n, e);
   // light up the island at a point on the street (r[3]). A tight radius, so a busy street doesn't
@@ -1967,6 +1992,7 @@ document.getElementById("locate").onclick = () => {
     const [x, y] = px(la, lo);
     const id = pick(x, y);
     fMsg.textContent = id ? "Your island is lit up. Your location stays in your browser." : "No low-stress street close to you; try clicking one nearby.";
+    openFind(false);
     selectIsland(id, [la, lo], "location");
   }, err => {
     fMsg.textContent = err.code === 1 ? "Location permission was turned off. You can type your street instead." : "Couldn't get your location. You can type your street instead.";
