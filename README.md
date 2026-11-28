@@ -18,8 +18,9 @@ to Caltrain. Served at
     by school, including the stricter "to the nearest school" measure; export uses `access()`).
   - `export.py`: writes `data/map_*.json`, `data/access.csv`, `data/bridges.csv`, `data/schools.csv`.
   - `places.py`: everyday places (grocery stores, parks, libraries, downtown) and who can bike to each within a
-    1-mile ride. `--export` writes `data/places_<tier>.json` (each island's "From here" lists and the one fix that
-    would let the most homes there bike to more places; `tiles.py` merges it into the overview) and
+    1-mile ride. `--export` writes `data/places_<tier>.json` (each island's "From here" lists, its fixes and city plan projects
+    counted by the people there they'd let bike to at least one more curated place, with each one's lines; `tiles.py`
+    merges it into the per-island detail files the page fetches when an island is picked) and
     `data/places/<tier>/<slug>.json` (a page's data for each place in `site/places.json`: who can bike there, what's in
     the way, the fixes that would help most, alone and in pairs, and the city's plan projects that would help, with each
     fix's place in the plans; `build_site.py` leads a page with a city project under the same 75% rule as the map's
@@ -56,7 +57,11 @@ to Caltrain. Served at
   the field where the tags can't say why (South Railroad Ave by San Mateo station); `lts()` returns it as is.
 - `site/places.json`: the places that get their own page, matched to OpenStreetMap by name. San Mateo only until
   Burlingame's speed survey is in. `site/place.html`: the place page template.
-- `site/template.html`: the page (map, rider switch, panel: three answers, the one fix that would help most, the rest folded under "More"; quiz). The lead is the city's own plan project (`data/plans_<tier>.json`, merged by `tiles.py`) when it would connect at least 75% of what the best fix would (`PLAN_COVER`); each fix says where it stands in the city's plans. `site/img/`: quiz photos, cropped from Google
+- `site/template.html`: the page (map, rider switch, panel: where you can bike from here, by everyday places, then
+  school and Caltrain in a row each; the fix or city project that would help most and the other fixes by everyday places,
+  numbered as on the map; school and Caltrain details and the Caltrain fixes folded under "More"; quiz). The lead is the
+  city's own plan project (each island's `plans` in `data/places_<tier>.json`) when it would let at least 75% as many
+  people bike to everyday places as the best fix would (`PLAN_COVER`); each fix says where it stands in the city's plans. `site/img/`: quiz photos, cropped from Google
   Street View screenshots. Not in git until Google's terms for publishing them are checked; the originals are
   Max's 2950×1964 browser screenshots, cropped to the street view and scaled to 1200 px wide:
   `sips -s format jpeg -s formatOptions 82 --cropOffset 693 620 -c 870 2094 IN.png --out OUT.jpg && sips --resampleWidth 1200 OUT.jpg`.

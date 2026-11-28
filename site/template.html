@@ -93,14 +93,19 @@
   ol.br .joins::before { content:""; display:inline-block; width:14px; height:0; border-top:3px solid #5f87b5; vertical-align:middle; margin-right:6px; }
   /* after a click: three answers (places, school, Caltrain), the one fix, then everything else folded away */
   dl.sum { margin:12px 0 4px; }
-  dl.sum .row { display:grid; grid-template-columns: 62px 1fr; gap:8px; padding:8px 0; border-top:1px solid var(--light); }
+  dl.sum .row { display:grid; grid-template-columns: 78px 1fr; gap:8px; padding:8px 0; border-top:1px solid var(--light); }
   dl.sum dt { font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--grey); padding-top:3px; }
   dl.sum dd { margin:0; font-size:14.5px; color:var(--ink); }
   dl.sum dd a { color:inherit; }
   dl.sum .no dd { color:var(--body); }
   dl.sum dd .muted { display:block; }
+  dl.sum dd .kind { color:var(--grey); }
   aside h3.leadh { font-family:'Newsreader', Georgia, serif; font-weight:600; color:var(--ink); font-size:19px; margin:16px 0 4px; }
   ol.br.lead { margin-top:2px; }
+  aside h3.leadh.sub { font-size:16px; margin-top:12px; }
+  ul.br { padding-left: 18px; margin: 6px 0; font-size:14px; }
+  ul.br li { margin: 2px 0 2px -6px; padding: 4px 6px; border-radius: 8px; }
+  ul.br li.hot, ul.br li.focus { background: var(--card); }
   details.more { margin:16px 0 4px; border-top:1px solid var(--light); padding-top:10px; }
   details.more > summary { cursor:pointer; color:var(--copper); font-size:14px; }
   details.more[open] > summary { margin-bottom:4px; }
@@ -584,28 +589,31 @@ function draw() {
     ctx.lineWidth = 4; ctx.strokeStyle = PAPER;
     const w = ctx.measureText(label).width;
     // try right, left, below, above; take the first spot clear of the fix markers
-    const marks = sel && T.islands[sel] ? topBridges(T, sel).map(e => { const B = T.bridges[e.bid], m = B.pts[Math.floor(B.pts.length / 2)]; return px(m[0], m[1]); }) : [];
+    const marks = fixMarks().map(f => [f.x, f.y]);
     const spots = name === "Burlingame" ? [[x - 10 - w, y - 8], [x + 10, y + 4], [x - w / 2, y + 22], [x - w / 2, y - 14]]
                                         : [[x + 10, y + 4], [x - 10 - w, y + 4], [x - w / 2, y + 22], [x - w / 2, y - 14]];
     const clear = ([sx, sy]) => marks.every(([mx, my]) => mx < sx - 12 || mx > sx + w + 12 || my < sy - 24 || my > sy + 14);
     const [lx, ly] = spots.find(clear) || spots[0];
     ctx.strokeText(label, lx, ly); ctx.fillStyle = INK; ctx.fillText(label, lx, ly);
   }
-  // the city project that leads for the selected island
+  // fixes for the selected island, drawn last so labels never cover them; the city project that leads goes over
+  // their lines (they often run along its streets) and under their markers
+  const marks = fixMarks();
+  for (const f of marks) {
+    const hot = f.id === focusFix || f.id === hotFix;
+    for (const pts of f.lines) {      // dark even when chosen, so it stands out from the copper island
+      if (pts.length > 1) stroke(pts, INK, (hot ? 5 : 3) * z);
+      else { const [x, y] = px(pts[0][0], pts[0][1]); ctx.fillStyle = INK; ctx.beginPath(); ctx.arc(x, y, hot ? 6 : 4, 0, 7); ctx.fill(); }
+    }
+  }
   const LP = leadPlan(T);
-  if (LP) for (const pts of LP.P.lines) if (pts.length > 1) stroke(pts, PLAN_COLOR, 4 * z);
-  // fixes for the selected island, drawn last so labels never cover them
-  if (sel && T.islands[sel]) {
-    topBridges(T, sel).forEach((e, k) => {
-      const B = T.bridges[e.bid];
-      const hot = B.id === focusFix || B.id === hotFix;
-      if (B.pts.length > 1) stroke(B.pts, INK, (hot ? 5 : 3) * z);   // dark even when chosen, so it stands out from the copper island
-      const m = B.pts[Math.floor(B.pts.length / 2)], [x, y] = px(m[0], m[1]);
-      ctx.strokeStyle = hot ? COPPER : INK; ctx.lineWidth = hot ? 3 : 2; ctx.fillStyle = PAPER;
-      ctx.beginPath(); ctx.arc(x, y, hot ? 13 : 10, 0, 7); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = INK; ctx.font = "600 12px 'IBM Plex Sans', sans-serif"; ctx.textAlign = "center";
-      ctx.fillText(String(k + 1), x, y + 4); ctx.textAlign = "start";
-    });
+  if (LP) for (const pts of planLines(LP.P)) if (pts.length > 1) stroke(pts, PLAN_COLOR, 4 * z);
+  for (const f of marks) {
+    const hot = f.id === focusFix || f.id === hotFix;
+    ctx.strokeStyle = hot ? COPPER : INK; ctx.lineWidth = hot ? 3 : 2; ctx.fillStyle = PAPER;
+    ctx.beginPath(); ctx.arc(f.x, f.y, hot ? 13 : 10, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = INK; ctx.font = "600 12px 'IBM Plex Sans', sans-serif"; ctx.textAlign = "center";
+    ctx.fillText(String(f.n), f.x, f.y + 4); ctx.textAlign = "start";
   }
   if (cv.matches(":focus-visible")) {        // keyboard focus: the crosshair Enter picks at
     const cx = W / 2, cy = H / 2;
@@ -653,7 +661,7 @@ function fixPlain(B) {
   const x = fixCrossing(B);
   if (x) return `A safe crossing ${x.includes(" at ") ? "of" : "at"} ${x}`;
   const where = B.between ? `, between ${oneSt(B.between[0])} and ${oneSt(B.between[1])},` : B.near ? `, near ${oneSt(B.near)},` : "";
-  return `Making ${ftmi(Math.max(B.len, 15))} of ${B.name}${where} safe for ${tier === "strict" ? "kids" : "experienced riders"}`;
+  return `Making ${ftmi(Math.max(B.len, 15))} of ${B.name}${where} safe for ${WHO[tier]}`;
 }
 // What it would need, two options at most ("It would need a protected bike lane, or a 20 mph limit"); the rest go under Why
 const plainOpt = s => s.replace(/; where routes cross it \(at (.*)\): (.*)$/, ", plus $2 where bike routes cross it at $1");
@@ -727,14 +735,31 @@ function fixGain(e) {        // the station a fix helps most, and by how many ho
   const [st, hu] = Object.entries(e.per).sort((a, b) => b[1] - a[1])[0];
   return `${fmt(hu)} more people to ${st} Caltrain`;
 }
-// the selected island's fix markers, where they sit on screen now
-function fixMarks() {
-  const T = DATA[tier];
+// The fixes on the map for the selected island: its fixes by everyday places, numbered as in the panel, and a
+// Caltrain fix when one is chosen (from "Getting to Caltrain" or a fix's share link), marked "C". Where each
+// marker sits on screen now.
+function fixLines(F) { return F._lines || (F._lines = (F.p || []).map(p => decodePts(p))); }
+function fixMid(F) {         // the point of the fix nearest its middle
+  if (F._mid) return F._mid;
+  const pts = fixLines(F).flat();
+  const m = pts.reduce((a, p) => [a[0] + p[0] / pts.length, a[1] + p[1] / pts.length], [0, 0]);
+  return (F._mid = pts.reduce((b, p) => Math.hypot(p[0] - m[0], (p[1] - m[1]) * K) < Math.hypot(b[0] - m[0], (b[1] - m[1]) * K) ? p : b));
+}
+function mapFixes(T) {
   if (!sel || !T.islands[sel]) return [];
-  return topBridges(T, sel).map((e, k) => {
-    const B = T.bridges[e.bid], m = B.pts[Math.floor(B.pts.length / 2)], [x, y] = px(m[0], m[1]);
-    return {e, B, k, x, y};
-  });
+  const out = placeFixes(T.islands[sel]).map((F, k) => ({id: F.id, n: k + 1, F, lines: fixLines(F), mid: fixMid(F)}));
+  const e = focusFix && !out.some(f => f.id === focusFix) && allFixes(T, sel).find(e => T.bridges[e.bid].id === focusFix);
+  const B = e ? T.bridges[e.bid] : focusFix && !out.some(f => f.id === focusFix) && T.bridges.find(B => B.id === focusFix);
+  if (B) out.push({id: B.id, n: "C", B, e: e || {bid: T.bridges.indexOf(B), per: {[B.st]: B.gain}, max: B.gain}, lines: [B.pts], mid: B.pts[Math.floor(B.pts.length / 2)]});
+  return out;
+}
+function fixMarks() {
+  return mapFixes(DATA[tier]).map(f => { const [x, y] = px(f.mid[0], f.mid[1]); return {...f, x, y}; });
+}
+// one line about a marker, for the map's tooltip and the phone's summary chip
+function markText(f) {
+  if (f.F) return `${f.n}. ${placeFixWhat(f.F)} would open up ${placeGains(f.F, false)}.`;
+  return `${fixPlain(f.B)} would let ${fixGain(f.e).replace(/ to /, " bike to ")}.`;
 }
 function fixAt(x, y, radius) {
   let best = null, bd = radius;
@@ -752,7 +777,7 @@ function setHotFix(id) {
 function selectFix(id, from) {
   focusFix = from === "map" && focusFix === id ? null : id;     // tapping a chosen marker again lets go
   track("fix_selected", {standard: tier, from});
-  const f = focusFix && fixMarks().find(f => f.B.id === focusFix);
+  const f = focusFix && fixMarks().find(f => f.id === focusFix);
   if (f && from === "list") {
     if (f.x < 30 || f.x > W - 30 || f.y < 30 || f.y > H - 30) { ox -= f.x - W / 2; oy -= f.y - H / 2; }
     const top = box.getBoundingClientRect().top, my = top + Math.min(Math.max(f.y, 30), H - 30);
@@ -760,7 +785,7 @@ function selectFix(id, from) {
   }
   setHash(); render();
   if (from === "list") {      // the list was redrawn: put keyboard focus back on the same fix
-    const b = document.querySelector(`#panel li[data-fix="${id}"] .fixlink`);
+    const b = document.querySelector(`#panel li[data-fix="${CSS.escape(id)}"] .fixlink`);
     if (b) b.focus({preventScroll: true});
   }
   if (f && from === "map" && !NARROW.matches) {
@@ -824,83 +849,81 @@ function headline() {
 const RIDER_NOTE = {strict: "Paths and quiet streets only: never on busy streets, never across El Camino.",
                     standard: "Also painted bike lanes and busier 2-lane streets; any traffic light makes a crossing OK."};
 
-// Everyday places most people on this island near each one can bike to, the nearest they can't, and the one fix
-// that would let the most people here bike to more of the places with their own page (pipeline/places.py; homes
-// within a 1-mile ride of each place).
-const DOOR_WHO = {strict: "Kids", standard: "Experienced riders"};
+// Everyday places most people on this island near each one can bike to ("on"), the nearest they can't ("out"), and
+// the fixes and city projects that would let the most people here bike to more of the places with their own page
+// (pipeline/places.py; people within a 1-mile ride of each place). Fetched with the island (islandDetail).
 const DOOR_CAT = {grocery: "grocery store", park: "park", library: "library", downtown: "downtown"};
+const DOOR_CATS = {grocery: "grocery stores", park: "parks", library: "libraries", downtown: "downtown"};
 const placeLink = (n, slug) => slug ? `<a href="places/${slug}/">${n}</a>` : n;
 const placeList = (xs, cls) => `<ul${cls ? ` class="${cls}"` : ""}>` +
   xs.map(([c, n, , slug]) => `<li>${placeLink(n, slug)} <span class="muted">${DOOR_CAT[c] || ""}</span></li>`).join("") + `</ul>`;
-function placeFixWhat(F) {         // "A safe crossing of X at Y", "Making X between A and B safe for kids"
-  return F.kind === "cross" ? `A safe ${F.where.replace(/^the /, "")}` : `Making ${F.where} safe for ${tier === "strict" ? "kids" : "experienced riders"}`;
+// "Mi Rancho Supermarket and La Hacienda Supermarket (grocery stores); Gateway Park (a park)"
+function placesByKind(xs) {
+  const by = {};
+  for (const [c, n, , slug] of xs) (by[c] = by[c] || []).push(placeLink(n, slug));
+  return Object.entries(by).map(([c, ns]) => c === "downtown" ? andList(ns)
+    : `${andList(ns)} <span class="kind">(${ns.length > 1 ? DOOR_CATS[c] : "a " + DOOR_CAT[c]})</span>`).join("; ");
 }
-function placeFixLine(F) {
-  const pl = F.places.map(([slug, n]) => `<a href="places/${slug}/">${n}</a>`);
-  return `<p class="fixline"><strong>${placeFixWhat(F)}</strong> would let ${pl.length > 1 ? "up to " : ""}${fmt(F.homes)} more people here bike to ${andList(pl)}.` +
-    (F.need && F.need.length ? `<span class="need">It would need ${orList(F.need)}.</span>` : "") + `</p>`;
+const placeFixes = I => ((I && I.pl) || {}).fixes || [];
+const ridersFor = () => tier === "strict" ? "cautious riders and kids" : "experienced riders";
+function placeFixWhat(F) {         // "A safe crossing of X at Y", "Making X between A and B (0.3 mi) safe for cautious riders and kids"
+  return F.kind === "cross" ? `A safe ${F.where.replace(/^the /, "")}` : `Making ${F.where}${F.len ? ` (${ftmi(Math.max(F.len, 15))})` : ""} safe for ${ridersFor()}`;
 }
-// --- The city's own plans (pipeline/plan_projects.py) ---
+// who it would let bike where: "downtown to 9,874 people here and the main library to 5,780"
+function placeGains(F, links = true) {
+  return F.places.map(([slug, n, c], k) => `${links ? placeLink(n, slug) : n} to ${fmt(c)}${k ? "" : ` ${c === 1 ? "person" : "people"} here`}`)
+    .reduce((acc, x, k, xs) => acc + (k ? (k === xs.length - 1 ? " and " : ", ") : "") + x, "");
+}
+// --- The city's own plans (pipeline/plan_projects.py, and places.py for each island's "plans") ---
 // Asking the city to finish a project it has already adopted is easier than asking for a new one, so a city
-// project leads when it would connect at least PLAN_COVER of what this map's best fix would. "As it stands" counts
-// only the crossings the project itself makes safe; "crossed" adds safe crossings of the project's own street
-// (a bike lane on Peninsula Ave doesn't make crossing Peninsula Ave easier).
+// project leads when it would let at least PLAN_COVER as many people here bike to everyday places as this map's best
+// fix would. "As it stands" counts only the crossings the project itself makes safe; "crossed" adds safe crossings
+// of the project's own street (a bike lane on Peninsula Ave doesn't make crossing Peninsula Ave easier).
 const PLAN_COVER = 0.75;
 const PLAN_COLOR = getComputedStyle(document.documentElement).getPropertyValue("--plan").trim() || "#2f7f73";
-function allPlans(T, id) {
-  const by = {};
-  for (const [ei, b, w] of ((T.islands[id] || {}).pj || [])) {
-    const E = T.pentries[ei], k = E.pi;
-    by[k] = by[k] || {pi: k, per: {}, perW: {}};
-    by[k].per[E.st] = (by[k].per[E.st] || 0) + b;
-    by[k].perW[E.st] = (by[k].perW[E.st] || 0) + w;
-  }
-  return Object.values(by).map(e => ({...e, max: Math.max(0, ...Object.values(e.per)), maxW: Math.max(0, ...Object.values(e.perW))}))
-    .sort((a, b) => b.max - a.max || b.maxW - a.maxW);
-}
 const capFirst = x => x[0].toUpperCase() + x.slice(1);
 const planRef = P => `${P.ref} of the city's ${P.doc}`;                 // "project 15 of the city's 2020 Bicycle Master Plan"
 // what it is first, then the plan's number for city staff: "the city's planned bike lanes ... (project 15 in its 2020 Bicycle Master Plan)"
 const planName = P => P.what ? `the city's planned ${P.what} (${P.ref} in its ${P.doc})` : planRef(P);
 const about = n => n >= 1000 ? fmt(Math.round(n / 100) * 100) : fmt(Math.round(n / 10) * 10);   // the counts are estimates
-const crossList = P => andList(P.cross);       // already short, once each (plan_projects.cross_names)
+const crossList = P => andList(P.cross || []);       // already short, once each (plan_projects.cross_names)
 const PRIORITY = {"High": "high", "Med-High": "medium-high", "Med-Low": "medium-low", "Low": "low"};   // the plan's shorthand
 function planCost(P) {
   if (!P.cost) return "";
   return P.cost2 ? `estimated ${P.cost}, or ${P.cost2} built with curbs and planters` : `estimated ${P.cost}`;
 }
-// The project that would help this island most, if it leads: {p: entry, P: project, crossed}
+const planLines = P => P.lines || (P.lines = (P.p || []).map(p => decodePts(p)));
+// The project that would help this island most, if it leads: {p: its numbers here, P: the project, crossed}
 function leadPlan(T) {
-  if (!sel || !T.islands[sel] || !T.projects) return null;
-  const list = topBridges(T, sel), best = list.length ? list[0].max : 0;
-  // on a tie, the project this map's top fix falls under (fix_coverage), so the two tell the same story
-  const mine = list.length ? (T.bridges[list[0].bid].plan || [])[0] : null;
-  const plans = allPlans(T, sel).sort((a, b) => b.max - a.max || (b.pi === mine) - (a.pi === mine) || b.maxW - a.maxW);
-  const asIs = plans.find(p => p.max > 0 && p.max >= PLAN_COVER * best);
-  if (asIs) return {p: asIs, P: T.projects[asIs.pi], crossed: false};
-  const withX = plans.filter(p => p.maxW > 0 && p.maxW >= PLAN_COVER * best && T.projects[p.pi].cross.length)
-    .sort((a, b) => b.maxW - a.maxW)[0];
-  return withX ? {p: withX, P: T.projects[withX.pi], crossed: true} : null;
+  if (!sel || !T.islands[sel]) return null;
+  const pl = T.islands[sel].pl || {}, fx = pl.fixes || [], best = fx.length ? fx[0].people : 0;
+  const proj = id => (pl.projects || {})[id];
+  // on a tie, the project this map's top fix falls under, so the two tell the same story
+  const mine = fx.length && fx[0].plan ? fx[0].plan[0] : null;
+  const plans = (pl.plans || []).filter(p => proj(p.id))
+    .sort((a, b) => b.people - a.people || (b.id === mine) - (a.id === mine) || b.people_crossed - a.people_crossed);
+  const asIs = plans.find(p => p.people > 0 && p.people >= PLAN_COVER * best);
+  if (asIs) return {p: asIs, P: proj(asIs.id), crossed: false};
+  const withX = plans.filter(p => p.people_crossed > 0 && p.people_crossed >= PLAN_COVER * best && (proj(p.id).cross || []).length)
+    .sort((a, b) => b.people_crossed - a.people_crossed)[0];
+  return withX ? {p: withX, P: proj(withX.id), crossed: true} : null;
 }
-function planStation(L) {        // the station the lead project helps most here, and by how many homes
-  const per = L.crossed ? L.p.perW : L.p.per;
-  return Object.entries(per).sort((a, b) => b[1] - a[1])[0];
-}
+const planGain = L => L.crossed ? L.p.people_crossed : L.p.people;
+const planPlaces = L => (L.crossed ? L.p.places_crossed : L.p.places) || [];
 function planItem(T, L) {
-  const P = L.P, [st, hu] = planStation(L);
-  const asIs = L.p.per[st] || 0;
+  const P = L.P, gains = placeGains({places: planPlaces(L)});
   const gain = L.crossed
-    ? `It would let ${fmt(hu)} more people here bike to ${st} Caltrain if it also made crossing ${crossList(P)} safe${asIs ? ` (${fmt(asIs)} as planned)` : ""}.`
-    : `It would let ${fmt(hu)} more people here bike to ${st} Caltrain.`;
+    ? `It would open up ${gains}, if it also made crossing ${crossList(P)} safe${L.p.people ? ` (${fmt(L.p.people)} people as planned)` : ""}.`
+    : `It would open up ${gains}.`;
   const meta = [PRIORITY[P.priority] && P.num ? `${PRIORITY[P.priority]} priority in the plan` : "", planCost(P)].filter(Boolean).join("; ");
   return `<p class="planline"><strong>Finish the city's planned ${P.what || planRef(P)}</strong>${P.what ? ` (${P.ref} in its ${P.doc})` : ""}. ${gain}` +
     (meta ? `<span class="need">${capFirst(meta)}.</span>` : "") + `</p>`;
 }
-// Where one of this map's fixes stands in the city's plans
-function planStatus(T, B) {
-  const q = B.plan;
+// Where one of this map's fixes stands in the city's plans: q is [project, bucket, share as it stands, share with
+// its street crossed], P the project
+function planWords(q, P) {
   if (!q) return "";
-  const [pi, bucket, , sw] = q, P = pi === null || pi === undefined ? null : T.projects[pi];
+  const [, bucket, , sw] = q;
   if (bucket === "outside") return "";
   if (bucket === "project" && P) return `The city already plans this: ${planName(P)}.`;
   if (bucket === "project_if_its_street_crossed" && P) return `${capFirst(planName(P))} would cover it, if it also made crossing ${crossList(P)} safe.`;
@@ -908,15 +931,23 @@ function planStatus(T, B) {
   if (bucket === "partly" && P) return `${capFirst(planName(P))} would reach about ${Math.round(sw * 100)}% of these people; the rest isn't in the city's plans.`;
   return "Not in any of the city's plans yet.";
 }
+function planStatus(T, B) {        // a Caltrain fix
+  const q = B.plan, pi = q && q[0];
+  return planWords(q, pi === null || pi === undefined ? null : T.projects[pi]);
+}
+function placePlanStatus(I, F) {   // a fix by everyday places
+  const q = F.plan;
+  return planWords(q, q && q[0] ? ((I.pl || {}).projects || {})[q[0]] : null);
+}
 
 // One fix leads, everywhere: the panel, the map, the email and the request to the city. A city project that would
-// do nearly as much (leadPlan) if there is one, else the top Caltrain fix (it's on the map), else the fix that opens
-// the most places, else what's in the way.
+// do nearly as much (leadPlan) if there is one, else the fix that would let the most people here bike to everyday
+// places, else the top Caltrain fix, else what's in the way to Caltrain.
 function leadFix(T, I, list) {
   const L = leadPlan(T);
   if (L) return {kind: "plan", L};
+  if (placeFixes(I).length) return {kind: "place", F: placeFixes(I)[0]};
   if (list.length) return {kind: "bridge", e: list[0]};
-  if (I.pl && I.pl.fix) return {kind: "place", F: I.pl.fix};
   if (I.gaps) return {kind: "gap"};
   return null;
 }
@@ -931,16 +962,16 @@ function stationSplit(T, I) {
   }
   return {far, cut, reached};
 }
-// The answers first: where people here can bike, as three short rows
+// The answers first: where you can bike from here, as short rows. Everyday places lead; a school and Caltrain are
+// one row each.
 function summaryBlock(T, I) {
   const rows = [], row = (label, yes, html) => rows.push(`<div class="row ${yes ? "yes" : "no"}"><dt>${label}</dt><dd>${html}</dd></div>`);
   const P = I.pl;
   if (P) {
-    const on = P.on || [];
-    const names = on.map(([, n, , slug]) => placeLink(n, slug));
-    row("Places", on.length, on.length
-      ? `${DOOR_WHO[tier]} here can bike to ${andList(names.length > 4 ? [...names.slice(0, 3), `${names.length - 3} more places`] : names)}.`
-      : `No grocery store, park, library or downtown within a mile that most people here can bike to.`);
+    const on = P.on || [], out = P.out || [];
+    row("You can bike to", on.length, on.length ? placesByKind(on) + "."
+      : "No grocery store, park, library or downtown within a mile that most people here can bike to.");
+    if (out.length) row("Cut off from", false, placesByKind(out) + ".");
   }
   const S = I.sch;
   if (S && S.n) {
@@ -957,15 +988,23 @@ function summaryBlock(T, I) {
   }
   const {cut, reached} = stationSplit(T, I);
   if (reached.length) {
-    row("Caltrain", true, reached.map(st => {
-      const n = (I.near || {})[st] || 0, o = (I.ok || {})[st] || 0, m = minsTo(T, st);
-      const how = !o ? ", but only by a long detour" : m ? (m > 25 ? `, only by a long detour (about ${m} min)` : `, about ${m} min`) : "";
-      return `${st}${how}${o ? ` <span class="muted">${pct(o, n)} of people here within 2 miles of it have a low-stress route.</span>` : ""}`;
-    }).join("") + (cut.length ? `<span class="muted">Not ${cut.join(" or ")}.</span>` : ""));
+    row("Caltrain", true, andList(reached.map(st => {
+      const o = (I.ok || {})[st] || 0, m = minsTo(T, st);
+      return st + (!o ? " (only by a long detour)" : m ? (m > 25 ? ` (a long detour, about ${m} min)` : ` (about ${m} min)`) : "");
+    })) + `.${cut.length ? ` Not ${cut.join(" or ")}.` : ""}`);
   } else {
     row("Caltrain", false, cut.length ? "No low-stress route to Caltrain." : "More than a 2-mile ride to Caltrain.");
   }
   return `<dl class="sum">${rows.join("")}</dl>`;
+}
+// A fix by everyday places, numbered as on the map
+function placeFixItem(I, F) {
+  const st = placePlanStatus(I, F);
+  const now = `<p>Now: ${F.is}${F.len ? ` (${ftmi(Math.max(F.len, 15))})` : ""}.</p>`;
+  return `<li data-fix="${F.id}"${F.id === focusFix ? ' class="focus"' : ""}><a class="fixlink" role="button" href="#t=${tier}&i=${sel}&f=${encodeURIComponent(F.id)}" aria-pressed="${F.id === focusFix}">${placeFixWhat(F)}</a> would open up ${placeGains(F)}.` +
+    (F.need && F.need.length ? `<span class="need">It would need ${orList(F.need)}.</span>` : "") +
+    (st ? `<span class="planst">${st}</span>` : "") +
+    `<details class="fixwhy"><summary>What it's like now</summary>${now}<p>These options come from the ratings this map uses. Engineers may find a better fix.</p></details></li>`;
 }
 function fixItem(T, e) {
   const B = T.bridges[e.bid];
@@ -1018,55 +1057,60 @@ function panel() {
   const T = DATA[tier], el = document.getElementById("panel");
   if (!sel) {
     const act = document.getElementById("actions"); act.hidden = true; act.innerHTML = "";
+    // for each kind of place, the people within a ride of one (a mile; Caltrain two) who can bike to one, both cities
+    // (places.py "reach"); elementary schools count kids, by the export's own measure
+    const R = REACH[tier] || {};
+    const sum = cat => Object.values(R[cat] || {}).reduce((a, c) => [a[0] + c.people[0], a[1] + c.people[1]], [0, 0]);
+    const bar = (label, [o, n], unit) => n ? `<div class="stat"><div class="lbl">${label}: <strong>${pct(o, n)}</strong> of ${fmt(n)} ${unit}</div><div class="bar"><i style="width:${100 * o / n}%"></i></div></div>` : "";
     const {kn, kok: ko} = schoolTotals(T);
-    // people within a 1-mile ride of a grocery store who can bike to one, both cities (places.py "reach")
-    const g = Object.values((REACH[tier] || {}).grocery || {}).reduce((a, c) => [a[0] + c.people[0], a[1] + c.people[1]], [0, 0]);
-    const grocery = g[1] ? `<div class="stat"><div class="lbl">Grocery store: <strong>${pct(g[0], g[1])}</strong> of ${fmt(g[1])} people within a mile can bike to one</div><div class="bar"><i style="width:${100 * g[0] / g[1]}%"></i></div></div>` : "";
-    const school = `<div class="stat"><div class="lbl">Elementary school: <strong>${pct(ko, kn)}</strong> of ${fmt(kn)} kids have a low-stress route to one</div><div class="bar"><i style="width:${100 * ko / kn}%"></i></div></div>`;
-    const stations = `<div class="stat"><div class="lbl">Caltrain: share of people within 2 miles of each station with a low-stress route</div><ul class="stlist">` +
-      Object.keys(T.stations).map(st => {
-        const [o, n] = share(T, st);
-        return `<li><span>${st}</span><b>${pct(o, n)}</b><div class="bar"><i style="width:${100 * o / n}%"></i></div></li>`;
-      }).join("") + `</ul></div>`;
-    el.innerHTML = `<h2>Your island</h2>${staleNote()}<p>${COARSE ? "Tap" : "Click"} a street near home. The map lights up every street you can reach from there without riding on, or crossing, a stressful one.</p><p class="muted" style="margin-bottom:4px">For ${WHO[tier]}, across San Mateo and Burlingame:</p>${grocery}${school}${stations}`;
+    el.innerHTML = `<h2>From your door</h2>${staleNote()}<p>${COARSE ? "Tap" : "Click"} a street near home to see the everyday places you can bike to from there without riding on, or crossing, a stressful street.</p>` +
+      `<p class="muted" style="margin-bottom:4px">Across San Mateo and Burlingame, the share of people near each kind of place who can bike to one, for ${WHO[tier]}:</p>` +
+      bar("Grocery store", sum("grocery"), "people within a mile") + bar("Park", sum("park"), "people within a mile") +
+      bar("Library", sum("library"), "people within a mile") + bar("Downtown", sum("downtown"), "people within a mile") +
+      bar("Caltrain", sum("caltrain"), "people within 2 miles") + bar("Elementary school", [ko, kn], "kids within 2 miles");
     return;
   }
   const I = T.islands[sel] || {homes: 0, ok: {}, near: {}, bridges: []};
   const P = I.pl || {};
   const list = topBridges(T, sel), minor = allFixes(T, sel).length - list.length;
-  const lead = leadFix(T, I, list);
-  let h = `<h2>This island</h2>${staleNote()}<div><span class="big">${fmt(I.homes)}</span> people</div>` + summaryBlock(T, I);
-  // the one fix
+  const lead = leadFix(T, I, list), pf = placeFixes(I);
+  let h = `<h2>From here</h2>${staleNote()}<p class="muted" style="margin:0">For ${WHO[tier]}, ${tier === "strict" ? "on paths and quiet streets" : "on streets they're comfortable on"}. Places are within a 1-mile ride.</p>` + summaryBlock(T, I);
+  // the one fix, then the rest of the fixes by everyday places, numbered as on the map
   if (lead && lead.kind === "plan") h += `<h3 class="leadh">The city's own project that would help most</h3>${planItem(T, lead.L)}`;
+  else if (lead && lead.kind === "place") h += `<h3 class="leadh">The fix that would help most</h3>`;
   else if (lead && lead.kind === "bridge") h += `<h3 class="leadh">The fix that would help most</h3><ol class="br lead">${fixItem(T, lead.e)}</ol>`;
-  else if (lead && lead.kind === "place") h += `<h3 class="leadh">The fix that would help most</h3>${placeFixLine(lead.F)}`;
   else if (lead && lead.kind === "gap") h += gapBlock(I);
-  else h += `<p class="muted" style="margin-top:12px">${minor ? "No single fix tested would connect 2% or more of the people on this island to Caltrain."
-                                                              : "None of the single fixes tested would connect more people here to Caltrain."}</p>`;
-  // everything else, folded
+  else h += `<p class="muted" style="margin-top:12px">${P.on || P.out ? "No single fix tested would let more people here bike to the places this map has pages for." : ""}</p>`;
+  if (pf.length) {
+    const rest = lead && lead.kind === "place" ? pf.slice(1) : pf;
+    if (lead && lead.kind === "place") h += `<ol class="br lead">${placeFixItem(I, pf[0])}</ol>`;
+    if (rest.length) h += `<h3 class="leadh sub">${lead && lead.kind === "plan" ? "Fixes this map tested" : "Other fixes"}</h3>` +
+      `<ol class="br" start="${pf.length - rest.length + 1}">${rest.map(F => placeFixItem(I, F)).join("")}</ol>`;
+  }
+  h += `<p class="muted" style="margin-top:10px">${fmt(I.homes)} people live on this island of quiet streets.</p>`;
+  // everything else, folded: the full place lists, route details, and getting to Caltrain
   const more = [], what = [];
   const on = P.on || [], out = P.out || [];
-  if (on.length > 4) more.push(`<h3>${DOOR_WHO[tier]} here can bike to</h3>` + placeList(on));
-  if (out.length) more.push(`<h3>Close, but not on a ${tier === "strict" ? "kid-safe" : "low-stress"} route</h3>` + placeList(out, "out"));
-  if (on.length > 4 || out.length) what.push("nearby places");
+  if (on.length) more.push(`<h3>You can bike to</h3>` + placeList(on));
+  if (out.length) more.push(`<h3>Close, but cut off</h3>` + placeList(out, "out"));
+  if (on.length || out.length) what.push("nearby places");
   const S = I.sch, {far, cut, reached} = stationSplit(T, I);
   const routes = [];
   if (S && S.ok) routes.push(schoolBlock(T, I));
   for (const st of reached) routes.push(stationBlock(T, I, st));
   if (reached.length && cut.length) routes.push(`<p class="cutline">No low-stress route to ${cut.join(" or ")} Caltrain.</p>`);
   if (far.length) routes.push(`<p class="muted">${far.join(" and ")} Caltrain: more than a 2-mile ride.</p>`);
-  if (routes.length) { more.push(`<h3>Route details</h3>` + routes.join("")); what.push("route details"); }
-  if (I.gaps && (!lead || lead.kind !== "gap")) { more.push(gapBlock(I)); what.push("what's in the way"); }
-  const others = [];
-  const rest = lead && lead.kind === "bridge" ? list.slice(1) : list;     // when a city project leads, every fix is "other"
-  if (rest.length) others.push(`<ol class="br" start="${list.length - rest.length + 1}">${rest.map(e => fixItem(T, e)).join("")}</ol>`);
-  if (P.fix && lead && lead.kind !== "place") others.push(placeFixLine(P.fix));
-  if (list.length && minor) others.push(`<p class="muted">${minor === 1 ? "1 smaller fix" : `${minor} smaller fixes`}, each connecting under 2% of the people on this island, ${minor === 1 ? "isn't" : "aren't"} shown.</p>`);
-  const nOther = rest.length + (P.fix && lead && lead.kind !== "place" ? 1 : 0);
-  if (others.length) { more.push(`<h3>${lead && lead.kind === "plan" ? "Fixes this map tested" : "Other fixes"}</h3>` + others.join("")); if (nOther) what.push(nOther === 1 ? "1 other fix" : `${nOther} other fixes`); }
+  if (routes.length) { more.push(`<h3>School and Caltrain</h3>` + routes.join("")); what.push("school and Caltrain"); }
+  if (I.gaps && (!lead || lead.kind !== "gap")) { more.push(gapBlock(I)); what.push("what's in the way to Caltrain"); }
+  const rest = lead && lead.kind === "bridge" ? list.slice(1) : list;
+  if (rest.length) {
+    more.push(`<h3>Fixes for getting to Caltrain</h3><ul class="br">${rest.map(e => fixItem(T, e)).join("")}</ul>` +
+      (minor ? `<p class="muted">${minor === 1 ? "1 smaller fix" : `${minor} smaller fixes`}, each connecting under 2% of the people on this island to Caltrain, ${minor === 1 ? "isn't" : "aren't"} shown.</p>` : ""));
+    what.push(rest.length === 1 ? "1 Caltrain fix" : `${rest.length} Caltrain fixes`);
+  }
   if (more.length) {
     const leadId = lead && lead.kind === "bridge" ? T.bridges[lead.e.bid].id : null;
-    const open = moreOpen || (focusFix && focusFix !== leadId) || (focusGap !== null && !(lead && lead.kind === "gap"));
+    const open = moreOpen || (focusFix && focusFix !== leadId && !pf.some(F => F.id === focusFix)) || (focusGap !== null && !(lead && lead.kind === "gap"));
     h += `<details class="more"${open ? " open" : ""}><summary>More: ${andList(what.length ? what : ["details"])}</summary>${more.join("")}</details>`;
   }
   el.innerHTML = h;
@@ -1133,16 +1177,14 @@ function actionCards(T, I, list, fixText, lead) {
   if (!spot && top) spot = top.pts[Math.floor(top.pts.length / 2)];
   if (!spot) { const L = T.lines.find(L => L.i === sel); spot = L.pts[Math.floor(L.pts.length / 2)]; }
   const {city, district} = whereIs(spot);
-  // the station the email talks about: the lead city project's, else the top fix's, else the one most people here are near
   const LP = lead && lead.kind === "plan" ? lead.L : null;
-  const st = LP ? planStation(LP)[0] : top ? top.st : Object.keys(T.stations).sort((a, b) => ((I.near || {})[b] || 0) - ((I.near || {})[a] || 0))[0];
-  const n = (I.near || {})[st] || 0, o = (I.ok || {})[st] || 0;
   const link = shareURL();
   const cityCfg = (CIVIC.links || {})[city] || {};
   // One card: the main action as the button (the email, where there's a council to write to, else the link),
   // sharing beside it, and the request to the city folded under it.
   const F = lead && lead.kind === "place" ? lead.F : null;
-  const fixPlaces = F ? andList(F.places.map(([, nm]) => nm)) : "";
+  const B0 = lead && lead.kind === "bridge" ? top : null;
+  const P = I.pl || {}, names = xs => andList(xs.map(([, n]) => n));
   let salutation = null, toAddr = null, intro = "", href = null;
   if (city === "San Mateo" && district && CIVIC.council[district]) {
     const m = CIVIC.council[district];
@@ -1153,46 +1195,53 @@ function actionCards(T, I, list, fixText, lead) {
     intro = `Burlingame's council is elected citywide, so the email goes to the whole council.`;
   }
   if (toAddr && CIVIC.email_card) {
+    // where you can and can't bike from here, on streets calm enough for the chosen rider (places.py's lists)
+    const calm = tier === "strict" ? "on streets calm enough for cautious riders and kids" : "on streets experienced riders are comfortable on";
+    const on = P.on || [], out = P.out || [];
     const lines = [`Dear ${salutation},`, "",
       `I used the bike islands map (maxmautner.com/bike-islands) to look at my neighborhood in ${city}.` +
-      (n ? (o ? ` For ${WHO[tier]}, ${fmt(o)} of the ${fmt(n)} people on this island of quiet streets within 2 miles of ${st} Caltrain have a low-stress bike route there.`
-              : ` For ${WHO[tier]}, none of the ${fmt(n)} people on this island of quiet streets within 2 miles of ${st} Caltrain have a low-stress bike route there.`) : "")];
+      (on.length ? ` ${calm[0].toUpperCase() + calm.slice(1)}, I can bike from here to ${names(on.slice(0, 3))}${out.length ? `, but not to ${names(out)}` : ""}.`
+        : out.length ? ` ${calm[0].toUpperCase() + calm.slice(1)}, I can't bike from here to ${names(out)}.` : "")];
     const consider = city === "San Mateo" ? "Could the city consider it for the Quick Build Mobility Program?" : "Could the city consider it?";
+    const opens = xs => xs.map(([, n, c]) => `${n} to ${fmt(c)} people nearby`).join(" and ");
     if (LP) {
-      const [pst, hu] = planStation(LP), P = LP.P;
+      const P = LP.P;
       lines.push("", `The city already plans ${P.what ? `${P.what} (${P.ref} in its ${P.doc})` : planRef(P)}, which would help here. ` +
-        `It would connect ${fmt(hu)} more people to ${pst} Caltrain` + (LP.crossed ? `, if it also made crossing ${crossList(P)} safe` : "") +
+        `It would open up ${opens(planPlaces(LP))}` + (LP.crossed ? `, if it also made crossing ${crossList(P)} safe` : "") +
         `. Could the city fund and build it?`);
-    } else if (top) {
-      const hu = list[0].per[top.st] || list[0].max;
-      lines.push("", `The single fix that would help most here is ${fixText(top)}, which would connect ${fmt(hu)} more people to ${top.st} Caltrain. ${consider}`);
     } else if (F) {
       const w = placeFixWhat(F);
-      lines.push("", `The single fix that would help most here is ${w[0].toLowerCase() + w.slice(1)}, which would let ${fmt(F.homes)} more people bike to ${fixPlaces}. ${consider}`);
+      lines.push("", `The single fix that would help most here is ${w[0].toLowerCase() + w.slice(1)}, which would open up ${opens(F.places)}. ${consider}`);
+    } else if (B0) {
+      const hu = list[0].per[top.st] || list[0].max;
+      lines.push("", `The single fix that would help most here is ${fixText(top)}, which would connect ${fmt(hu)} more people to ${top.st} Caltrain. ${consider}`);
     } else {
       lines.push("", "What would it take to connect these streets to the rest of the city?");
     }
     lines.push("", "[Add a sentence of your own]", "", link, "", "Thank you,");
-    const subj = LP ? `Please build ${LP.P.ref} of the ${LP.P.doc}` : top ? `A safe bike connection to ${top.st} Caltrain` : F ? `A safe bike route to ${F.places[0][1]}` : `Bike routes in my neighborhood`;
+    const subj = LP ? `Please build ${LP.P.ref} of the ${LP.P.doc}` : F ? `A safe bike route to ${F.places[0][1]}` : B0 ? `A safe bike connection to ${top.st} Caltrain` : `Bike routes in my neighborhood`;
     href = `mailto:${toAddr}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(lines.join("\n"))}`;
   }
   const shareBtn = `<button type="button" class="btn${href ? "" : " btn-primary"}" id="share">${CAN_SHARE ? "Share link" : "Copy link"}</button>`;
   let h = `<h2>What you can do</h2><div class="act-item">`;
   if (href) {
-    h += `<p>${intro} The email starts with this island's numbers${LP ? " and the city's own project that would help most" : top || F ? " and the fix that would help most" : ""}; add a sentence of your own. Or send the link to a neighbor.</p>` +
+    h += `<p>${intro} The email starts with where you can and can't bike from here${LP ? ", and the city's own project that would help most" : F || B0 ? ", and the fix that would help most" : ""}; add a sentence of your own. Or send the link to a neighbor.</p>` +
          `<p class="act-btns"><a class="btn btn-primary" href="${href}" data-act="email_clicked" data-city="${city}">Email ${salutation}</a>${shareBtn}<span class="muted" id="copied"></span></p>`;
   } else {
-    h += `<p>Send the link to a neighbor: it opens the map on this island, with its numbers.</p><p class="act-btns">${shareBtn}<span class="muted" id="copied"></span></p>`;
+    h += `<p>Send the link to a neighbor: it opens the map on this island, with where you can bike from it.</p><p class="act-btns">${shareBtn}<span class="muted" id="copied"></span></p>`;
   }
   // the request is about the chosen fix, else the lead city project, else the lead fix, and goes to the city it's in
-  const chosen = list.find(e => T.bridges[e.bid].id === focusFix);
-  const askPlan = !chosen && LP;
-  const askE = chosen || (askPlan ? null : list[0]);
+  const chosenF = placeFixes(I).find(F => F.id === focusFix);
+  const chosen = !chosenF && fixMarks().find(f => f.B && f.id === focusFix);
+  const askPlan = !chosenF && !chosen && LP;
+  const askF = chosenF || (!chosen && !askPlan ? F : null);
+  const askE = chosen ? chosen.e : (!askPlan && !askF ? list[0] : null);
   const askB = askE && T.bridges[askE.bid];
-  const askCityName = askPlan ? "San Mateo" : askB ? whereIs(askB.pts[Math.floor(askB.pts.length / 2)]).city || city : city;
+  const askCityName = askPlan ? "San Mateo" : askF ? whereIs(fixMid(askF)).city || city
+    : askB ? whereIs(askB.pts[Math.floor(askB.pts.length / 2)]).city || city : city;
   const askCfg = (CIVIC.links || {})[askCityName] || {};
   if ((askCityName === "San Mateo" || askCityName === "Burlingame") && askCfg.service_request) {
-    const ask = askPlan ? askCityPlan(LP) : askCity(T, I, askE);
+    const ask = askPlan ? askCityPlan(LP) : askF ? askPlaceFix(askF) : askCity(T, I, askE);
     const c = askCityName;
     const form = `<a href="${askCfg.service_request}" data-act="city_concern_clicked" data-city="${c}">Open ${c}'s service request form</a>` +
       (c === "San Mateo" && askCfg.traffic_calming ? `, or <a href="${askCfg.traffic_calming}" data-act="calming_request_clicked" data-city="${c}">request a traffic calming study</a> for your street` : "");
@@ -1215,8 +1264,6 @@ function actionCards(T, I, list, fixText, lead) {
 // whom, how many homes it cuts off from which station, and the first two ways the rating would count it.
 function askCity(T, I, top) {
   const B = top && T.bridges[top.bid];
-  const F = !B && I.pl && I.pl.fix;
-  if (F) return askPlaceFix(F);
   const gap = !B && I.gaps && I.gaps.items[0];
   const o = B || gap;
   if (!o) return {place: "this neighborhood"};
@@ -1259,22 +1306,22 @@ function askCity(T, I, top) {
 
 // The request when a city project leads: finish it
 function askCityPlan(L) {
-  const P = L.P, [st, hu] = planStation(L);
-  const calm = tier === "strict" ? "on streets calm enough for kids" : "on streets most experienced riders are comfortable on";
+  const P = L.P;
+  const calm = tier === "strict" ? "on streets calm enough for cautious riders and kids" : "on streets most experienced riders are comfortable on";
   const parts = [`Please prioritize ${planName(P)}.`,
-    `It would let about ${about(hu)} people nearby bike to ${st} Caltrain ${calm}` +
+    `It would let about ${about(planGain(L))} people nearby bike to ${andList(planPlaces(L).map(([, n]) => n))} ${calm}` +
     (L.crossed ? `, if it also made crossing ${crossList(P)} safe.` : ".") +
     " (Counted on the bike islands map, maxmautner.com/bike-islands.)"];
   return {place: P.ref, text: parts.join(" "), assumed: ""};
 }
 
-// The same request for the fix that would let the most people here bike to everyday places (no Caltrain fix here)
+// The same request for a fix by everyday places
 function askPlaceFix(F) {
   const how = F.kind === "cross" ? "across" : "along", plain = F.where.replace(/ & /g, " and ");
   const opts = (F.need || []).slice(0, 2).map(s => s.replace(/; where routes cross it \(at (.*)\): (.*)$/, ", plus $2 where bike routes cross it at $1"));
   const cap = s => s[0].toUpperCase() + s.slice(1);
   const parts = [`Please look at making ${plain} comfortable to bike ${how}.`,
-    `Rated by Level of Traffic Stress, it's too stressful for ${WHO[tier]}, and it's what keeps about ${fmt(F.homes)} people nearby from a low-stress bike route to ${andList(F.places.map(([, n]) => n))}.`];
+    `Rated by Level of Traffic Stress, it's too stressful for ${WHO[tier]}, and it's what keeps about ${about(F.people)} people nearby from a low-stress bike route to ${andList(F.places.map(([, n]) => n))}.`];
   if (opts.length > 1) parts.push(`Either of these would bring it to a low-stress rating: ${opts.join("; or ")}.`);
   else if (opts.length) parts.push(`${cap(opts[0])} would bring it to a low-stress rating.`);
   parts.push("I'm not suggesting a specific design; the city knows best what fits here.");
@@ -1305,7 +1352,9 @@ async function applyHash() {
     catch (err) { tier = "strict"; sel = null; document.querySelectorAll(".seg button[data-tier]").forEach(b => b.setAttribute("aria-pressed", b.dataset.tier === tier)); }
   }
   if (sel && !DATA[tier].lines.some(L => L.i === sel)) sel = null;
-  stale = q.get("i") && !sel ? "island" : focusFix && !DATA[tier].bridges.some(B => B.id === focusFix) ? "fix" : "";
+  // a fix by everyday places ("along:…", "cross:…") arrives with the island's details, so only Caltrain fixes are checked here
+  const placeFix = /^(along|cross):/.test(focusFix || "");
+  stale = q.get("i") && !sel ? "island" : focusFix && !placeFix && !DATA[tier].bridges.some(B => B.id === focusFix) ? "fix" : "";
   if (stale === "fix") focusFix = null;
   if (sel && zoomIn) {
     // a share link: frame the island (and the fix, if any)
@@ -1361,10 +1410,10 @@ function hint() {
   const el = document.getElementById("hint");
   if (!sel) { el.style.display = ""; el.textContent = `${COARSE ? "Tap" : "Click"} near where you live`; return; }
   if (!NARROW.matches) { el.style.display = "none"; return; }
-  const fm = focusFix && fixMarks().find(f => f.B.id === focusFix);
+  const fm = focusFix && fixMarks().find(f => f.id === focusFix);
   if (fm) {
     el.style.display = "";
-    el.innerHTML = `<button type="button" class="chip"><strong>${fm.k + 1}.</strong> ${fixPlain(fm.B)} would let ${fixGain(fm.e).replace(/ to /, " bike to ")} · <u>Details&nbsp;&darr;</u></button>`;
+    el.innerHTML = `<button type="button" class="chip">${markText(fm)} · <u>Details&nbsp;&darr;</u></button>`;
     el.querySelector("button").onclick = () => {
       (document.querySelector("#panel li.focus") || document.getElementById("panel")).scrollIntoView({behavior: "smooth", block: "center"});
       track("details_chip_clicked", {standard: tier, fix: true});
@@ -1372,7 +1421,9 @@ function hint() {
     return;
   }
   const T = DATA[tier], I = T.islands[sel] || {};
-  const bits = [`<strong>${fmt(I.homes || 0)} people</strong>`];
+  const on = (I.pl || {}).on || [];
+  const bits = [on.length ? `Bike to ${andList(on.slice(0, 2).map(([, n]) => n))}${on.length > 2 ? ` and ${on.length - 2} more` : ""}`
+                          : I.pl ? "No everyday places in reach" : `<strong>${fmt(I.homes || 0)} people</strong>`];
   const sc = (I.sch || {}).ok ? schoolsOn(T, I).find(x => x.mins) : null;
   if (sc && sc.mins <= 25) bits.push(`${sc.name} ${sc.mins} min`);
   else if (I.sch && I.sch.n && !I.sch.ok) bits.push("no low-stress route to a school");
@@ -1380,7 +1431,6 @@ function hint() {
     const m = (I.near || {})[st] ? minsTo(T, st) : null;
     if (m && m <= 25) bits.push(`${st} Caltrain ${m} min`);
   }
-  if (!Object.values(I.ok || {}).some(Boolean)) bits.push("no low-stress route to Caltrain");
   el.style.display = "";
   el.innerHTML = `<button type="button" class="chip">${bits.join(" · ")} · <u>Details&nbsp;&darr;</u></button>`;
   el.querySelector("button").onclick = () => {
@@ -1421,7 +1471,7 @@ function mapnote() {
   document.getElementById("lg-other").innerHTML = sel ? '<i style="border-color:var(--grey)"></i>Other low-stress streets' :
     '<i style="border-color:var(--grey)"></i>Small islands';
   // the key's fix marker only once there are fixes on the map
-  document.getElementById("lg-fix").hidden = !(sel && T.islands[sel] && topBridges(T, sel).length);
+  document.getElementById("lg-fix").hidden = !fixMarks().length;
   document.getElementById("lg-plan").hidden = !leadPlan(T);
   // before a click, the subtitle and the hint say what to do; after one, the panel has the answers
   if (!sel) { el.innerHTML = ""; return; }
@@ -1493,9 +1543,9 @@ function placeTip(x, y) {
   tip.style.top = (y + 16 + h > H ? y - 16 - h : y + 16) + "px";
 }
 function fixTip(f, x, y) {
-  tip.innerHTML = `<strong>${f.k + 1}. ${fixPlain(f.B)}</strong><br>Would let ${fixGain(f.e).replace(/ to /, " bike to ")}` +
-    (needPlain(f.B) ? `<br>${needPlain(f.B)}` : "") +
-    `<br><span class="muted">${f.B.id === focusFix ? "Click to let go" : NARROW.matches ? "Click to choose it" : "Click to find it in the list"}</span>`;
+  const need = f.F ? (f.F.need.length ? `It would need ${orList(f.F.need.slice(0, 2))}.` : "") : needPlain(f.B);
+  tip.innerHTML = `<strong>${markText(f)}</strong>` + (need ? `<br>${need}` : "") +
+    `<br><span class="muted">${f.id === focusFix ? "Click to let go" : NARROW.matches ? "Click to choose it" : "Click to find it in the list"}</span>`;
   placeTip(x, y);
 }
 function minsAt(x, y) {        // minutes from the heat's start to the island street under the pointer
@@ -1517,14 +1567,8 @@ function hoverTip(id, x, y) {
   }
   if (!id) { tip.hidden = true; return; }
   const T = DATA[tier], I = T.islands[id] || {};
-  const st = Object.keys(T.stations).sort((a, b) => ((I.near || {})[b] || 0) - ((I.near || {})[a] || 0))[0];
-  const n = (I.near || {})[st] || 0, o = (I.ok || {})[st] || 0;
-  tip.innerHTML = `<strong>${fmt(I.homes || 0)} people</strong>` +
-    (!n ? "<br>More than a 2-mile ride to Caltrain"
-        : o ? `<br>${pct(o, n)} of people within 2 miles of ${st} Caltrain have a low-stress route there`
-        : `<br>No low-stress route to ${st} Caltrain`) +
-    (I.sch && I.sch.n ? (I.sch.ok ? `<br>${pct(I.sch.ok, I.sch.n)} have a low-stress route to an elementary school` : "<br>No low-stress route to an elementary school") : "") +
-    `<br><span class="muted">Click to see this island</span>`;
+  tip.innerHTML = `<strong>${fmt(I.homes || 0)} people</strong> live on this island of quiet streets` +
+    `<br><span class="muted">Click to see where you can bike from here</span>`;
   placeTip(x, y);
 }
 function setHover(id) {
@@ -1537,7 +1581,7 @@ cv.addEventListener("pointermove", e => {
   if (!hoverFrame) hoverFrame = requestAnimationFrame(() => {     // at most one hit test per frame
     hoverFrame = 0;
     const [x, y] = hoverAt, f = fixAt(x, y, 16);
-    setHotFix(f ? f.B.id : null);
+    setHotFix(f ? f.id : null);
     if (f) { setHover(null); cv.style.cursor = "pointer"; fixTip(f, x, y); return; }
     const id = pick(x, y);
     setHover(id); hoverTip(id, x, y);
@@ -1597,7 +1641,7 @@ function endPointer(e, cancelled) {
   if (drag && !moved && !cancelled) {
     const [x, y] = relPt(e);
     const f = fixAt(x, y, e.pointerType === "mouse" ? 16 : 24);     // a bigger target for a finger
-    if (f) { drag = null; selectFix(f.B.id, "map"); return; }
+    if (f) { drag = null; selectFix(f.id, "map"); return; }
     const id = pick(x, y);
     if (id) selectIsland(id, unpx(x, y), "map");
     else missed();      // a click between streets keeps the island you had; Clear or Escape lets go
@@ -1631,7 +1675,7 @@ cv.addEventListener("keydown", e => {
   else if (k === "0") resetView();
   else if (k === "Enter" || k === " ") {
     const f = fixAt(W / 2, H / 2, 16);
-    if (f) selectFix(f.B.id, "map");
+    if (f) selectFix(f.id, "map");
     else { const id = pick(W / 2, H / 2); if (id) selectIsland(id, unpx(W / 2, H / 2), "keyboard"); else missed(); }
   } else return;
   e.preventDefault();

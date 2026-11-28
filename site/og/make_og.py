@@ -124,15 +124,15 @@ def share_image(ent):
     img.quantize(colors=64, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).save(out / f"{ent['slug']}.png", optimize=True)
 
 
-CAN = "#5cb98d"   # blocks where kids can bike to the place; the rest are ACCENT, as on the place pages
+CAN = "#5cb98d"   # blocks whose people can bike to the place; the rest are ACCENT, as on the place pages
 
 
 def place_image(slug):
-    """Preview for one place page: the share of kids within a mile who can bike there, beside its map."""
+    """Preview for one place page: the share of people within a mile who can bike there, beside its map."""
     import json
     P = json.load(open(Path(B.HERE) / "data" / "places" / "strict" / f"{slug}.json"))
     M = P["map"]
-    k_, kok = P["total"]["kids"], P["ok"]["kids"]
+    k_, kok = P["total"]["homes"], P["ok"]["homes"]     # people ("homes" counts residents)
     img = Image.new("RGB", (W, H), BG)
     d = ImageDraw.Draw(img)
     d.rectangle([0, H - 10, W, H], fill=ACCENT)
@@ -155,10 +155,10 @@ def place_image(slug):
     for st in M["streets"]:
         if not st[0] and len(st) > 3:
             md.line(pts(st[1:]), fill=HIGH, width=2)
-    for la, lo, ok, _, kids in M["dots"]:
-        if kids:
+    for la, lo, ok, people, _ in M["dots"]:
+        if people:
             x, y = Q(la, lo)
-            r = max(2.5, kids ** 0.5 * 1.1)
+            r = max(2.5, people ** 0.5 * 0.5)
             md.ellipse([x - r, y - r, x + r, y + r], fill=CAN if ok else ACCENT)
     x, y = Q(0, 0)
     if not M["rings"]:
@@ -186,14 +186,14 @@ def place_image(slug):
     d.text((PAD, y + 50), f"{share}%", font=big, fill=CAN, anchor="ls")
     bx = PAD + d.textlength(f"{share}%", font=big) + 18
     small = font("IBMPlexSans.ttf", 22, 400)
-    for i, line in enumerate(wrap(d, "of kids within a mile can bike there on quiet streets", small, 470 - (bx - PAD))):
+    for i, line in enumerate(wrap(d, "of people within a mile can bike there on quiet streets", small, 470 - (bx - PAD))):
         d.text((bx, y + 14 + i * 28), line, font=small, fill=TEXT2, anchor="ls")
     y += 76
     bw = 460
     d.rectangle([PAD, y, PAD + bw, y + 14], fill=ACCENT)
     d.rectangle([PAD, y, PAD + bw * share / 100, y + 14], fill=CAN)
     y += 50
-    d.text((PAD, y), f"{kok:,} of {k_:,} kids", font=small, fill=TEXT2, anchor="ls")
+    d.text((PAD, y), f"{kok:,} of {k_:,} people", font=small, fill=TEXT2, anchor="ls")
     d.text((PAD, H - PAD + 26), f"maxmautner.com{B.BASE.rstrip('/')}", font=font("IBMPlexSans.ttf", 22, 400), fill=TEXT3, anchor="ls")
     out = OUT / "places"
     out.mkdir(parents=True, exist_ok=True)

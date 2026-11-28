@@ -3,16 +3,17 @@ to each one on a low-stress route.
 
 Places are OpenStreetMap features (data/raw/osm_places_*.json, fetched by pipeline/fetch_osm.sh), hand-placed
 downtowns, and the Caltrain stations (reached at the platform, as in the station analysis). A home reaches a place by the same rule as the stations and schools: a low-stress route no more than 25%
-longer than the shortest ride on any street (plus 50 m). Everything here counts homes within a 1-mile ride
-(RIDE_M) of the place: these are trips a kid might make on their own. Parks are reached at their edge; shops,
+longer than the shortest ride on any street (plus 50 m). Everything here counts people within a 1-mile ride
+(RIDE_M) of the place, and the kids among them: trips a kid might make on their own, and errands for everyone. Parks are reached at their edge; shops,
 libraries and downtowns within about a block (LAST_BLOCK_M: walk the bike the rest).
 
 --export writes, for each standard:
-  data/places_<tier>.json        per island: the places most of its homes nearby can reach ("on") and the nearest
-                                 they can't ("out"), and the one fix that would let the most homes here reach more
-                                 of the curated places ("fix"); plus a summary of each curated place.
-                                 tiles.py merges the island part into overview_<tier>.json.
-  data/places/strict/<slug>.json one page's data (kids' map only), for each curated place in site/places.json: who lives within a
+  data/places_<tier>.json        per island: the places most of its people nearby can reach ("on") and the nearest
+                                 they can't ("out"); the fixes ("fixes") and city plan projects ("plans", with their
+                                 words in "projects") that would let the most people here reach at least one more of
+                                 the curated places; plus a summary of each curated place.
+                                 tiles.py merges the island part into the per-island detail files.
+  data/places/strict/<slug>.json one page's data (cautious riders' map only), for each curated place in site/places.json: who lives within a
                                  mile, who can bike there, what's in the way, the fixes that would help most alone
                                  and in pairs, and its map.
 
@@ -65,7 +66,7 @@ DOWNTOWNS = {  # centers at an OSM intersection on each main street
 }
 CATS = ["grocery", "park", "library", "downtown"]   # what the island panel lists; city halls and Caltrain
                                                    # get pages (the panel already counts Caltrain, within 2 miles)
-WEIGHT = {"strict": 1, "standard": 0}   # fixes ranked by kids for kids' map, homes otherwise
+WEIGHT = {"strict": 0, "standard": 0}   # fixes ranked by people (index 0) on both maps, kids (1) breaking ties
 WHO = {"strict": "kids", "standard": "experienced riders"}
 
 
@@ -398,7 +399,7 @@ def place_detail(ctx, pl, plan=None):
                    for k in ("written", "generous")} if near_p else {"written": set(), "generous": set()}
         for fx in fixes:      # where each fix stands in the plans, by the same buckets as plan_projects.py
             G = gained[(fx["kind"], fx["street"])]
-            j = wi if sum(near[k][wi] for k in G) else 1 - wi      # kids on the kids' map; homes where it connects none
+            j = wi if sum(near[k][wi] for k in G) else 1 - wi      # people (wi); kids where it connects no one
             kw = lambda g: sum(near[k][j] for k in g)
             tot_g = kw(G) or 1
             share = {k: max(((kw(plan_got[p][k] & G) / tot_g, p) for p in plan_got), default=(0, None)) for k in MODES}
@@ -459,7 +460,8 @@ def place_detail(ctx, pl, plan=None):
                             round((box[2] - lat0) * 1e5), round((box[3] - lon0) * 1e5)],
                     "streets": streets, "rings": [[v for p in r for v in q(p)] for r in (pl["rings"] or [])],
                     "dots": [[*q((a, b)), int(okf), h, kd] for (a, b, okf), (h, kd) in sorted(dots.items())]}}
-    return page, gained, near
+    geo = {key: (v["segs"], v["nodes"]) for key, v in items.items() if key in gained}
+    return page, gained, near, geo, plan_got
 
 
 def describe(ctx, key, v):
@@ -600,55 +602,141 @@ def export(path):
             slug_of = {i: c["slug"] for c, i in cur}
             name_of = {i: c["name"] for c, i in cur}
         iid = ctx.iid()
-        plan = plan_context(path, ctx) if tier == "strict" else None     # place pages are the kids' map
+        plan = plan_context(path, ctx)      # pages are the cautious riders' map; both maps' panels lead with a project
         lists = island_lists(ctx, places, iid, slug_of, name_of)
         pdir = os.path.join(ROOT, "data", "places", tier)
         if tier == "strict":
             os.makedirs(pdir, exist_ok=True)
         summary = []
-        # per island: each candidate fix (by kind and street) -> {place slug: homes here it would let bike there}
-        isl_fix = collections.defaultdict(lambda: collections.defaultdict(dict))
-        fix_info = {}
+        # per island: each fix -> the origin keys it would let reach at least one place, and {place slug: people};
+        # each city project -> the same, as it stands ("bare") and with its own street made safe to cross ("written")
+        isl_fix = collections.defaultdict(lambda: collections.defaultdict(lambda: [set(), {}]))
+        isl_plan = collections.defaultdict(lambda: collections.defaultdict(lambda: {"bare": set(), "written": set(), "per": {"bare": {}, "written": {}}}))
+        fix_at = {}          # (fix id, place slug) -> (the fix as that page has it, its geometry)
         for c, i in cur:
-            page, gained, near = place_detail(ctx, places[i], plan)
+            page, gained, near, geo, plan_got = place_detail(ctx, places[i], plan)
             page.update(slug=c["slug"], name=c["name"], title=c.get("title", c["name"]), category=c["category"],
                         city=city_of(places[i]["p"]))
-            if tier == "strict":     # pages are for the kids' map; the other standard only feeds the panel's fix line
+            if tier == "strict":     # pages are the cautious riders' map; the other standard only feeds the panel
                 json.dump(page, open(os.path.join(pdir, f"{c['slug']}.json"), "w"), separators=(",", ":"))
             summary.append({"slug": c["slug"], "name": c["name"], "title": page["title"], "category": c["category"],
                             "city": page["city"],
                             "total": page["total"], "ok": page["ok"],
                             "top": {k: page["fixes"][0][k] for k in ("where", "homes", "kids")} if page["fixes"] else None})
-            print(f"[{tier}] {c['slug']}: {page['ok']['kids']:,} of {page['total']['kids']:,} kids, "
-                  f"{page['ok']['homes']:,} of {page['total']['homes']:,} homes; top fix: "
+            print(f"[{tier}] {c['slug']}: {page['ok']['homes']:,} of {page['total']['homes']:,} people, "
+                  f"{page['ok']['kids']:,} of {page['total']['kids']:,} kids; top fix: "
                   f"{page['fixes'][0]['where'] if page['fixes'] else 'none'}", file=sys.stderr)
             for fx in page["fixes"]:
-                fid = fx["id"]
-                if fid not in fix_info or fx["homes"] > fix_info[fid]["homes"]:
-                    fix_info[fid] = {k: fx[k] for k in ("where", "is", "need", "kind", "homes")}
+                key = (fx["kind"], fx["street"])
+                fix_at[(fx["id"], c["slug"])] = (fx, geo[key])
                 per = collections.Counter()
-                for k in gained[(fx["kind"], fx["street"])]:
+                for k in gained[key]:
                     per[iid(k)] += near[k][0]
+                    isl_fix[iid(k)][fx["id"]][0].add(k)
                 for isl_id, h in per.items():
-                    isl_fix[isl_id][fid][c["slug"]] = h
+                    isl_fix[isl_id][fx["id"]][1][c["slug"]] = h
+            for pid, got in plan_got.items():
+                for mode in ("bare", "written"):
+                    per = collections.Counter()
+                    for k in got[mode]:
+                        isl_plan[iid(k)][pid][mode].add(k)
+                        per[iid(k)] += near[k][0]
+                    for isl_id, h in per.items():
+                        isl_plan[isl_id][pid]["per"][mode][c["slug"]] = h
         names = {c["slug"]: c["name"] for c, _ in cur}
+        isl_people = collections.Counter()
+        for k, (h, _) in ctx.W.items():
+            isl_people[iid(k)] += h
         out = {}
-        for isl_id in set(lists) | set(isl_fix):
+        for isl_id in set(lists) | set(isl_fix) | set(isl_plan):
             e = dict(lists.get(isl_id, {}))
-            cand = isl_fix.get(isl_id)
-            if cand:
-                fid, per = max(cand.items(), key=lambda kv: (sum(kv[1].values()), len(kv[1]), kv[0]))
-                if max(per.values()) >= 20:
-                    top_h = max(per.values())     # name only the places this fix opens to most of those homes
-                    pls = [s for s in sorted(per, key=lambda s: -per[s]) if per[s] >= 0.5 * top_h]
-                    e["fix"] = {"where": fix_info[fid]["where"], "need": fix_info[fid]["need"],
-                                "kind": fix_info[fid]["kind"], "homes": max(per.values()),
-                                "places": [[s, names[s], per[s]] for s in pls[:3]]}
+            fixes, projects = island_fixes(ctx, isl_fix.get(isl_id, {}), fix_at, names, isl_people[isl_id]), {}
+            for f in fixes:
+                if f.get("plan") and f["plan"][0]:
+                    projects[f["plan"][0]] = None
+            plans = island_plans(ctx, isl_plan.get(isl_id, {}), names, plan)
+            for p in plans:
+                projects[p["id"]] = p.pop("lines")
+            if fixes:
+                e["fixes"] = fixes
+            if plans:
+                e["plans"] = plans
+            if projects:      # each project's words, and its lines where the panel may draw it
+                e["projects"] = {pid: dict(plan["desc"][pid], cross=plan["cross"][pid], **({"p": ln} if ln else {}))
+                                 for pid, ln in projects.items()}
             if e:
                 out[str(isl_id)] = e
         json.dump({"islands": out, "places": summary, "reach": category_reach(ctx, places)},
                   open(os.path.join(ROOT, "data", f"places_{tier}.json"), "w"), separators=(",", ":"))
         print(f"[{tier}] places: {len(out)} islands, {len(summary)} place pages")
+
+
+ISLAND_FIXES = 5          # fixes the panel lists for an island, most people first
+MINOR_SHARE, MINOR_MIN = 0.02, 20     # and only those that would let at least this share of its people (and this many) reach a place
+ISLAND_PLANS = 3
+
+
+def enc_line(pts):
+    """[lat, lon] points as the page's delta-encoded ints (first point absolute, at 1e-5 degrees)."""
+    out, la0, lo0 = [], 0, 0
+    for la, lo in pts:
+        a, b = round(la * 1e5), round(lo * 1e5)
+        out += [a - la0, b - lo0]
+        la0, lo0 = a, b
+    return out
+
+
+def place_list(per, names):
+    """The places a fix opens to most of the people it helps here: [[slug, name, people]], at most three."""
+    top = max(per.values())
+    return [[s, names[s], per[s]] for s in sorted(per, key=lambda s: (-per[s], s)) if per[s] >= 0.5 * top][:3]
+
+
+def island_fixes(ctx, cand, fix_at, names, people):
+    """An island's fixes by everyday places: each tested fix, counted by the people here it would let bike to at least
+    one more of the curated places (a person counts once however many places it opens). The same bottleneck often
+    shows up as a stretch of a busy street and as a crossing of it, letting the same people through: keep the crossing."""
+    rows = []
+    for fid, (keys, per) in cand.items():
+        n = sum(ctx.W[k][0] for k in keys)
+        if n < max(MINOR_MIN, MINOR_SHARE * people):
+            continue
+        rows.append((n, sum(ctx.W[k][1] for k in keys), fid, frozenset(keys), per))
+    rows.sort(key=lambda r: (-r[0], -r[1], not r[2].startswith("cross:"), r[2]))
+    seen, out = set(), []
+    for n, kd, fid, keys, per in rows:
+        if keys in seen:
+            continue
+        seen.add(keys)
+        best = max(per, key=lambda s: (per[s], s))         # described as on the page of the place it helps most here
+        fx, (segs, nodes) = fix_at[(fid, best)]
+        lines = [enc_line([ctx.coord[a], ctx.coord[b]]) for a, b in sorted(segs)] + \
+                [enc_line([ctx.coord[m]]) for m in sorted(nodes)]
+        plan = fx.get("plan")
+        out.append({"id": fid, "kind": fx["kind"], "where": fx["where"], "is": fx["is"], "need": fx["need"], "len": fx["len"],
+                    "people": n, "kids": kd, "places": place_list(per, names), "p": lines,
+                    **({"plan": [plan[0].removeprefix("plan:") if plan[0] else None, *plan[1:]]} if plan else {})})
+        if len(out) == ISLAND_FIXES:
+            break
+    return out
+
+
+def island_plans(ctx, cand, names, plan):
+    """The city projects that would let the most people here bike to at least one more curated place, as they stand
+    ("people") and with safe crossings of their own street ("people_crossed")."""
+    rows = []
+    for pid, g in cand.items():
+        if not g["written"]:
+            continue
+        rows.append({"id": pid, "people": sum(ctx.W[k][0] for k in g["bare"]), "kids": sum(ctx.W[k][1] for k in g["bare"]),
+                     "people_crossed": sum(ctx.W[k][0] for k in g["written"]),
+                     "kids_crossed": sum(ctx.W[k][1] for k in g["written"]),
+                     "places": place_list(g["per"]["bare"], names) if g["per"]["bare"] else [],
+                     "places_crossed": place_list(g["per"]["written"], names)})
+    rows.sort(key=lambda r: (-r["people"], -r["people_crossed"], r["id"]))
+    for r in rows[:ISLAND_PLANS]:
+        r["lines"] = [enc_line(line) for line in plan_lines(plan["applied"][r["id"]]["steps"], ctx.coord)]
+    return rows[:ISLAND_PLANS]
 
 
 def report(path, tier, ats):

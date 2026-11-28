@@ -84,7 +84,7 @@ const DATA_URL = /*DATAURL*/;
   let D;
   try { D = await (await fetch(DATA_URL)).json(); } catch (e) { document.getElementById("hint").textContent = "The map didn't load."; return; }
   const M = D.map, FIX = {};
-  D.fixes.filter(f => f.kids > 0).slice(0, 4).forEach((f, k) => { FIX[f.id] = Object.assign({n: k + 1}, f); });
+  D.fixes.filter(f => f.homes > 0).slice(0, 4).forEach((f, k) => { FIX[f.id] = Object.assign({n: k + 1}, f); });
   // the city's project, when the page leads with it (build_site.py decides): drawn in its own color, no number
   document.querySelectorAll(".fix.plan").forEach(b => {
     const p = (D.plans || []).find(x => x.id === b.dataset.fix);
@@ -120,10 +120,10 @@ const DATA_URL = /*DATAURL*/;
     for (const st of M.streets) if (!st[0]) line(st.slice(1), ink, 1.4);
     const can = css("--can"), cant = css("--copper");
     ctx.globalAlpha = 0.85;
-    for (const [la, lo, ok, homes, kids] of M.dots) {
-      if (!kids) continue;
+    for (const [la, lo, ok, people] of M.dots) {      // sized by people ("homes" counts residents)
+      if (!people) continue;
       ctx.fillStyle = ok ? can : cant; ctx.beginPath();
-      ctx.arc(X(lo), Y(la), Math.max(1.6, Math.sqrt(kids) * 0.75), 0, 7); ctx.fill();
+      ctx.arc(X(lo), Y(la), Math.max(1.6, Math.sqrt(people) * 0.35), 0, 7); ctx.fill();
     }
     ctx.globalAlpha = 1;
     for (const [id, f] of Object.entries(FIX)) {
@@ -169,8 +169,8 @@ const DATA_URL = /*DATAURL*/;
     if (best) return best;
     let dot = null, dd = 1e9;
     for (const d of M.dots) {
-      if (!d[4]) continue;
-      const r = Math.max(4, Math.sqrt(d[4]) * 0.75 + 3), q = Math.hypot(px - X(d[1]), py - Y(d[0]));
+      if (!d[3]) continue;
+      const r = Math.max(4, Math.sqrt(d[3]) * 0.35 + 3), q = Math.hypot(px - X(d[1]), py - Y(d[0]));
       if (q < r && q < dd) { dd = q; dot = d; }
     }
     return dot ? {dot} : null;
@@ -196,7 +196,7 @@ const DATA_URL = /*DATAURL*/;
     }
     const title = document.querySelector(`.fix[data-fix="${CSS.escape(id)}"] h3`).textContent.replace(/^\d+/, "");
     pop.innerHTML = `<button class="x" aria-label="Close">&times;</button><strong>${f.n ? f.n + ". " : ""}${title}</strong>` +
-      (f.isPlan ? `` : `${f.kids.toLocaleString()} more kids could bike here. `) +
+      (f.isPlan ? `` : `${f.homes.toLocaleString()} more people could bike here. `) +
       `<a href="#" data-go="1">${f.isPlan ? "More about it" : "What it would need"}</a>`;
     closeBtn();
     pop.querySelector("[data-go]").onclick = ev => { ev.preventDefault();
@@ -207,8 +207,9 @@ const DATA_URL = /*DATAURL*/;
     const r = cv.getBoundingClientRect(), px = ev.clientX - r.left, py = ev.clientY - r.top, h = hit(px, py);
     if (h && h.fix) { select(h.fix); showFix(h.fix); return; }
     if (h && h.dot) {
-      const [, , ok, homes, kids] = h.dot;
-      pop.innerHTML = `<button class="x" aria-label="Close">&times;</button><strong>${kids} kid${kids === 1 ? "" : "s"} on this block</strong>` +
+      const [, , ok, people, kids] = h.dot;
+      pop.innerHTML = `<button class="x" aria-label="Close">&times;</button><strong>${people} ${people === 1 ? "person" : "people"} on this block</strong>` +
+        (kids ? `${kids} of them kids. ` : "") +
         (ok ? `They can bike to ${PLACE} on quiet streets.` : `They can't bike to ${PLACE} without riding on a busy street.`);
       closeBtn(); place(px, py); return;
     }
