@@ -3,6 +3,7 @@
   "slug": "peninsula",
   "moved_from": "peninsula/",
   "street": "Peninsula Avenue",
+  "card": {"title": "Peninsula Avenue", "change": "Five safer crossings and a 30 mph limit", "text": "Peninsula is the border between Burlingame and San Mateo, and five of the side streets that cross it, from Lorton to Humboldt, have no light or all-way stop. Fix those crossings and slow Peninsula to 30, and {total} people could bike across: San Mateo neighbors to Burlingame Avenue, Washington Park and the train station, Burlingame neighbors to Martin Luther King Park."},
   "layout": "across",
   "mode": "bare",
   "lede": "Peninsula Avenue divides Burlingame and San Mateo. Five safe crossings and a 30 mph limit would let {total} neighbors bike to parks, shops and Caltrain on the other side.",
@@ -80,6 +81,7 @@
  {
   "slug": "28th-ave-edison",
   "street": "28th Avenue",
+  "card": {"title": "28th Avenue", "change": "A protected bike lane from Edison to El Camino", "text": "The city is already designing this one. Once it's built, {total} people could ride to Hillsdale Caltrain and the Bay Meadows parks without mixing with 28th's traffic."},
   "layout": "along",
   "items": [
    {
@@ -90,6 +92,7 @@
  {
   "slug": "2nd-ave-claremont-delaware",
   "street": "2nd Avenue",
+  "card": {"title": "2nd Avenue", "change": "Calm one block, Claremont to Delaware", "text": "This single block carries about 8,100 cars a day. Calm it and {total} people could get to San Mateo Caltrain, Mi Rancho or Gateway Park on quiet streets."},
   "layout": "along",
   "items": [
    {
@@ -100,6 +103,7 @@
  {
   "slug": "el-camino-bellevue",
   "street": "North El Camino Real",
+  "card": {"title": "El Camino Real at Bellevue", "change": "A way across, at the light", "text": "Caltrans is repaving El Camino without adding bike lanes, so a way across has to come from the side streets. The city's planned bike boulevard on Bellevue, plus a crossing at the light, would let {total} people bike across, most of them from the east side to Pershing Park."},
   "layout": "across",
   "items": [
    {

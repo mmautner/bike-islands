@@ -1019,7 +1019,7 @@ def fix_page(cfg, D):
             + f'\n</head>\n<body><p><a href="{e(path)}">{e(title)}</a></p></body>\n</html>\n')
         print(f"{old} sends people to {path}")
     return {"path": path, "title": title, "lede": lede, "street": st, "lead": lead, "ids": fix_ids(cfg, D),
-            "total": total, "planned": bool(city_plan)}
+            "total": total, "planned": bool(city_plan), "card": cfg.get("card")}
 
 
 def fix_ids(cfg, D):
@@ -1042,14 +1042,21 @@ def fix_ids(cfg, D):
 
 def fixes_index(built):
     """bike-islands/fixes/: every fix page, with its lede."""
-    title = "Streets that would connect neighbors"
-    desc = "One change to one street, and the everyday places it would let neighbors on each side bike to."
+    words = {2: "Two", 3: "Three", 4: "Four", 5: "Five", 6: "Six", 7: "Seven", 8: "Eight"}
+    title = f"{words.get(len(built), len(built))} streets worth fixing"
+    desc = ("Small changes on these streets would let more of your neighbors bike to the store, the park or the train. "
+            "Each page shows who it would help, what the city already has planned, and what to ask for.")
     h = [f'<p class="crumb"><a href="{BASE}">Bike islands</a> · Streets</p>', f"<h1>{e(title)}</h1>",
-         f'<p class="lede">{e(desc)} Each page says what the city already plans there, and what to ask for.</p><ul class="fixlist">']
+         f'<p class="lede">{e(desc)}</p><ul class="fixlist">']
     # a card per street, the whole card the link: who it would connect, big, then who it counts for and what it is
-    h += [f'<li><a class="streetcard" href="{f["path"]}"><div class="gain">{r10(f["total"])}<small>people</small></div><div>'
-          f'<p class="meta">{e(WHO_CAP[f["lead"]])}' + (' · <span class="planned">The city already plans this</span>' if f["planned"] else "") + '</p>'
-          f'<h2>{e(f["title"])}</h2><p>{e(f["lede"])}</p><span class="go">What it would open up &rarr;</span></div></a></li>' for f in built]
+    # each card's words are written by hand in data/fixes.json ("card"), the count filled in; the page's own title otherwise
+    def card(f):
+        c = f.get("card") or {"title": f["title"], "change": "", "text": f["lede"]}
+        return (f'<li><a class="streetcard" href="{f["path"]}"><div class="gain">{r10(f["total"])}<small>people</small></div><div>'
+                f'<p class="meta">{e(WHO_CAP[f["lead"]])}' + (' · <span class="planned">The city already plans this</span>' if f["planned"] else "") + '</p>'
+                f'<h2>{e(c["title"])}</h2>' + (f'<p class="change">{e(c["change"])}</p>' if c["change"] else "")
+                + f'<p>{e(c["text"].format(total=r10(f["total"])))}</p><span class="go">Details &rarr;</span></div></a></li>')
+    h += [card(f) for f in built]
     h.append("</ul>")
     page = (open(os.path.join(HERE, "site", "fix.html")).read()
             .replace("/*HEAD*/", head(title, desc, f"{BASE}fixes/")).replace("/*HEADER*/", HEADER).replace("/*FOOTER*/", footer())
