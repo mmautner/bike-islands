@@ -134,11 +134,36 @@ def osm_places():
         r = EDGE_REACH_M if cat == "park" else LAST_BLOCK_M
         test = (ring_test(rings, r) if rings else
                 (lambda q, r: lambda c: dist(c, q) <= r)(p, POINT_REACH_M if cat == "park" else LAST_BLOCK_M))
-        out.append({"cat": cat, "name": name, "p": p, "rings": rings, "test": test})
+        out.append({"cat": cat, "name": name, "p": p, "rings": rings, "test": test, "draw": place_draw(cat, name, t, rings)})
     for name, p in DOWNTOWNS.items():
-        out.append({"cat": "downtown", "name": name, "p": p, "rings": None,
+        out.append({"cat": "downtown", "name": name, "p": p, "rings": None, "draw": 3,
                     "test": (lambda q: lambda c: dist(c, q) <= LAST_BLOCK_M)(p)})
     return out
+
+
+# How much people go out of their way to get to a place, 3 to 1: it orders every list of places and weights how fixes
+# rank, so a small market near a lot of homes doesn't lead everywhere. The places with pages set theirs by hand
+# (site/places.json "draw"); the rest get it here.
+CHAINS = ("Safeway", "Trader Joe", "Whole Foods", "Lucky", "Lunardi", "Mollie Stone", "Nob Hill", "Draeger", "Smart & Final",
+          "Grocery Outlet", "99 Ranch", "Sprouts", "Target", "New Leaf", "Andronico")     # full-service supermarket chains
+DRAW_WEIGHT = {3: 1.0, 2: 0.6, 1: 0.3}
+
+
+def place_draw(cat, name, tags=None, rings=None):
+    tags = tags or {}
+    if cat in ("downtown", "caltrain"):
+        return 3
+    if cat == "civic":
+        return 1
+    if cat == "grocery":
+        return 3 if any(c in name for c in CHAINS) else 2 if tags.get("shop") == "supermarket" else 1
+    if cat == "library":
+        low = name.lower()
+        return 1 if any(w in low for w in ("hospital", "health", "law", "school", "college")) else 2 if "branch" in low else 3
+    if cat == "park":
+        a = area_m2(rings) if rings else 0
+        return 3 if a >= 50000 else 2 if a >= 10000 else 1
+    return 2
 
 
 def station_places(ctx):
@@ -168,6 +193,8 @@ def curated(places):
             print(f"warning: no place named {c['osm']!r} for {c['slug']}", file=sys.stderr)
             continue
         i = min(cands, key=lambda i: dist(places[i]["p"], tuple(c["near"]))) if c.get("near") else cands[0]
+        if "draw" in c:          # set by hand for the places with pages
+            places[i]["draw"] = c["draw"]
         out.append((c, i))
     return out
 
@@ -288,15 +315,18 @@ def island_lists(ctx, places, iid, slug_of, name_of=None):
             if wn < min(NEAR_MIN, NEAR_SHARE * isl_homes[i]):
                 continue
             pl = places[pi]
-            row = (ride[i][pi] / wn, label(pl, (name_of or {}).get(pi)), slug_of.get(pi), at[i].get(pi))
+            row = (ride[i][pi] / wn, label(pl, (name_of or {}).get(pi)), slug_of.get(pi), at[i].get(pi), pl.get("draw", 2))
             (on if ok[i][pi] >= 0.5 * wn else off)[pl["cat"]].append(row)
         res = {"on": [], "out": []}
         for c in CATS:
-            a, b = sorted(on.get(c, [])), sorted(off.get(c, []))
-            # a place on the island also carries where it's reached on it, so the page can time the ride from a click
-            res["on"] += [[c, n, round(d / 1609, 1), s] + ([[round(p[0], 5), round(p[1], 5)]] if p else []) for d, n, s, p in a[:3]]
-            if b and (not a or b[0][0] < a[0][0]):
-                res["out"].append([c, b[0][1], round(b[0][0] / 1609, 1), b[0][2]])
+            # the places people go out of their way for first, then the nearest (draw, then distance)
+            a = sorted(on.get(c, []), key=lambda r: (-r[4], r[0], r[1]))
+            near_on = min((r[0] for r in a), default=None)
+            b = sorted((r for r in off.get(c, []) if near_on is None or r[0] < near_on), key=lambda r: (-r[4], r[0], r[1]))
+            # [category, name, miles, slug, its point on the island (so the page can time the ride from a click), draw]
+            res["on"] += [[c, n, round(d / 1609, 1), s, [round(p[0], 5), round(p[1], 5)] if p else None, w] for d, n, s, p, w in a[:3]]
+            if b:
+                res["out"].append([c, b[0][1], round(b[0][0] / 1609, 1), b[0][2], None, b[0][4]])
         if res["on"] or res["out"]:
             out[i] = res
     return out
@@ -625,7 +655,7 @@ def export(path):
         summary = []
         # per island: each fix -> the origin keys it would let reach at least one place, and {place slug: people};
         # each city project -> the same, as it stands ("bare") and with its own street made safe to cross ("written")
-        isl_fix = collections.defaultdict(lambda: collections.defaultdict(lambda: [set(), {}]))
+        isl_fix = collections.defaultdict(lambda: collections.defaultdict(lambda: [{}, {}]))
         isl_plan = collections.defaultdict(lambda: collections.defaultdict(lambda: {"bare": set(), "written": set(), "per": {"bare": {}, "written": {}}}))
         fix_at = {}          # (fix id, place slug) -> (the fix as that page has it, its geometry)
         for c, i in cur:
@@ -645,9 +675,11 @@ def export(path):
                 key = (fx["kind"], fx["street"])
                 fix_at[(fx["id"], c["slug"])] = (fx, geo[key])
                 per = collections.Counter()
+                dr = places[i].get("draw", 2)
                 for k in gained[key]:
                     per[iid(k)] += near[k][0]
-                    isl_fix[iid(k)][fx["id"]][0].add(k)
+                    got = isl_fix[iid(k)][fx["id"]][0]
+                    got[k] = max(got.get(k, 0), dr)
                 for isl_id, h in per.items():
                     isl_fix[isl_id][fx["id"]][1][c["slug"]] = h
             for pid, got in plan_got.items():
@@ -659,17 +691,18 @@ def export(path):
                     for isl_id, h in per.items():
                         isl_plan[isl_id][pid]["per"][mode][c["slug"]] = h
         names = {c["slug"]: c["name"] for c, _ in cur}
+        draws = {c["slug"]: places[i].get("draw", 2) for c, i in cur}
         isl_people = collections.Counter()
         for k, (h, _) in ctx.W.items():
             isl_people[iid(k)] += h
         out = {}
         for isl_id in set(lists) | set(isl_fix) | set(isl_plan):
             e = dict(lists.get(isl_id, {}))
-            fixes, projects = island_fixes(ctx, isl_fix.get(isl_id, {}), fix_at, names, isl_people[isl_id]), {}
+            fixes, projects = island_fixes(ctx, isl_fix.get(isl_id, {}), fix_at, names, isl_people[isl_id], draws), {}
             for f in fixes:
                 if f.get("plan") and f["plan"][0]:
                     projects[f["plan"][0]] = None
-            plans = island_plans(ctx, isl_plan.get(isl_id, {}), names, plan)
+            plans = island_plans(ctx, isl_plan.get(isl_id, {}), names, plan, draws)
             for p in plans:
                 projects[p["id"]] = p.pop("lines")
             if fixes:
@@ -703,10 +736,11 @@ def enc_line(pts):
     return out
 
 
-def place_list(per, names):
-    """The places a fix opens to most of the people it helps here: [[slug, name, people]], at most three."""
+def place_list(per, names, draws):
+    """The places a fix opens to most of the people it helps here: [[slug, name, people]], at most three, the ones
+    people go out of their way for first."""
     top = max(per.values())
-    return [[s, names[s], per[s]] for s in sorted(per, key=lambda s: (-per[s], s)) if per[s] >= 0.5 * top][:3]
+    return [[s, names[s], per[s]] for s in sorted(per, key=lambda s: (-draws.get(s, 2), -per[s], s)) if per[s] >= 0.5 * top][:3]
 
 
 def alt_groups(rows, w):
@@ -727,17 +761,18 @@ def alt_groups(rows, w):
     return [[fid for fid, _, _ in g] for g in groups]
 
 
-def island_fixes(ctx, cand, fix_at, names, people):
+def island_fixes(ctx, cand, fix_at, names, people, draws):
     """An island's fixes by everyday places: each tested fix, counted by the people here it would let bike to at least
     one more of the curated places (a person counts once however many places it opens). The same bottleneck often
     shows up as a stretch of a busy street and as a crossing of it, letting the same people through: keep the crossing."""
     rows = []
-    for fid, (keys, per) in cand.items():
+    for fid, (keys, per) in cand.items():       # keys: origin key -> the draw of the best place it would open
         n = sum(ctx.W[k][0] for k in keys)
         if n < max(MINOR_MIN, MINOR_SHARE * people):
             continue
-        rows.append((n, sum(ctx.W[k][1] for k in keys), fid, frozenset(keys), per))
-    rows.sort(key=lambda r: (-r[0], -r[1], not r[2].startswith("cross:"), r[2]))
+        score = sum(ctx.W[k][0] * DRAW_WEIGHT[d] for k, d in keys.items())     # people, weighted by where they could go
+        rows.append((n, sum(ctx.W[k][1] for k in keys), fid, frozenset(keys), per, score))
+    rows.sort(key=lambda r: (-r[5], -r[0], not r[2].startswith("cross:"), r[2]))
     seen, kept = set(), []
     for r in rows:
         if r[3] not in seen:
@@ -747,19 +782,19 @@ def island_fixes(ctx, cand, fix_at, names, people):
     groups = [g[:GROUP_MAX] for g in alt_groups([(r[2], r[3]) for r in kept], lambda k: ctx.W[k][0])][:ISLAND_FIXES]
     out = []
     for gi, fid in [(gi, fid) for gi, g in enumerate(groups) for fid in g]:
-        n, kd, _, keys, per = by[fid]
+        n, kd, _, keys, per, _ = by[fid]
         best = max(per, key=lambda s: (per[s], s))         # described as on the page of the place it helps most here
         fx, (segs, nodes) = fix_at[(fid, best)]
         lines = [enc_line([ctx.coord[a], ctx.coord[b]]) for a, b in sorted(segs)] + \
                 [enc_line([ctx.coord[m]]) for m in sorted(nodes)]
         plan = fx.get("plan")
         out.append({"id": fid, "g": gi, "kind": fx["kind"], "where": fx["where"], "is": fx["is"], "why": fx.get("why", ""), "need": fx["need"], "len": fx["len"],
-                    "people": n, "kids": kd, "places": place_list(per, names), "p": lines,
+                    "people": n, "kids": kd, "places": place_list(per, names, draws), "p": lines,
                     **({"plan": [plan[0].removeprefix("plan:") if plan[0] else None, *plan[1:]]} if plan else {})})
     return out
 
 
-def island_plans(ctx, cand, names, plan):
+def island_plans(ctx, cand, names, plan, draws):
     """The city projects that would let the most people here bike to at least one more curated place, as they stand
     ("people") and with safe crossings of their own street ("people_crossed")."""
     rows = []
@@ -769,8 +804,8 @@ def island_plans(ctx, cand, names, plan):
         rows.append({"id": pid, "people": sum(ctx.W[k][0] for k in g["bare"]), "kids": sum(ctx.W[k][1] for k in g["bare"]),
                      "people_crossed": sum(ctx.W[k][0] for k in g["written"]),
                      "kids_crossed": sum(ctx.W[k][1] for k in g["written"]),
-                     "places": place_list(g["per"]["bare"], names) if g["per"]["bare"] else [],
-                     "places_crossed": place_list(g["per"]["written"], names)})
+                     "places": place_list(g["per"]["bare"], names, draws) if g["per"]["bare"] else [],
+                     "places_crossed": place_list(g["per"]["written"], names, draws)})
     rows.sort(key=lambda r: (-r["people"], -r["people_crossed"], r["id"]))
     for r in rows[:ISLAND_PLANS]:
         r["lines"] = [enc_line(line) for line in plan_lines(plan["applied"][r["id"]]["steps"], ctx.coord)]

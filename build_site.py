@@ -19,6 +19,7 @@ import html
 import json
 import math
 import os
+import re
 import shutil
 import urllib.parse
 
@@ -276,7 +277,7 @@ def share_entries():
             names = " & ".join(short(n) for n in v["names"])
             # what a shared link says first is where you can bike from there, as the map's panel leads (places.py's lists)
             L = PLACE_LISTS[tier].get(iid, {})
-            rows = L.get("on", [])
+            rows = sorted(L.get("on", []), key=lambda r: -(r[5] if len(r) > 5 and r[5] else 2))      # the biggest draws first
             # one of each kind first (a grocery store and a park, not two supermarkets)
             firsts = list(dict.fromkeys([next(r[1] for r in rows if r[0] == c) for c in dict.fromkeys(r[0] for r in rows)] + [r[1] for r in rows]))
             on, out = firsts, [r[1] for r in L.get("out", [])]
@@ -355,9 +356,20 @@ def pct(a, b):
 
 
 def fix_title(f):
+    """'Crossing Alameda de las Pulgas at 26th Ave', 'S Grant St, 19th Ave to Betty Ln'"""
     if f["kind"] == "cross":
-        return "A safe " + short(f["where"]).replace("the crossing", "crossing")
-    return f"Make {short(f['where'])} safe to bike"
+        return "Crossing " + tidy_where(short(f["where"])).replace("the crossing of ", "")
+    return tidy_where(short(f["where"]))
+
+
+def in_request(why):
+    """A fix's plain sentence as it reads in a letter: 'It has too much traffic to share the lane: ...'"""
+    return re.sub(r"^Too much traffic", "It has too much traffic", re.sub(r"^The bike lane is just paint", "Its bike lane is just paint", why))
+
+
+def about(n):
+    """The counts are estimates: 'about 10,100', 'about 970'."""
+    return f"{round(n, -2 if n >= 1000 else -1):,}"
 
 
 # --- the city's own plan projects on a place page (pipeline/places.py "plans"; same rule as the map's panel) ---
@@ -402,6 +414,23 @@ def plan_meta(p):
     return "; ".join(bits)
 
 
+def plan_price(p):
+    """'The plan calls it high priority and puts it at $430,000 ($530,000 with curbs and planters).'"""
+    pr = PRIORITY.get(p.get("priority")) if p.get("num") else None
+    cost = (f"{p['cost']}" + (f" ({p['cost2']} with curbs and planters)" if p.get("cost2") else "")) if p.get("cost") else ""
+    if pr and cost:
+        return f"The plan calls it {pr} priority and puts it at {cost}."
+    return f"The plan calls it {pr} priority." if pr else f"The plan puts it at {cost}." if cost else ""
+
+
+def tidy_where(s):
+    """'N El Camino Real between E Bellevue Ave & W Bellevue Ave and Grand Blvd' -> 'N El Camino Real, E Bellevue Ave
+    to Grand Blvd': one name per corner, in words people say."""
+    s = re.sub(r" & [^,]+?(?= and | near |$)", "", s)
+    m = re.match(r"^(.*?) between (.*) and (.*)$", s)
+    return f"{m.group(1)}, {m.group(2)} to {m.group(3)}" if m else s
+
+
 def plan_status(P, f):
     """Where one of the page's fixes stands in the city's plans."""
     q = f.get("plan")
@@ -411,25 +440,25 @@ def plan_status(P, f):
     p = next((x for x in P.get("plans", []) if x["id"] == pid), None) if pid else None
     if b == "outside":
         return ""
+    pp = f"{p['ref']} ({p['title']})" if p and p.get("title") else plan_name(p) if p else ""      # "project 24 (Notre Dame Ave, 9th Ave)"
+    cap = lambda x: x[:1].upper() + x[1:]
     if b == "project" and p:
-        return f"The city already plans this: {plan_name(p)}."
+        return f"Already in the city's plans as {pp}."
     if b == "project_if_its_street_crossed" and p:
-        return f"{plan_name(p)[0].upper() + plan_name(p)[1:]} would cover it, if it also made crossing {plan_cross(p)} safe."
+        return f"{cap(pp)} would cover it, if it also made crossing {plan_cross(p)} safe."
     if b in ("project_with_crossings", "plans_together"):
-        return "The city's plans would cover it, with safe crossings they don't name yet."
+        return "The city's plans would cover it, with crossings they don't include yet."
     if b == "partly" and p:
-        return f"{plan_name(p)[0].upper() + plan_name(p)[1:]} would reach about {round(sw * 100)}% of these people; the rest isn't in the city's plans."
+        return f"{cap(pp)} would reach about {round(sw * 100)}% of these people."
     # a project on this street that reaches none of these people (plan_model.planned_here): say so, and why
     if b == "planned_weak" and p:
-        return f"In the city's plans, but not as anything cautious riders and kids could use: {plan_name(p)} would still leave it too stressful for them."
+        return f"In the city's plans as {pp}, but not as anything cautious riders and kids could use."
     if b == "planned_mixed" and p:
-        return (f"In the city's plans, but only partly as something cautious riders and kids could use: {plan_name(p)} would leave "
-                "some of this stretch too stressful for them.")
+        return f"In the city's plans as {pp}, but only partly as something cautious riders and kids could use."
     if b == "planned_along" and p:
-        return f"{plan_name(p)[0].upper() + plan_name(p)[1:]} runs along the street this crosses, but a lane along a street doesn't make crossing it any easier."
+        return f"{cap(pp)} runs along this street, but a lane along it doesn't make crossing it any easier."
     if b == "planned_not_enough" and p:
-        return (f"{plan_name(p)[0].upper() + plan_name(p)[1:]} would make this stretch low-stress, but on its own it wouldn't connect "
-                "these people: other parts of their routes are still stressful.")
+        return f"{cap(pp)} would make this stretch low-stress, but that alone wouldn't connect these people."
     return "Not in any of the city's plans yet."
 
 
@@ -469,12 +498,12 @@ def place_body(P, civ):
     h = [f'<p class="crumb"><a href="{BASE}">Bike islands</a> · <a href="{BASE}places/">Places</a> · {PLACE_CAT[P["category"]]}</p>',
          f'<h1>Who can bike to {e(t)}?</h1>', '<div class="top"><div>',
          f'<p class="lede"><strong>{n:,} people</strong> live within a 1-mile ride of {e(t)}. '
-         f'{"Only " if nok < n / 2 else ""}<strong>{nok:,}</strong> of them can get there without riding on a busy street, '
-         f'including {kok:,} of the {k:,} kids among them.</p>',
+         f'{"Only " if nok < n / 2 else ""}<strong>{nok:,}</strong> of them can get there without riding on a busy street. '
+         f'That includes {kok:,} of the {k:,} kids.</p>',
          f'<div class="bar" role="img" aria-label="{pct(nok, n)} can bike there safely, {pct(cant, n)} can\'t"><i style="width:{100 * nok / max(n, 1):.1f}%"></i></div>',
          f'<div class="barlab"><span class="c"><b>{pct(nok, n)}</b> can bike there</span><span class="x"><b>{pct(cant, n)}</b> can\'t</span></div>',
-         f'<p class="note">This is the map for cautious riders and kids: paths and quiet streets only, never on busy streets, never across '
-         f'El Camino.</p>',
+         '<p class="note">These numbers are for cautious riders and kids: paths and quiet streets, busy streets crossed only at a light '
+         'or an all-way stop, and the biggest, like El Camino, not at all.</p>',
          '<p class="note">Each dot is a block, sized by how many people live there. Green blocks have a route; copper blocks don\'t.</p>' +
          (f'<p class="note">The main map counts everyone within 2 miles of each station; this page counts people within 1 mile.</p>'
           if P["category"] == "caltrain" else "") +
@@ -493,33 +522,32 @@ def place_body(P, civ):
         p, crossed = lead
         gain = p["homes_crossed"] if crossed else p["homes"]
         gk = p["kids_crossed"] if crossed else p["kids"]
-        how = (f"It would let {gain:,} more people bike here ({gk:,} of them kids) if it also made crossing {e(plan_cross(p))} safe"
-               + (f" ({p['homes']:,} as planned)" if p["homes"] else "") + "." if crossed else
+        how = (f"With safe crossings of {e(plan_cross(p))}, it would let {gain:,} more people bike here, {gk:,} of them kids."
+               + (f" As drawn, without them: {p['homes']:,}." if p["homes"] else "") if crossed else
                f"It would let {gain:,} more people bike here, {gk:,} of them kids.")
-        meta = plan_meta(p)
-        h.append('<section><h2>The city\'s own project that would help most</h2><p class="intro">San Mateo has already adopted this project; '
-                 'it isn\'t necessarily funded. Asking the city to finish its own plan is the easiest ask. Tap it to see it on the map.</p>'
+        what = re.sub(r" \(traffic-calmed streets?\)", "", p.get("what") or "")
+        h.append('<section><h2>The city\'s own project that would help most</h2><p class="intro">It\'s already in the city\'s bike plan, '
+                 'though not necessarily funded, which makes it the easiest thing to ask for. Tap it to see it on the map.</p>'
                  f'<div class="fixes"><button class="fix plan" data-fix="{e(p["id"])}" aria-pressed="false"><div class="gain">+{gain:,}<small>people</small></div>'
-                 f'<div><h3>Finish the city\'s planned {e(p["what"] or plan_ref(p))}</h3><p>{e(p["ref"][:1].upper() + p["ref"][1:])} in its {e(p["doc"])}.</p><p class="need">{e(how)}'
-                 + (f' {e(meta[0].upper() + meta[1:])}.' if meta else '') + '</p></div></button>'
+                 f'<div><h3>Build the {e(what)}</h3><p>{e(p["ref"][:1].upper() + p["ref"][1:])} in the city\'s {e(p["doc"])}.</p><p class="need">{e(how)}'
+                 + (f' {e(plan_price(p))}' if plan_price(p) else '') + '</p></div></button>'
                  + city_line(city_pages(plan=p["id"][5:]), "citypg").replace("Related city project", "The city's project page") + '</div></section>')
     if fixes:
-        h.append(f'<section><h2>{"Fixes this map tested" if lead else "What would change it"}</h2><p class="intro">We tested each busy stretch and crossing that cuts people off from '
-                 f'{e(t)}, one at a time, treating just the part their routes use as safe for cautious riders and kids. These would help the most. '
-                 'Tap one to see it on the map.</p><div class="fixes">')
+        h.append(f'<section><h2>{"Other fixes" if lead else "What would change it"}</h2><p class="intro">We tried fixing each busy street and '
+                 'crossing in the way, one at a time. These would help the most. Tap one to find it on the map.</p><div class="fixes">')
         for f in fixes:
             g = [x for x in fixes if x["g"] == f["g"]]
             if len(g) > 1 and f is g[0]:
-                h.append('<div class="altgroup"><p class="altnote">Any one of these would let many of the same people bike here:</p>')
+                h.append(f'<div class="altgroup"><p class="altnote">{"Either one" if len(g) == 2 else "Any one of these"} would do it, for mostly the same people:</p>')
             size = f" ({feet_or_miles(f['len'])})" if f["len"] else ""
-            need = f'<p class="need">It would need {e("; or ".join(f["need"]))}.</p>' if f["need"] else ""
+            need = f'<p class="need">It would take {e(", or ".join(f["need"]))}.</p>' if f["need"] else ""
             st = plan_status(P, f)
             if st:
                 need += f'<p class="planst">{e(st)}</p>'
-            h.append(f'<button class="fix" data-fix="{e(f["id"])}" data-n="{label[f["id"]]}" aria-pressed="false"><div class="gain">+{f["homes"]:,}<small>people</small></div>'
+            h.append(f'<button class="fix" data-fix="{e(f["id"])}" data-n="{label[f["id"]]}" aria-pressed="false"><div class="gain">+{f["homes"]:,}<small>people, {f["kids"]:,} kids</small></div>'
                      f'<div><h3><span class="num">{label[f["id"]]}</span>{e(fix_title(f))}</h3>'
                      + (f'<p>{e(f["why"])}</p>' if f.get("why") else "")
-                     + f'{need}<p class="seen">{f["kids"]:,} of them kids. What the map sees: {e(f["is"])}{size}.</p></div></button>')
+                     + f'{need}<p class="seen">What the map sees: {e(f["is"])}{size}.</p></div></button>')
             c0, c1 = P["center"]
             pts = [(c0 + sg[i] / 1e5, c1 + sg[i + 1] / 1e5) for sg in f.get("map", []) for i in range(0, len(sg), 2)]
             q = f.get("plan") or [None, None]
@@ -532,8 +560,8 @@ def place_body(P, civ):
         best = next((p for p in P["pairs"] if all(i in ids for i in p["ids"]) and ids[p["ids"][0]]["g"] != ids[p["ids"][1]]["g"]), None)
         if best and best["homes"] > max(f["homes"] for f in fixes):
             a, b = (ids[i] for i in best["ids"])
-            h.append(f'<div class="together"><strong>Fixes {label[a["id"]]} and {label[b["id"]]} together: +{best["homes"]:,} people.</strong> '
-                     f'That would take the share who can bike to {e(t)} from {pct(nok, n)} to {pct(nok + best["homes"], n)}.</div>')
+            h.append(f'<div class="together">Do <strong>{label[a["id"]]} and {label[b["id"]]} together</strong> and it\'s +{best["homes"]:,} people: '
+                     f'the share who can bike here goes from {pct(nok, n)} to {pct(nok + best["homes"], n)}.</div>')
         h.append('</section>')
     else:
         h.append('<section><h2>What would change it</h2><p class="intro">No single stretch or crossing we tested would let more people bike here. '
@@ -541,7 +569,7 @@ def place_body(P, civ):
     # what you can do
     url = f"{CFG['site_url']}{BASE}places/{P['slug']}/"
     h.append('<section><h2>What you can do</h2><div class="act-grid">'
-             '<div class="act-item"><h3>Tell a neighbor</h3><p>Send this page to a neighbor, a parent group or a school newsletter.</p>'
+             '<div class="act-item"><h3>Tell a neighbor</h3><p>Send this page to a neighbor. Parent groups and school newsletters work too.</p>'
              '<button type="button" class="btn" id="share">Share link</button> <span class="muted" id="copied"></span></div>')
     city = P.get("city") or "San Mateo"
     cc = CFG["cities"].get(city, {})
@@ -549,15 +577,21 @@ def place_body(P, civ):
         if lead:
             p, crossed = lead
             gain = p["homes_crossed"] if crossed else p["homes"]
-            req = (f"Please prioritize {plan_name(p)}. {n:,} people live within a mile of {t}, but only {nok:,} can bike "
-                   f"there without riding on a busy street. This project would let {gain:,} more"
-                   + (f", if it also made crossing {plan_cross(p)} safe" if crossed else "") + f". Details: {url}")
+            what = re.sub(r" \(traffic-calmed streets?\)", "", p.get("what") or "")
+            req = (f"Please build {p['ref']} of the {p['doc']}, the {what}. About {about(n)} people live within a mile of {t}, "
+                   f"but only {nok:,} of them can bike there without riding on a busy street. "
+                   + (f"With safe crossings of {plan_cross(p)}, this project would let about {about(gain)} more." if crossed else
+                      f"This project would let about {about(gain)} more.") + f" The numbers are here: {url}")
         else:
             f = fixes[0]
-            req = (f"Please consider making {short(f['where'])} safe to bike for cautious riders and kids"
-                   + (f": {f['need'][0]}" if f["need"] else "") + f". {n:,} people live within a mile of {t}, "
-                   f"but only {nok:,} can bike there without riding on a busy street. This change would let {f['homes']:,} more. "
-                   f"Details: {url}")
+            where = (f"the crossing of {fix_title(f)[len('Crossing '):]}" if f["kind"] == "cross" else
+                     fix_title(f).replace(", ", " from ", 1))
+            opts = f["need"][:2]
+            req = (f"Please look at making {where} comfortable to bike for cautious riders and kids. " + (f"{in_request(f['why'])} " if f.get("why") else "")
+                   + f"About {about(n)} people live within a mile of {t}, but only {nok:,} can get there without riding on a busy street; "
+                   f"this would let about {about(f['homes'])} more. "
+                   + (f"By Level of Traffic Stress ratings, {' or '.join(opts)} would do it. " if opts else "")
+                   + f"The numbers are here: {url}")
         h.append(f'<div class="act-item"><h3>Ask the city</h3><p>Copy this into the city\'s service request form:</p>'
                  f'<div class="ask-req" id="askreq">{e(req)}</div>'
                  '<p><button type="button" class="btn" id="askcopy">Copy request</button> <span class="muted" id="askcopied"></span></p>'
@@ -570,13 +604,16 @@ def place_body(P, civ):
     if city == "Burlingame" and cc.get("council_email"):    # elected citywide: the email goes to the whole council
         m = {"salutation": "Burlingame City Council", "email": cc["council_email"]}
     if civ["email_card"] and m:
-        body = (f"Dear {m['salutation']},\n\n{n:,} people live within a 1-mile ride of {t}, but only {nok:,} of them can get there "
-                f"without riding on a busy street.\n\n" +
-                (f"The city already plans {plan_name(lead[0])[len('the city' + chr(39) + 's planned '):]}, which would help. "
-                 f"It would let {(lead[0]['homes_crossed'] if lead[1] else lead[0]['homes']):,} more people bike there"
-                 + (f", if it also made crossing {plan_cross(lead[0])} safe" if lead[1] else "") + ". Could the city fund and build it?\n\n" if lead else
-                 f"{fix_title(fixes[0])} for cautious riders and kids would let {fixes[0]['homes']:,} more people bike there. Could the city consider it?\n\n" if fixes else "") +
-                f"[Add a sentence about you]\n\n{url}\n\nThank you,")
+        lw = re.sub(r" \(traffic-calmed streets?\)", "", lead[0].get("what") or "") if lead else ""
+        body = (f"Dear {m['salutation']},\n\nI've been looking at who can bike to {t}. Of the {about(n)} people who live within a mile, "
+                f"only {nok:,} can get there without riding on a busy street.\n\n" +
+                (f"The city's bike plan already has an answer: {lead[0]['ref']}, the {lw}. "
+                 + (f"With safe crossings of {plan_cross(lead[0])}, it would let about {about(lead[0]['homes_crossed'])} more people bike there. " if lead[1] else
+                    f"It would let about {about(lead[0]['homes'])} more people bike there. ")
+                 + "Could the city fund and build it?\n\n" if lead else
+                 (f"A safe crossing of {fix_title(fixes[0])[len('Crossing '):]}" if fixes[0]["kind"] == "cross" else f"Making {fix_title(fixes[0]).replace(', ', ' from ', 1)} safe to bike")
+                 + f" would let about {about(fixes[0]['homes'])} more people get there. Could the city look at it?\n\n" if fixes else "") +
+                f"[A sentence about why this matters to you]\n\nThe numbers: {url}\n\nThank you,")
         href = f"mailto:{m['email']}?" + urllib.parse.urlencode({"subject": f"Biking to {t}", "body": body}, quote_via=urllib.parse.quote)
         who = (f'{e(t)} is in City Council District {district}, represented by {e(m["title"])} {e(m["name"])}. If you live in '
                f'another district, the <a href="{BASE}">map</a> finds yours.' if district else
@@ -792,6 +829,11 @@ def fix_page(cfg, D):
     lede = (cfg["lede"].format(total=r10(total)) if cfg.get("lede") else
             f"{phrase} would let {r10(total)} people bike to {and_list(cats)}"
             + (f" on the other side of {st}." if across else " on quiet streets and paths."))
+    # the hand-written card (data/fixes.json) names the page: the street, what would change, and why it matters
+    card = cfg.get("card")
+    if card:
+        title = f"{card['title']}: {card['change'][:1].lower() + card['change'][1:]}"
+        lede = card["text"].format(total=r10(total))
 
     def gain_of(r, exclude=None):
         return sum(v["gain"][0] for g, v in r["groups"].items() if g != exclude)
@@ -807,22 +849,25 @@ def fix_page(cfg, D):
         if note:
             return (f'<div class="dest"><div class="gain words">The last block</div><p><strong>{name}</strong> '
                     f'{note.format(now=r10(c["now"][0]))}</p></div>')
-        who = "on your side" if origin else "nearby"
+        who = "on this side" if origin else ""
         split = ""
         if not origin:
             parts = [f"{r10(v['gain'][0])} in {g}" for g, v in r["groups"].items() if v["gain"][0] >= 10]
             split = f" ({and_list(parts)})" if len(parts) > 1 else ""
-        return (f'<div class="dest"><div class="gain">+{r10(c["gain"][0])}<small>{r10(c["gain"][1])} of them kids</small></div><p>'
-                f'<strong>{name}</strong>{f", about a {mins}-minute ride" if mins else ""}{split}. Of the {r10(c["within"][0])} people '
-                f'{who} within a mile, {r10(c["now"][0])} can bike there on quiet streets and paths today.</p></div>')
+        now, within = r10(c["now"][0]), r10(c["within"][0])
+        today = (f"Right now none of the {within} people {who + ' ' if who else ''}who live within a mile can get there on quiet streets."
+                 if c["now"][0] < 5 else
+                 f"Right now {now} of the {within} people {who + ' ' if who else ''}who live within a mile can.")
+        return (f'<div class="dest"><div class="gain">+{r10(c["gain"][0])}<small>people, {r10(c["gain"][1])} of them kids</small></div><p>'
+                f'<strong>{name}</strong>{f", a {mins}-minute ride" if mins else ""}{split}. {today}</p></div>')
 
     def in_all(n, summed, who):
         """One total for a list of places, when its rows would add up to well over it (the same people, counted
         under more than one place)."""
         if not n or summed <= 1.15 * n:
             return ""
-        return (f'<p class="also"><strong>In all, {r10(n)} {who}</strong> could bike to at least one of these places. '
-                'Many are counted under more than one, so the numbers above don\'t add up to it.</p>')
+        return (f'<p class="also">Altogether that\'s <strong>{r10(n)} {who}</strong>, since many would gain more than one '
+                'of these places.</p>')
 
     def side_city(g):
         cs = {k.split("|")[1]: v[0] for k, v in UC.items() if k.split("|")[0] == g}
@@ -831,14 +876,16 @@ def fix_page(cfg, D):
         return best if best and cs[best] >= 0.9 * tot else None
 
     h = [f'<p class="crumb"><a href="{BASE}">Bike islands</a> · <a href="{BASE}fixes/">Streets</a> · {e(st)}</p>',
-         f"<h1>{e(title)}</h1>", f'<p class="rider">{e(RIDER_TAG[lead])}</p>', f'<p class="lede">{e(lede)}</p>']
+         f"<h1>{e(card['title'] if card else title)}</h1>" + (f'<p class="change">{e(card["change"])}</p>' if card else ""),
+         f'<p class="rider">{e(RIDER_TAG[lead])}</p>', f'<p class="lede">{e(lede)}</p>']
     if city_plan:
         pj, crossed, share = city_plan
-        h.append(f'<div class="callout" style="margin:0 0 24px">The city already plans this. {e(plan_name(pj)[:1].upper() + plan_name(pj)[1:])} '
-                 f'would do {"nearly all" if share >= 0.95 else "most"} of what this change does'
-                 + (f', if it also makes crossing {e(plan_cross(pj))} safe' if crossed else "") + '. '
-                 + (e(plan_meta(pj)[:1].upper() + plan_meta(pj)[1:]) + '. ' if plan_meta(pj) else "")
-                 + 'Asking the city to build it is the simplest ask.</div>')
+        what = re.sub(r" \(traffic-calmed streets?\)", "", pj.get("what") or "")
+        h.append(f'<div class="callout" style="margin:0 0 24px">This is already in the city\'s {e(pj["doc"])}: {e(pj["ref"])}, '
+                 f'{e(what)}. Built, it would do {"nearly all" if share >= 0.95 else "most"} of what\'s described here'
+                 + (f', as long as crossing {e(plan_cross(pj))} is made safe too' if crossed else "") + '. '
+                 + (e(plan_price(pj)) + ' ' if plan_price(pj) else "")
+                 + 'The easiest ask is for the city to build it.</div>')
     h.append(city_line(city_pages(plan=city_plan[0]["id"] if city_plan else None, page=cfg["slug"]), "intro citypg"))
     legend = ""
     if across:
@@ -850,18 +897,18 @@ def fix_page(cfg, D):
             c = side_city(o)
             head_ = cfg.get("side_names", {}).get(o) or f"{o.capitalize()} of {bare_street(st)}" + (f", in {c}" if c else "")
             h.append(f'<div class="side g{i}" data-group="{o}"><h2>{e(head_)}</h2>'
-                     f'<p class="who">What this would open up for you, {other[0]} of the street</p>')
+                     f'<p class="who">If you live here, you could bike to:</p>')
             h += [dest(r, o) for g in other for r in P[g]]
             h.append(in_all(U.get(o, [0])[0], sum(r["groups"][o]["gain"][0] for g in other for r in P[g]),
-                            f"people {o} of {e(bare_street(st))}"))
+                            "people on this side"))
             mine = sorted(P[o], key=lambda r: -gain_of(r, o))
             ow = notes.get("other_way", {}).get(o)
             if ow:
                 r = next(r for r in P[o] if r["label"] == ow[0] or r.get("slug") == ow[0])
                 h.append(f'<p class="also">{e(ow[1].format(n=r10(gain_of(r, o))))}</p>')
             elif mine and gain_of(mine[0], o) >= 50:
-                h.append(f'<p class="also">And the other way: {r10(gain_of(mine[0], o))} more neighbors from {other[0]} of '
-                         f'{e(bare_street(st))} could bike to {e(mine[0]["label"])}.</p>')
+                h.append(f'<p class="also">It works the other way too: {r10(gain_of(mine[0], o))} people on the {other[0]} side '
+                         f'could bike over to {e(mine[0]["label"])}.</p>')
             h.append("</div>")
         h.append("</div>")
         legend = ('<span><i class="ln" style="background:var(--copper)"></i>' + e(st) + '</span>'
@@ -899,7 +946,7 @@ def fix_page(cfg, D):
     for w in fixes:       # why it's stressful now, in a sentence, then what the rating sees
         why = w.get(f"why_{lead}") or ""
         if why or w["now"]:
-            h.append(f'<p class="intro"><strong>{e(short(w["where"]))}</strong>: {e(why)}'
+            h.append(f'<p class="intro"><strong>{e(tidy_where(short(w["where"])))}</strong>: {e(why)}'
                      + (f' <span class="seen">What the map sees: {e(w["now"])}.</span>' if w["now"] else "") + '</p>')
     if D["crossings"] and across:
         h.append('<table class="x"><thead><tr><th>Crossing</th><th>' + e(bare_street(st)) + '\'s limit there</th>'
@@ -910,10 +957,10 @@ def fix_page(cfg, D):
         h.append('</tbody></table>')
         if cross_items:
             fast = sum(1 for x in D["crossings"] if (x["speed"] or "").startswith("35"))
-            h.append(f'<p class="intro" style="margin-top:14px">For cautious riders and kids, the map counts a crossing of {e(bare_street(st))} '
-                     'as safe in one of two ways: a signal or an all-way stop where it\'s posted 30 mph, or no signal needed where it\'s 25. '
-                     + (f'Where it\'s posted 35, as at {fast} of these {len(D["crossings"])} corners, even a signal isn\'t enough: the limit '
-                        'has to come down too. ' if fast else '')
+            nb = {1: "One", 2: "Two", 3: "Three", 4: "Four", 5: "Five"}
+            h.append(f'<p class="intro" style="margin-top:14px">For cautious riders and kids, a crossing of {e(bare_street(st))} counts as safe '
+                     f'if it has a light or an all-way stop and {e(bare_street(st))} is posted 30 mph there, or if it\'s posted 25. '
+                     + (f'{nb.get(fast, fast)} of these {len(D["crossings"])} corners are posted 35, so they\'d need the lower limit as well. ' if fast else '')
                      + 'The same is true on foot with a stroller or a dog. ' + notes.get("today", "") + '</p>')
     elif notes.get("today"):
         h.append(f'<p class="intro">{notes["today"]}</p>')
@@ -928,7 +975,7 @@ def fix_page(cfg, D):
     for w in fixes:
         order = [lead] + [t for t in ("strict", "standard") if t != lead]
         parts = [f"for {WHO[t]}, " + ("it already works" if w[t].strip() == "counts" else needs(w[t])) for t in order if needs(w[t])]
-        asks.append(f'<li><strong>{e(short(w["where"]))}</strong>: {e("; ".join(parts)) or "no single change"}.</li>')
+        asks.append(f'<li><strong>{e(tidy_where(short(w["where"])))}</strong>: {e("; ".join(parts)) or "no single change"}.</li>')
     if cfg.get("asks"):                     # the package's own words, when what our fix needs can't happen (El Camino)
         asks = (asks[:1] if cross_items else []) + cfg["asks"]
     for w in words:
@@ -946,15 +993,16 @@ def fix_page(cfg, D):
         h.append('<p class="intro">None of it takes away a traffic lane or a parking space.</p>')
     if total_std:
         h.append('<p class="intro">' + (e(notes["experienced"].format(n=r10(total_std))) if notes.get("experienced") else
-                                       f'For experienced riders, it would connect {r10(total_std)} people to these places.') + '</p>')
+                                       f'Counted for experienced riders instead, it\'s {r10(total_std)} people.') + '</p>')
     if notes.get("plan"):
         h.append(f'<div class="callout">{notes["plan"]}</div>')
     h.append('</section>')
 
     # what you can do
     h.append('<section><h2>What you can do</h2>' + (f'<p class="intro">{notes["ask"]}</p>' if notes.get("ask") else "")
-             + '<div class="act-grid"><div class="act-item"><h3>Send it to a neighbor</h3><p>Send this page to a neighbor'
-             + (f' on the other side of {e(bare_street(st))}' if across else "") + ', a parent group or a school newsletter.</p>'
+             + '<div class="act-grid"><div class="act-item"><h3>Send it to a neighbor</h3><p>'
+             + (f'Know someone on the other side of {e(bare_street(st))}? Send them this page. ' if across else "Send this page to a neighbor. ")
+             + 'Parent groups and school newsletters work too.</p>'
              '<button type="button" class="btn" id="share">Share link</button> <span class="muted" id="copied"></span></div>')
     req_bits = []
     if cross_items:
@@ -962,10 +1010,11 @@ def fix_page(cfg, D):
                         "with a signal or all-way stop or an equivalent design")
     for w in fixes:
         first = next((o.strip() for o in (w[lead] or "").split("|") if o.strip()), "")
-        req_bits.append(f"make {short(w['where'])} safe for {WHO[lead]}" + (f" ({first})" if first else ""))
+        req_bits.append(f"make {tidy_where(short(w['where']))} safe to bike for {WHO[lead]}" + (f" ({first})" if first else ""))
     if city_plan:
         pj, crossed, _ = city_plan
-        req_bits = [f"build {plan_name(pj)}" + (f", with safe crossings of {plan_cross(pj)}" if crossed else "")]
+        what = re.sub(r" \(traffic-calmed streets?\)", "", pj.get("what") or "")
+        req_bits = [f"build {pj['ref']} of the {pj['doc']}, the {what}" + (f", with safe crossings of {plan_cross(pj)}" if crossed else "")]
     if speed:
         req_bits.append(f"lower {st}'s limit to {speed['value']}")
     involved = [c for c, n in city_n.most_common() if n >= 50]
@@ -980,9 +1029,9 @@ def fix_page(cfg, D):
         top = [r["label"] for r in sorted(there, key=lambda r: -mine_gain(r)) if mine_gain(r) >= 10][:3]
         others = [c for c in involved if c != city]
         req = (f"Please {req_bits[0] if len(req_bits) == 1 else ', '.join(req_bits[:-1]) + ', and ' + req_bits[-1]}" + (f", working with {others[0]}" if others else "") + ". "
-               + (f"{r10(city_n[city])} {city} residents could then bike to {and_list(top)} on calm streets. " if top else "")
+               + (f"About {r10(city_n[city])} people in {city} could then bike to {and_list(top)} on quiet streets. " if top else "")
                + (cfg.get("request_extra", {}).get(city, "") + " " if cfg.get("request_extra", {}).get(city) else "")
-               + f"Details: {url}")
+               + f"The numbers are here: {url}")
         rid = "req-" + slugify(city)
         h.append(f'<div class="act-item"{f" data-for={chr(34)}{home}{chr(34)}" if home else ""}><h3>If you live in {city}</h3>'
                  f'<p>Copy this into {city}\'s service request form:</p><div class="ask-req" id="{rid}">{e(req)}</div>'

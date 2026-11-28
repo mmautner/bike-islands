@@ -196,7 +196,7 @@ def score(path, cfg, bridges):
                 v["minutes"] = round(statistics.median(rides[g]) / (MPH * 1609.34 / 60)) if rides[g] and v["gain"][0] else None
             slug = next((c["slug"] for c, i in cur if places[i] is pl), None)
             label = next((c.get("title") for c, i in cur if places[i] is pl), None) or pl["name"]
-            rows.append({"label": label, "name": pl["name"], "cat": pl["cat"], "slug": slug, "p": pl["p"],
+            rows.append({"label": label, "name": pl["name"], "cat": pl["cat"], "slug": slug, "p": pl["p"], "draw": pl.get("draw", 2),
                          "side": sides(pl["p"]) if across else city_of(pl["p"]), "groups": per, "_new": new})
         out["tiers"][tier] = {"rows": rows, "words": words}
         out.setdefault("_W", {})[tier] = c1.W
@@ -225,7 +225,8 @@ def choose(out, cfg):
                 return sum(gs)
             pool = [r for r in strict if (not across or r["side"] == g)]
             pool = [r for r in pool if gain(r) >= MIN_GAIN or gain(r, True) >= MIN_GAIN]
-            rows = sorted(pool, key=lambda r: (-gain(r), -gain(r, True)))[:AUTO]
+            # the best by gain, then shown with the places people go out of their way for first
+            rows = sorted(sorted(pool, key=lambda r: (-gain(r), -gain(r, True)))[:AUTO], key=lambda r: -r.get("draw", 2))
         chosen[g] = rows
     return chosen
 

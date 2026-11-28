@@ -105,7 +105,7 @@ def _way_phrase(o, t):
         head = {"track": "a protected bike lane", "lane": "a painted bike lane"}[o["fac"]]
         return head + (f", plus {extra}" if extra else "")
     if o["local"]:
-        return (extra + ", as a local street" if extra else "local-street status") + " (not a through route)"
+        return (extra + ", with no through traffic" if extra else "no through traffic")
     return extra
 
 
@@ -177,35 +177,36 @@ def describe_way(t):
 # Found from the same search as the options: the speed, lanes and traffic the least change has to fix are the ones
 # named, so the sentence and "It would need ..." always agree.
 
-def _traffic(t, s=True, n=True, adt=True):
-    """'traffic at 30 mph on 4 lanes, about 8,100 cars a day', naming only the parts asked for."""
+def _bits(t, s=True, n=True, adt=True):
+    """The parts asked for, as the street is now: ['25 mph', '4 lanes', 'about 4,800 cars a day']."""
     hw = _hw(t)
-    tr = ""
+    out = []
     if s:
-        tr += f" at {mph(t, hw)} mph" + (" (assumed)" if "maxspeed" not in t else "")
+        out.append(f"{mph(t, hw)} mph" + (" (assumed)" if "maxspeed" not in t else ""))
     if n:
-        tr += f" on {lanes(t, hw)} lanes" + (" (assumed)" if "lanes" not in t else "")
-    a = f"about {round(int(float(t['survey:adt'])), -2):,} cars a day" if adt and t.get("survey:adt") else ""
-    if tr and a:
-        return f"traffic{tr}, {a}"
-    return f"traffic{tr}" if tr else a
+        out.append(f"{lanes(t, hw)} lanes" + (" (assumed)" if "lanes" not in t else ""))
+    if adt and t.get("survey:adt"):
+        out.append(f"about {round(int(float(t['survey:adt'])), -2):,} cars a day")
+    return out
 
 
 def plain_way(t, tier):
-    """Why riding along this way is stressful for tier, in a sentence ('' if it isn't)."""
+    """Why riding along this way is stressful for tier, in a sentence ('' if it isn't). The page says who's riding,
+    so the sentence doesn't: "Too much traffic to share the lane: 25 mph, about 4,800 cars a day." """
     cands = way_candidates(t, tier)
     if counts(t, tier):
         return ""
-    # the change that keeps the street as it is (no bike lane, same class), else as a local street, else with a
-    # painted lane: what it has to fix is what's wrong now
+    # the change that keeps the street as it is (no bike lane, same class), else with no through traffic, else with
+    # a painted lane: what it has to fix is what's wrong now
     pick = (next((o for o in cands if not o["fac"] and not o["local"]), None) or next((o for o in cands if o["local"]), None)
             or next((o for o in cands if o["fac"] == "lane"), None))
-    traffic = _traffic(t, s=bool(pick and pick["s"]), n=bool(pick and pick["n"]), adt=bool(pick and pick["adt"] is not None)) if pick else ""
-    if not traffic:
-        traffic = _traffic(t, n=lanes(t, _hw(t)) > 2)
+    bits = _bits(t, s=bool(pick and pick["s"]), n=bool(pick and pick["n"]), adt=bool(pick and pick["adt"] is not None)) if pick else []
+    if not bits:
+        bits = _bits(t, n=lanes(t, _hw(t)) > 2)
     if facility(t) == "lane":
-        return f"The painted bike lane runs right next to {traffic}: too stressful for {WHO[tier]}."
-    return f"Too stressful for {WHO[tier]} to share the lane with {traffic}."
+        return f"The bike lane is just paint, beside {_and(bits)} of traffic." if not any("mph" in b for b in bits) else \
+               f"The bike lane is just paint, beside {_and(bits).replace(' mph', ' mph traffic', 1)}."
+    return f"Too much traffic to share the lane: {', '.join(bits)}."
 
 
 def plain_crossing(ways_at, controlled, tier):
@@ -214,25 +215,27 @@ def plain_crossing(ways_at, controlled, tier):
     if not blocks:
         return ""
     big = {nm: t for nm, t in crossed.items() if not _tamable({nm: t}, tier)}
+    short = lambda nm: " ".join(w for w in nm.split() if w not in ("North", "South", "East", "West")).replace(" Avenue", " Ave").replace(" Street", " St").replace(" Boulevard", " Blvd").replace(" Road", " Rd").replace(" Drive", " Dr")
+
     def facts(nm, t):       # only what keeps a signal from helping (as _why_untamable finds it)
         hw = _hw(t)
         if hw.startswith(("motorway", "trunk")):
-            return f"{nm} is a highway", "too big"
+            return f"{short(nm)} is a highway"
         s, n = mph(t, hw), lanes(t, hw)
         fast, wide = untamable(_set(t, n=min(_lane_counts(t)))), untamable(_set(t, s=min(_speeds(s))))
         if not (fast or wide):
             fast = wide = True
         bits = ([f"is {s} mph" + (" (assumed)" if "maxspeed" not in t else "")] if fast else []) + \
                ([f"has {n} lanes" + (" (assumed)" if "lanes" not in t else "")] if wide else [])
-        return f"{nm} {' and '.join(bits)}", "too big" if fast and wide else "too fast" if fast else "too wide"
+        return f"{short(nm)} {' and '.join(bits)}"
     if big:
-        fs = [facts(nm, t) for nm, t in big.items()]
-        what, adj = _and(f for f, _ in fs), fs[0][1] if len({a for _, a in fs}) == 1 else "too big"
+        what = _and(facts(nm, t) for nm, t in big.items())
         if controlled:
-            return f"There's a signal, but {what}: {adj} to cross even at a signal, for {WHO[tier]}."
-        return f"There's no signal or all-way stop, and {what}: {adj} to cross for {WHO[tier]}, even with a signal."
-    gaps = _and(f"{_traffic(t, n=lanes(t, _hw(t)) > 2, adt=False)} on {nm}" for nm, t in crossed.items())
-    return f"There's no signal or all-way stop, so crossing means waiting for a gap in {gaps}: too stressful for {WHO[tier]}."
+            return f"There's a light, but {what}: too much to cross even with one."
+        return f"There's no light or all-way stop, and {what}: too much to cross even with one."
+    gaps = _and(f"{mph(t, _hw(t))} mph traffic on {short(nm)}" + (f" ({lanes(t, _hw(t))} lanes)" if lanes(t, _hw(t)) > 2 else "")
+                for nm, t in crossed.items())
+    return f"No light or all-way stop, so you wait for a gap in {gaps}."
 
 
 def explain_way(t):

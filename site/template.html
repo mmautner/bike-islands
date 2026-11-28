@@ -108,6 +108,7 @@
   ol.br.lead { margin-top:2px; }
   aside h3.leadh.sub { font-size:16px; margin-top:12px; }
   ol.alts { padding-left:20px; margin:4px 0 0; }
+  .fine { font-size:12.5px; margin-top:8px; }
   .bignote { font-size:13.5px; color:var(--body); background:var(--card); padding:8px 10px; border-radius:8px; margin:8px 0 4px; }
   li.altgroup > .altlead { display:block; color:var(--ink); }
   ul.br { padding-left: 18px; margin: 6px 0; font-size:14px; }
@@ -672,16 +673,28 @@ function whyBlock(o, pre = [], label = "Why, and what's assumed") {
   if ((W.note || {})[tier]) bits.push(`<p>${cap(W.note[tier])}.</p>`);
   bits.push(`<p>${needText(o, other)}</p>`);
   if (W.assumed.length) bits.push(`<p>Assumed: ${W.assumed.join("; ")}.</p>`);
-  bits.push(`<p>These options come from the ratings this map uses. Engineers may find a better fix.</p>`);
   return `<details class="fixwhy"><summary>${label}</summary>${bits.join("")}</details>`;
 }
-// The panel's words for a fix: the place, in a sentence ("Making 300 ft of 2nd Avenue, between A and B, safe for kids")
+// Street names as people say them: "North Delaware Street" -> "N Delaware St"; one name per corner
 const oneSt = s => s.split(" & ")[0];    // "between Anita Road and Clarendon Road", not "... and Clarendon Road & North Claremont Street"
+const ABBR_ST = {North: "N", South: "S", East: "E", West: "W", Street: "St", Avenue: "Ave", Boulevard: "Blvd", Drive: "Dr",
+                 Road: "Rd", Lane: "Ln", Court: "Ct", Place: "Pl", Parkway: "Pkwy", Highway: "Hwy"};
+const shortSt = s => oneSt(s || "").split(" ").map((w, i, ws) => (i === 0 && ws.length > 2 && /^(North|South|East|West)$/.test(w)) || (i === ws.length - 1 && ABBR_ST[w]) ? (ABBR_ST[w] || w) : w).join(" ");
+// "North Delaware Street between State Street and Cypress Avenue" -> "N Delaware St, State St to Cypress Ave"
+function shortWhere(w) {
+  w = (w || "").replace(/^the crossing of /, "");
+  let m = w.match(/^(.*?) between (.*) and (.*)$/);
+  if (m) return `${shortSt(m[1])}, ${shortSt(m[2])} to ${shortSt(m[3])}`;
+  m = w.match(/^(.*?) (near|at) (.*)$/);
+  if (m) return `${shortSt(m[1])} ${m[2]} ${shortSt(m[3])}`;
+  return shortSt(w);
+}
+// The panel's words for a Caltrain fix: "Crossing Peninsula Ave at Arundel Rd", "2nd Ave, S Claremont St to S Delaware St (300 ft)"
 function fixPlain(B) {
   const x = fixCrossing(B);
-  if (x) return `A safe crossing ${x.includes(" at ") ? "of" : "at"} ${x}`;
-  const where = B.between ? `, between ${oneSt(B.between[0])} and ${oneSt(B.between[1])},` : B.near ? `, near ${oneSt(B.near)},` : "";
-  return `Making ${ftmi(Math.max(B.len, 15))} of ${B.name}${where} safe for ${WHO[tier]}`;
+  if (x) return `Crossing ${shortWhere(x.includes(" at ") ? x : `${x}`)}`;
+  const where = B.between ? `, ${shortSt(B.between[0])} to ${shortSt(B.between[1])}` : B.near ? ` near ${shortSt(B.near)}` : "";
+  return `${shortSt(B.name)}${where} (${ftmi(Math.max(B.len, 15))})`;
 }
 // What it would need, two options at most ("It would need a protected bike lane, or a 20 mph limit"); the rest go under Why
 const plainOpt = s => s.replace(/; where routes cross it \(at (.*)\): (.*)$/, ", plus $2 where bike routes cross it at $1");
@@ -692,6 +705,7 @@ function needPlain(o) {
   return `It would need ${two.join(sep)}${opts.length > 2 ? `, among ${opts.length} options` : ""}.`;
 }
 // why it's stressful now, for the chosen rider, in a sentence (pipeline/treatments.py plain_way, plain_crossing)
+const inRequest = w => (w || "").replace(/^Too much traffic/, "It has too much traffic").replace(/^The bike lane is just paint/, "Its bike lane is just paint");
 const whyNow = o => { const W = whyOf(o); return (W && W.why && W.why[tier]) || ""; };
 const needAll = o => { const W = whyOf(o), opts = (W && W.need[tier]) || []; return opts.length > 2 ? `Every option: ${opts.map(plainOpt).join("; or ")}.` : ""; };
 const JOIN_COLOR = "#5f87b5", GAP_COLOR = "#b4442c";
@@ -781,7 +795,7 @@ function fixMarks() {
 }
 // one line about a marker, for the map's tooltip and the phone's summary chip
 function markText(f) {
-  if (f.F) return `${f.n}. ${placeFixWhat(f.F)} would open up ${placeGains(f.F, false)}.`;
+  if (f.F) return `${f.n}. ${placeFixWhat(f.F)}: opens up ${placeGains(f.F, false)}.`;
   return `${fixPlain(f.B)} would let ${fixGain(f.e).replace(/ to /, " bike to ")}.`;
 }
 function fixAt(x, y, radius) {
@@ -882,8 +896,8 @@ const placeList = (xs, cls) => `<ul${cls ? ` class="${cls}"` : ""}>` +
   xs.map(([c, n, , slug]) => `<li>${placeLink(n, slug)} <span class="muted">${DOOR_CAT[c] || ""}</span></li>`).join("") + `</ul>`;
 // "Mi Rancho Supermarket and La Hacienda Supermarket (grocery stores); Gateway Park (a park)"
 function placesByKind(xs) {
-  const by = {};
-  for (const [c, n, , slug] of xs) (by[c] = by[c] || []).push(placeLink(n, slug));
+  const by = {};      // kinds in the order of their biggest draw (a big park before three small markets)
+  for (const [c, n, , slug] of [...xs].sort((a, b) => (b[5] || 2) - (a[5] || 2))) (by[c] = by[c] || []).push(placeLink(n, slug));
   return Object.entries(by).map(([c, ns]) => c === "downtown" ? andList(ns)
     : `${andList(ns)} <span class="kind">(${ns.length > 1 ? DOOR_CATS[c] : "a " + DOOR_CAT[c]})</span>`).join("; ");
 }
@@ -915,7 +929,7 @@ function placeMins(T, row) {
 function reachable(T, I) {
   const on = ((I.pl || {}).on || []).map(r => ({r, m: placeMins(T, r)}));
   if (!on.some(x => x.m)) return {rows: on, farther: 0, timed: false};
-  on.sort((a, b) => (a.m ?? 1e9) - (b.m ?? 1e9));
+  on.sort((a, b) => (b.r[5] || 2) - (a.r[5] || 2) || (a.m ?? 1e9) - (b.m ?? 1e9));     // the places people go out of their way for first
   if (!isBig(T, sel)) return {rows: on, farther: 0, timed: true};
   const near = on.filter(x => x.m && x.m <= NEAR_MINS);
   return {rows: near, farther: on.length - near.length, timed: true};
@@ -929,8 +943,8 @@ function placeGroups(I) {
 }
 const groupLabel = (g, gi, j) => g.length > 1 ? `${gi + 1}${"abcdef"[j]}` : String(gi + 1);
 const ridersFor = () => tier === "strict" ? "cautious riders and kids" : "experienced riders";
-function placeFixWhat(F) {         // "A safe crossing of X at Y", "Making X between A and B (0.3 mi) safe for cautious riders and kids"
-  return F.kind === "cross" ? `A safe ${F.where.replace(/^the /, "")}` : `Making ${F.where}${F.len ? ` (${ftmi(Math.max(F.len, 15))})` : ""} safe for ${ridersFor()}`;
+function placeFixWhat(F) {         // "Crossing Alameda de las Pulgas at 26th Ave", "N Delaware St, State St to Cypress Ave (0.8 mi)"
+  return F.kind === "cross" ? `Crossing ${shortWhere(F.where)}` : `${shortWhere(F.where)}${F.len ? ` (${ftmi(Math.max(F.len, 15))})` : ""}`;
 }
 // who it would let bike where: "downtown to 9,874 people here and the main library to 5,780"
 function placeGains(F, links = true) {
@@ -976,12 +990,15 @@ const planPlaces = L => (L.crossed ? L.p.places_crossed : L.p.places) || [];
 function planItem(T, L) {
   const P = L.P, gains = placeGains({places: planPlaces(L)});
   const gain = L.crossed
-    ? `It would open up ${gains}, if it also made crossing ${crossList(P)} safe${L.p.people ? ` (${fmt(L.p.people)} people as planned)` : ""}.`
+    ? `With safe crossings of ${crossList(P)}, it would open up ${gains}.${L.p.people ? ` As drawn, without them: ${fmt(L.p.people)} people.` : ""}`
     : `It would open up ${gains}.`;
-  const meta = [PRIORITY[P.priority] && P.num ? `${PRIORITY[P.priority]} priority in the plan` : "", planCost(P)].filter(Boolean).join("; ");
+  const pr = PRIORITY[P.priority] && P.num ? PRIORITY[P.priority] : "";
+  const cost = P.cost ? `${P.cost}${P.cost2 ? ` (${P.cost2} with curbs and planters)` : ""}` : "";
+  const meta = pr && cost ? `The plan calls it ${pr} priority and puts it at ${cost}.` : pr ? `The plan calls it ${pr} priority.` : cost ? `The plan puts it at ${cost}.` : "";
+  const what = (P.what || "").replace(/ \(traffic-calmed streets?\)/, "");
   const pg = (CITY.projects || []).find(C => (C.bmp || []).includes(L.p.id));
-  return `<p class="planline"><strong>Finish the city's planned ${P.what || planRef(P)}</strong>${P.what ? ` (${P.ref} in its ${P.doc})` : ""}. ${gain}` +
-    (meta ? `<span class="need">${capFirst(meta)}.</span>` : "") +
+  return `<p class="planline"><strong>Build ${what ? `the ${what}` : `the city's plan for ${P.title}`}</strong> (${P.ref} in the city's ${P.doc}). ${gain}` +
+    (meta ? `<span class="need">${meta}</span>` : "") +
     (pg ? `<span class="need">The city's project page: <a href="${pg.url}">${pg.name}</a> · ${pg.status} (as of ${CITY_ASOF}).</span>` : "") + `</p>`;
 }
 // Where one of this map's fixes stands in the city's plans: q is [project, bucket, share as it stands, share with
@@ -990,15 +1007,16 @@ function planWords(q, P) {
   if (!q) return "";
   const [, bucket, , sw] = q;
   if (bucket === "outside") return "";
-  if (bucket === "project" && P) return `The city already plans this: ${planName(P)}.`;
-  if (bucket === "project_if_its_street_crossed" && P) return `${capFirst(planName(P))} would cover it, if it also made crossing ${crossList(P)} safe.`;
-  if ((bucket === "project_with_crossings" || bucket === "plans_together") && P) return `The city's plans would cover it, with safe crossings they don't name yet.`;
-  if (bucket === "partly" && P) return `${capFirst(planName(P))} would reach about ${Math.round(sw * 100)}% of these people; the rest isn't in the city's plans.`;
+  const pp = P && (P.title ? `${P.ref} (${P.title})` : planRef(P));    // "project 2 (Peninsula Ave)"
+  if (bucket === "project" && P) return `Already in the city's plans as ${pp}.`;
+  if (bucket === "project_if_its_street_crossed" && P) return `${capFirst(pp)} would cover it, if it also made crossing ${crossList(P)} safe.`;
+  if ((bucket === "project_with_crossings" || bucket === "plans_together") && P) return `The city's plans would cover it, with crossings they don't include yet.`;
+  if (bucket === "partly" && P) return `${capFirst(pp)} would reach about ${Math.round(sw * 100)}% of these people.`;
   // a project on this street that reaches none of these people (plan_model.planned_here): say so, and why
-  if (bucket === "planned_weak" && P) return `In the city's plans, but not as anything ${WHO[tier]} could use: ${planName(P)} would still leave it too stressful for them.`;
-  if (bucket === "planned_along" && P) return `${capFirst(planName(P))} runs along the street this crosses, but a lane along a street doesn't make crossing it any easier.`;
-  if (bucket === "planned_mixed" && P) return `In the city's plans, but only partly as something ${WHO[tier]} could use: ${planName(P)} would leave some of this stretch too stressful for them.`;
-  if (bucket === "planned_not_enough" && P) return `${capFirst(planName(P))} would make this stretch low-stress, but on its own it wouldn't connect these people: other parts of their routes are still stressful.`;
+  if (bucket === "planned_weak" && P) return `In the city's plans as ${pp}, but not as anything ${WHO[tier]} could use.`;
+  if (bucket === "planned_along" && P) return `${capFirst(pp)} runs along this street, but a lane along it doesn't make crossing it any easier.`;
+  if (bucket === "planned_mixed" && P) return `In the city's plans as ${pp}, but only partly as something ${WHO[tier]} could use.`;
+  if (bucket === "planned_not_enough" && P) return `${capFirst(pp)} would make this stretch low-stress, but that alone wouldn't connect these people.`;
   return "Not in any of the city's plans yet.";
 }
 function planStatus(T, B) {        // a Caltrain fix
@@ -1103,13 +1121,13 @@ function summaryBlock(T, I) {
 function placeFixItem(I, F, alt, brief) {
   const st = placePlanStatus(I, F), city = cityLine(placeFixCity(I, F));
   const now = `<p>What the map sees: ${F.is}${F.len ? ` (${ftmi(Math.max(F.len, 15))})` : ""}.</p>`;
-  const gain = alt ? `: ${fmt(F.people)} people ${here}.` : ` would open up ${placeGains(F)}.`;
+  const gain = alt ? `: ${fmt(F.people)} people ${here}.` : `: opens up ${placeGains(F)}.`;
   const far = isBig(DATA[tier], sel) && clickPt ? metres(clickPt, fixMid(F)) : 0;
   const dist = far > 400 ? `<span class="planst">About ${far >= 1609 ? `${(far / 1609).toFixed(1)} miles` : `${Math.round(far / 3.048 / 10) * 10} ft`} from where you clicked.</span>` : "";
   const body = (F.why ? `<span class="why">${F.why}</span>` : "") +
-    (F.need && F.need.length ? `<span class="need">It would need ${orList(F.need)}.</span>` : "") +
+    (F.need && F.need.length ? `<span class="need">It would take ${orList(F.need)}.</span>` : "") +
     (st ? `<span class="planst">${st}</span>` : "") + city;
-  const seen = `${now}<p>These options come from the ratings this map uses. Engineers may find a better fix.</p>`;
+  const seen = now;
   const head = `<li data-fix="${F.id}"${F.id === focusFix ? ' class="focus"' : ""}><a class="fixlink" role="button" href="#t=${tier}&i=${sel}&f=${encodeURIComponent(F.id)}" aria-pressed="${F.id === focusFix}">${placeFixWhat(F)}</a>${gain}`;
   // the lead fix in full; the rest in a line each, the rest a tap away (open when the fix is chosen on the map)
   if (brief) return head + dist + `<details class="fixwhy"${F.id === focusFix ? " open" : ""}><summary>Why, and what it would take</summary>${body}<details class="fixwhy"><summary>What the map sees</summary>${seen}</details></details></li>`;
@@ -1119,7 +1137,7 @@ function placeFixItem(I, F, alt, brief) {
 function placeGroupItem(I, g, lead) {
   if (g.length === 1) return placeFixItem(I, g[0], false, !lead);
   const names = andList(g[0].places.map(([slug, n]) => placeLink(n, slug)));
-  return `<li class="altgroup"><span class="altlead">Any one of these would open up ${names} to many of the same people:</span>` +
+  return `<li class="altgroup"><span class="altlead">${g.length === 2 ? "Either one" : "Any one of these"} opens up ${names}, mostly for the same people:</span>` +
     `<ol type="a" class="alts">${g.map((F, j) => placeFixItem(I, F, true, !(lead && j === 0))).join("")}</ol></li>`;
 }
 // A Caltrain fix. One of a group of crossings (bridgeGroups) is named by its corner, with its count.
@@ -1129,9 +1147,9 @@ function fixItem(T, e, alt) {
     .map(([st, hu], k) => k === 0 ? `${fmt(hu)} more people ${here} bike to ${st} Caltrain` : `${fmt(hu)} to ${st} Caltrain`).join(" and ");
   const sp = SHARE.fixes[tier][B.id];
   const pg = (SHARE.pages || {})[B.id];   // a fix page covers it: what it would open up, side by side
-  const what = alt ? `At ${fixCrossing(B).split(" at ").slice(1).join(" at ")}` : fixPlain(B);
+  const what = alt ? `At ${shortSt(fixCrossing(B).split(" at ").slice(1).join(" at "))}` : fixPlain(B);
   return `<li data-fix="${B.id}"${B.id === focusFix ? ' class="focus"' : ""}><a class="fixlink" role="button" href="#t=${tier}&i=${sel}&f=${encodeURIComponent(B.id)}" aria-pressed="${B.id === focusFix}">${what}</a>` +
-    (alt ? `: ${fmt(e.max)} people.` : ` would let ${gains}.`) +
+    (alt ? `: ${fmt(e.max)} people.` : `: would let ${gains}.`) +
     (whyNow(B) ? `<span class="why">${whyNow(B)}</span>` : "") +
     (needPlain(B) ? `<span class="need">${needPlain(B)}</span>` : "") +
     (planStatus(T, B) ? `<span class="planst">${planStatus(T, B)}</span>` : "") + cityLine(bridgeCity(T, B)) +
@@ -1155,7 +1173,7 @@ function bridgeGroupItem(T, g) {
   if (g.length === 1) return fixItem(T, g[0]);
   const x = fixCrossing(T.bridges[g[0].bid]).split(" at ")[0], st = Object.entries(g[0].per).sort((a, b) => b[1] - a[1])[0][0];
   const ns = g.map(e => e.per[st] || 0), lo = Math.min(...ns), hi = Math.max(...ns);
-  return `<li class="altgroup"><span class="altlead">A safe crossing of ${x} at any one of these ${g.length} corners would let ${lo === hi ? fmt(hi) : `${fmt(lo)} to ${fmt(hi)}`} more people ${here} bike to ${st} Caltrain:</span>` +
+  return `<li class="altgroup"><span class="altlead">A safe crossing of ${shortSt(x)} at any one of these ${g.length} corners would let ${lo === hi ? fmt(hi) : `${fmt(lo)} to ${fmt(hi)}`} more people ${here} bike to ${st} Caltrain:</span>` +
     `<ol type="a" class="alts">${g.map(e => fixItem(T, e, true)).join("")}</ol></li>`;
 }
 function gapBlock(I) {
@@ -1216,9 +1234,9 @@ function panel() {
   here = big ? "on this island" : "here";
   const lead = leadFix(T, I, list), pf = placeFixes(I);
   const miles = (islandSpan(T, sel) / 1609).toFixed(1);
-  const bigNote = big ? `<p class="bignote">This island of quiet streets is large: about ${miles} miles corner to corner, with ${fmt(I.homes)} people. ` +
-    (clickPt ? `Places are timed from where you clicked; the fixes count everyone on the island, and say how far they are from your click.</p>`
-             : `${COARSE ? "Tap" : "Click"} near your home on it to see what's close to you; the fixes count everyone on the island.</p>`) : "";
+  const bigNote = big ? `<p class="bignote">This is a big island: ${fmt(I.homes)} people across about ${miles} miles. ` +
+    (clickPt ? `Times are from where you clicked, but the fix counts cover the whole island.</p>`
+             : `${COARSE ? "Tap" : "Click"} near your home to see what's close; the fix counts cover the whole island.</p>`) : "";
   let h = `<h2>From here</h2>${staleNote()}${bigNote}<p class="muted" style="margin:0">For ${WHO[tier]}, ${tier === "strict" ? "on paths and quiet streets" : "on streets they're comfortable on"}.${reachable(T, I).timed ? "" : " Places are within a 1-mile ride."}</p>` + summaryBlock(T, I);
   // the one fix, then the rest of the fixes by everyday places, numbered as on the map
   if (lead && lead.kind === "plan") h += `<h3 class="leadh">The city's own project that would help most</h3>${planItem(T, lead.L)}`;
@@ -1229,15 +1247,16 @@ function panel() {
   if (pf.length) {
     const groups = placeGroups(I), rest = lead && lead.kind === "place" ? groups.slice(1) : groups;
     if (lead && lead.kind === "place") h += `<ol class="br lead">${placeGroupItem(I, groups[0], true)}</ol>`;
-    if (rest.length) h += `<h3 class="leadh sub">${lead && lead.kind === "plan" ? "Fixes this map tested" : "Other fixes"}</h3>` +
+    if (rest.length) h += `<h3 class="leadh sub">Other fixes</h3>` +
       `<ol class="br" start="${groups.length - rest.length + 1}">${rest.map(g => placeGroupItem(I, g)).join("")}</ol>`;
+    h += `<p class="muted fine">What each fix would take comes from this map's rating rules. Engineers may find a better design.</p>`;
   }
   if (!big) h += `<p class="muted" style="margin-top:10px">${fmt(I.homes)} people live on this island of quiet streets.</p>`;
   // everything else, folded: the full place lists, route details, and getting to Caltrain
   const more = [], what = [];
   const on = P.on || [], out = P.out || [];
   if (on.length) {
-    const all = reachable(T, I).timed ? ((I.pl || {}).on || []).map(r => ({r, m: placeMins(T, r)})).sort((a, b) => (a.m ?? 1e9) - (b.m ?? 1e9)) : null;
+    const all = reachable(T, I).timed ? ((I.pl || {}).on || []).map(r => ({r, m: placeMins(T, r)})).sort((a, b) => (b.r[5] || 2) - (a.r[5] || 2) || (a.m ?? 1e9) - (b.m ?? 1e9)) : null;
     more.push(`<h3>You can bike to</h3>` + (all ? `<ul>${all.map(({r, m}) => `<li>${placeLink(r[1], r[3])} <span class="muted">${DOOR_CAT[r[0]] || ""}${m ? `, ${m} min` : ""}</span></li>`).join("")}</ul>` : placeList(on)));
   }
   if (out.length) more.push(`<h3>Close, but cut off</h3>` + placeList(out, "out"));
@@ -1345,36 +1364,36 @@ function actionCards(T, I, list, fixText, lead) {
   }
   if (toAddr && CIVIC.email_card) {
     // where you can and can't bike from here, on streets calm enough for the chosen rider (places.py's lists)
-    const calm = tier === "strict" ? "on streets calm enough for cautious riders and kids" : "on streets experienced riders are comfortable on";
+    const calm = tier === "strict" ? "on quiet streets" : "on streets I'm comfortable riding";
     const on = reachable(T, I).rows.map(x => x.r), out = P.out || [];
     const lines = [`Dear ${salutation},`, "",
-      `I used the bike islands map (maxmautner.com/bike-islands) to look at my neighborhood in ${city}.` +
-      (on.length ? ` ${calm[0].toUpperCase() + calm.slice(1)}, I can bike from here to ${names(on.slice(0, 3))}${out.length ? `, but not to ${names(out)}` : ""}.`
-        : out.length ? ` ${calm[0].toUpperCase() + calm.slice(1)}, I can't bike from here to ${names(out)}.` : "")];
+      `I looked up my neighborhood in ${city} on the bike islands map (maxmautner.com/bike-islands).` +
+      (on.length ? ` ${capFirst(calm)}, I can bike from here to ${names(on.slice(0, 3))}${out.length ? `, but not to ${names(out)}` : ""}.`
+        : out.length ? ` ${capFirst(calm)}, I can't bike from here to ${names(out)}.` : "")];
     const consider = city === "San Mateo" ? "Could the city consider it for the Quick Build Mobility Program?" : "Could the city consider it?";
-    const opens = xs => xs.map(([, n, c]) => `${n} to ${fmt(c)} people nearby`).join(" and ");
+    const opens = xs => xs.map(([, n, c]) => `${n} to about ${about(c)} people nearby`).join(" and ");
     if (LP) {
-      const P = LP.P;
-      lines.push("", `The city already plans ${P.what ? `${P.what} (${P.ref} in its ${P.doc})` : planRef(P)}, which would help here. ` +
-        `It would open up ${opens(planPlaces(LP))}` + (LP.crossed ? `, if it also made crossing ${crossList(P)} safe` : "") +
-        `. Could the city fund and build it?`);
+      const P = LP.P, what = (P.what || "").replace(/ \(traffic-calmed streets?\)/, "");
+      lines.push("", `The city's bike plan already has an answer: ${P.ref}, the ${what}. ` +
+        (LP.crossed ? `With safe crossings of ${crossList(P)}, it would open up ${opens(planPlaces(LP))}.` : `It would open up ${opens(planPlaces(LP))}.`) +
+        ` Could the city fund and build it?`);
     } else if (F) {
       const w = placeFixWhat(F);
-      lines.push("", `The single fix that would help most here is ${w[0].toLowerCase() + w.slice(1)}, which would open up ${opens(F.places)}. ${consider}`);
+      lines.push("", `The change that would help most here is ${F.kind === "cross" ? "a safe crossing of " + shortWhere(F.where) : "making " + shortWhere(F.where) + " safe to bike"}, which would open up ${opens(F.places)}. ${consider}`);
     } else if (B0) {
       const hu = list[0].per[top.st] || list[0].max;
       lines.push("", `The single fix that would help most here is ${fixText(top)}, which would connect ${fmt(hu)} more people to ${top.st} Caltrain. ${consider}`);
     } else {
       lines.push("", "What would it take to connect these streets to the rest of the city?");
     }
-    lines.push("", "[Add a sentence of your own]", "", link, "", "Thank you,");
+    lines.push("", "[A sentence about why this matters to you]", "", link, "", "Thank you,");
     const subj = LP ? `Please build ${LP.P.ref} of the ${LP.P.doc}` : F ? `A safe bike route to ${F.places[0][1]}` : B0 ? `A safe bike connection to ${top.st} Caltrain` : `Bike routes in my neighborhood`;
     href = `mailto:${toAddr}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(lines.join("\n"))}`;
   }
   const shareBtn = `<button type="button" class="btn${href ? "" : " btn-primary"}" id="share">${CAN_SHARE ? "Share link" : "Copy link"}</button>`;
   let h = `<h2>What you can do</h2><div class="act-item">`;
   if (href) {
-    h += `<p>${intro} The email starts with where you can and can't bike from here${LP ? ", and the city's own project that would help most" : F || B0 ? ", and the fix that would help most" : ""}; add a sentence of your own. Or send the link to a neighbor.</p>` +
+    h += `<p>${intro} The email says where you can and can't bike from here${LP ? " and which of the city's own projects would help most" : F || B0 ? " and what would help most" : ""}. Add a line of your own before you send it, or just send the link to a neighbor.</p>` +
          `<p class="act-btns"><a class="btn btn-primary" href="${href}" data-act="email_clicked" data-city="${city}">Email ${salutation}</a>${shareBtn}<span class="muted" id="copied"></span></p>`;
   } else {
     h += `<p>Send the link to a neighbor: it opens the map on this island, with where you can bike from it.</p><p class="act-btns">${shareBtn}<span class="muted" id="copied"></span></p>`;
@@ -1435,11 +1454,11 @@ function askCity(T, I, top) {
     .map(s => s.replace(/; where routes cross it \(at (.*)\): (.*)$/, ", plus $2 where bike routes cross it at $1"));
   const cap = s => s[0].toUpperCase() + s.slice(1);
   const plain = place.replace(/ & /g, " and ");
-  const parts = [`Please look at making ${plain} comfortable to bike ${how}.`, ...(whyNow(o) ? [whyNow(o)] : []),
-    `Rated by Level of Traffic Stress, it's too stressful for ${WHO[tier]}, and ${tail}.`];
-  if (opts.length > 1) parts.push(`Either of these would bring it to a low-stress rating: ${opts.join("; or ")}.`);
-  else if (opts.length) parts.push(`${cap(opts[0])} would bring it to a low-stress rating.`);
-  parts.push("I'm not suggesting a specific design; the city knows best what fits here.");
+  const parts = [`Please look at making ${plain} comfortable to bike ${how} for ${WHO[tier]}.`, ...(whyNow(o) ? [inRequest(whyNow(o))] : []),
+    `${capFirst(tail)}.`];
+  if (opts.length > 1) parts.push(`By Level of Traffic Stress ratings, either ${opts.join(", or ")} would do it.`);
+  else if (opts.length) parts.push(`By Level of Traffic Stress ratings, ${opts[0]} would do it.`);
+  parts.push("You may well know a better way.");
   // what the rating assumed because it isn't mapped: "The map assumes Howard Avenue is 30 mph and 2 lanes, since neither is mapped."
   const by = {};
   for (const a of (W && W.assumed) || []) {
@@ -1457,23 +1476,24 @@ function askCity(T, I, top) {
 function askCityPlan(L) {
   const P = L.P;
   const calm = tier === "strict" ? "on streets calm enough for cautious riders and kids" : "on streets most experienced riders are comfortable on";
-  const parts = [`Please prioritize ${planName(P)}.`,
-    `It would let about ${about(planGain(L))} people nearby bike to ${andList(planPlaces(L).map(([, n]) => n))} ${calm}` +
-    (L.crossed ? `, if it also made crossing ${crossList(P)} safe.` : ".") +
-    " (Counted on the bike islands map, maxmautner.com/bike-islands.)"];
+  const what = (P.what || "").replace(/ \(traffic-calmed streets?\)/, "");
+  const parts = [`Please build ${P.ref} of the ${P.doc}, the ${what}.`,
+    (L.crossed ? `With safe crossings of ${crossList(P)}, it` : "It") +
+    ` would let about ${about(planGain(L))} people nearby bike to ${andList(planPlaces(L).map(([, n]) => n))} ${calm}.`,
+    "(I found this on the bike islands map, maxmautner.com/bike-islands.)"];
   return {place: P.ref, text: parts.join(" "), assumed: ""};
 }
 
 // The same request for a fix by everyday places
 function askPlaceFix(F) {
-  const how = F.kind === "cross" ? "across" : "along", plain = F.where.replace(/ & /g, " and ");
+  const how = F.kind === "cross" ? "across" : "along", plain = F.kind === "cross" ? `the crossing of ${shortWhere(F.where)}` : shortWhere(F.where).replace(", ", " from ").replace(" to ", " to ");
   const opts = (F.need || []).slice(0, 2).map(s => s.replace(/; where routes cross it \(at (.*)\): (.*)$/, ", plus $2 where bike routes cross it at $1"));
   const cap = s => s[0].toUpperCase() + s.slice(1);
-  const parts = [`Please look at making ${plain} comfortable to bike ${how}.`, ...(F.why ? [F.why] : []),
-    `Rated by Level of Traffic Stress, it's too stressful for ${WHO[tier]}, and it's what keeps about ${about(F.people)} people nearby from a low-stress bike route to ${andList(F.places.map(([, n]) => n))}.`];
-  if (opts.length > 1) parts.push(`Either of these would bring it to a low-stress rating: ${opts.join("; or ")}.`);
-  else if (opts.length) parts.push(`${cap(opts[0])} would bring it to a low-stress rating.`);
-  parts.push("I'm not suggesting a specific design; the city knows best what fits here.");
+  const parts = [`Please look at making ${plain} comfortable to bike ${how} for ${WHO[tier]}.`, ...(F.why ? [inRequest(F.why)] : []),
+    `It's what keeps about ${about(F.people)} people nearby from a low-stress bike route to ${andList(F.places.map(([, n]) => n))}.`];
+  if (opts.length > 1) parts.push(`By Level of Traffic Stress ratings, either ${opts.join(", or ")} would do it.`);
+  else if (opts.length) parts.push(`By Level of Traffic Stress ratings, ${opts[0]} would do it.`);
+  parts.push("You may well know a better way.");
   return {place: F.where, text: parts.join(" "), assumed: ""};
 }
 

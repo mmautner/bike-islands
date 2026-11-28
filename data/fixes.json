@@ -52,8 +52,7 @@
    ],
    "south": [
     "safeway-delaware",
-    "Martin Luther King Park",
-    "Mi Rancho Supermarket"
+    "Martin Luther King Park"
    ]
   },
   "side_names": {
@@ -69,7 +68,7 @@
    "other_way": {
     "north": [
      "Burlingame Avenue",
-     "And the other way: {n} more San Mateo neighbors could bike to Burlingame Avenue's shops and restaurants."
+     "It works the other way too: {n} people in San Mateo could bike over to Burlingame Avenue's shops and restaurants."
     ]
    },
    "experienced": "For experienced riders, 30 mph alone would do most of it: {n} neighbors could ride to these places across Peninsula."
@@ -92,7 +91,7 @@
  {
   "slug": "2nd-ave-claremont-delaware",
   "street": "2nd Avenue",
-  "card": {"title": "2nd Avenue", "change": "Calm one block, Claremont to Delaware", "text": "This single block carries about 8,100 cars a day. Calm it and {total} people could get to San Mateo Caltrain, Mi Rancho or Gateway Park on quiet streets."},
+  "card": {"title": "2nd Avenue", "change": "Calm one block, Claremont to Delaware", "text": "This single block carries about 8,100 cars a day. Calm it and {total} people could get to San Mateo Caltrain and Gateway Park on quiet streets."},
   "layout": "along",
   "items": [
    {
