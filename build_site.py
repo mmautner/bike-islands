@@ -276,7 +276,7 @@ def share_entries():
             title = f"The bike island around {names}"
             # where you can bike from it, as the map's panel leads (places.py's lists)
             L = PLACE_LISTS[tier].get(iid, {})
-            on, out = [n for _, n, _, _ in L.get("on", [])], [n for _, n, _, _ in L.get("out", [])]
+            on, out = [r[1] for r in L.get("on", [])], [r[1] for r in L.get("out", [])]
             desc = f"{v['homes']:,} people share this island of quiet streets."
             if on:
                 desc += f" For {WHO[tier]}, it reaches {and_list(on[:3])}" + (f", but not {and_list(out[:2], 'or')}." if out else ".")
@@ -499,7 +499,9 @@ def place_body(P, civ):
             if st:
                 need += f'<p class="planst">{e(st)}</p>'
             h.append(f'<button class="fix" data-fix="{e(f["id"])}" data-n="{label[f["id"]]}" aria-pressed="false"><div class="gain">+{f["homes"]:,}<small>people</small></div>'
-                     f'<div><h3><span class="num">{label[f["id"]]}</span>{e(fix_title(f))}</h3><p>{f["kids"]:,} of them kids. Now: {e(f["is"])}{size}.</p>{need}</div></button>')
+                     f'<div><h3><span class="num">{label[f["id"]]}</span>{e(fix_title(f))}</h3>'
+                     + (f'<p>{e(f["why"])}</p>' if f.get("why") else "")
+                     + f'{need}<p class="seen">{f["kids"]:,} of them kids. What the map sees: {e(f["is"])}{size}.</p></div></button>')
             if len(g) > 1 and f is g[-1]:
                 h.append('</div>')
         h.append('</div>')
@@ -685,6 +687,10 @@ def needs(text):
     return " or ".join(opts) if len(opts) < 3 else ", ".join(opts[:-1]) + " or " + opts[-1]
 
 
+# the rider a street page counts for, said where it can't be missed (the page and the list of streets)
+RIDER_TAG = {"strict": "Counts for cautious riders and kids", "standard": "Counts for experienced riders"}
+
+
 def fix_page(cfg, D):
     """One fix page (bike-islands/<path>): the package in data/fixes.json, its numbers from pipeline/fix_pages.py."""
     st = short(D["street"])
@@ -721,11 +727,15 @@ def fix_page(cfg, D):
     phrase = and_list(bits)
     phrase = phrase[:1].upper() + phrase[1:]
     cats = list(dict.fromkeys(CAT_WORDS.get(r["cat"], r["cat"]) for rs in P.values() for r in rs))
-    title = cfg.get("title") or (f"What's on the other side of {st}" if across else f"Where a safer {st} would take you")
+    # one title style for every street page: "Where <the change> would take you"
+    change = (f"safe crossings of {st}" if len(cross_items) > 1 else
+              f"a safe crossing of {st} at {short(cross_items[0])}" if cross_items else
+              f"a safe way across {cfg['label']}" if across and cfg.get("label") else
+              f"a safe way across {st}" if across else f"a safer {st}")
+    title = cfg.get("title") or f"Where {change} would take you"
     lede = (cfg["lede"].format(total=r10(total)) if cfg.get("lede") else
             f"{phrase} would let {r10(total)} people bike to {and_list(cats)}"
-            + (f" on the other side of {st}." if across else " on quiet streets and paths.")
-            + f" These counts are for {WHO[lead]}.")
+            + (f" on the other side of {st}." if across else " on quiet streets and paths."))
 
     def gain_of(r, exclude=None):
         return sum(v["gain"][0] for g, v in r["groups"].items() if g != exclude)
@@ -764,8 +774,8 @@ def fix_page(cfg, D):
         best = max(cs, key=cs.get) if cs else None
         return best if best and cs[best] >= 0.9 * tot else None
 
-    h = [f'<p class="crumb"><a href="{BASE}">Bike islands</a> · <a href="{BASE}places/">Places</a> · {e(st)}</p>',
-         f"<h1>{e(title)}</h1>", f'<p class="lede">{e(lede)}</p>']
+    h = [f'<p class="crumb"><a href="{BASE}">Bike islands</a> · <a href="{BASE}fixes/">Streets</a> · {e(st)}</p>',
+         f"<h1>{e(title)}</h1>", f'<p class="rider">{e(RIDER_TAG[lead])}</p>', f'<p class="lede">{e(lede)}</p>']
     if city_plan:
         pj, crossed, share = city_plan
         h.append(f'<div class="callout" style="margin:0 0 24px">The city already plans this. {e(plan_name(pj)[:1].upper() + plan_name(pj)[1:])} '
@@ -829,9 +839,11 @@ def fix_page(cfg, D):
             h.append('<p class="intro">' + " ".join(
                 f'Between {e(r["from"])} and {e(r["to"])}: {int(r["adt"]):,} cars a day, posted {e(r["existing"])} mph.'
                 for r in rest) + '</p>')
-    for w in fixes:
-        if w["now"]:
-            h.append(f'<p class="intro"><strong>{e(short(w["where"]))}</strong>: {e(w["now"])}.</p>')
+    for w in fixes:       # why it's stressful now, in a sentence, then what the rating sees
+        why = w.get(f"why_{lead}") or ""
+        if why or w["now"]:
+            h.append(f'<p class="intro"><strong>{e(short(w["where"]))}</strong>: {e(why)}'
+                     + (f' <span class="seen">What the map sees: {e(w["now"])}.</span>' if w["now"] else "") + '</p>')
     if D["crossings"] and across:
         h.append('<table class="x"><thead><tr><th>Crossing</th><th>' + e(bare_street(st)) + '\'s limit there</th>'
                  '<th>The side streets</th></tr></thead><tbody>')
@@ -840,9 +852,12 @@ def fix_page(cfg, D):
             h.append(f'<tr><td>{e(nm)}</td><td>{e(x["speed"] or "")}</td><td>{legs}</td></tr>')
         h.append('</tbody></table>')
         if cross_items:
-            h.append(f'<p class="intro" style="margin-top:14px">The map counts a crossing of {e(bare_street(st))} as safe for cautious '
-                     'riders and kids where a signal or an all-way stop gives them a turn and traffic is going 30 mph or slower. '
-                     'Where it\'s 35, it takes both. The same is true on foot with a stroller or a dog. ' + notes.get("today", "") + '</p>')
+            fast = sum(1 for x in D["crossings"] if (x["speed"] or "").startswith("35"))
+            h.append(f'<p class="intro" style="margin-top:14px">For cautious riders and kids, the map counts a crossing of {e(bare_street(st))} '
+                     'as safe in one of two ways: a signal or an all-way stop where it\'s posted 30 mph, or no signal needed where it\'s 25. '
+                     + (f'Where it\'s posted 35, as at {fast} of these {len(D["crossings"])} corners, even a signal isn\'t enough: the limit '
+                        'has to come down too. ' if fast else '')
+                     + 'The same is true on foot with a stroller or a dog. ' + notes.get("today", "") + '</p>')
     elif notes.get("today"):
         h.append(f'<p class="intro">{notes["today"]}</p>')
     h.append('</section>')
@@ -938,7 +953,15 @@ def fix_page(cfg, D):
             .replace("/*HEAD*/", head(title, desc, path)).replace("/*HEADER*/", HEADER).replace("/*FOOTER*/", footer())
             .replace("/*BODY*/", "\n".join(h)).replace("/*MAP*/", json.dumps(M, separators=(",", ":"))))
     open(os.path.join(d, "index.html"), "w").write(page)
-    return {"path": path, "title": title, "lede": lede, "street": st, "ids": fix_ids(cfg, D)}
+    if cfg.get("moved_from"):       # its old address sends people here
+        old = f"{BASE}{cfg['moved_from']}"
+        os.makedirs(os.path.join(OUT, cfg["moved_from"]), exist_ok=True)
+        open(os.path.join(OUT, cfg["moved_from"], "index.html"), "w").write(
+            head(title, desc, path, noindex=True)
+            + f'\n  <meta http-equiv="refresh" content="0; url={e(path)}">\n  <script>location.replace({json.dumps(path)} + location.hash);</script>'
+            + f'\n</head>\n<body><p><a href="{e(path)}">{e(title)}</a></p></body>\n</html>\n')
+        print(f"{old} sends people to {path}")
+    return {"path": path, "title": title, "lede": lede, "street": st, "lead": lead, "ids": fix_ids(cfg, D)}
 
 
 def fix_ids(cfg, D):
@@ -965,7 +988,8 @@ def fixes_index(built):
     desc = "One change to one street, and the everyday places it would let neighbors on each side bike to."
     h = [f'<p class="crumb"><a href="{BASE}">Bike islands</a> · Streets</p>', f"<h1>{e(title)}</h1>",
          f'<p class="lede">{e(desc)} Each page says what the city already plans there, and what to ask for.</p><ul class="fixlist">']
-    h += [f'<li><a href="{f["path"]}"><strong>{e(f["title"])}</strong></a><p>{e(f["lede"])}</p></li>' for f in built]
+    h += [f'<li><a href="{f["path"]}"><strong>{e(f["title"])}</strong></a><p class="rider">{e(RIDER_TAG[f["lead"]])}</p>'
+          f'<p>{e(f["lede"])}</p></li>' for f in built]
     h.append("</ul>")
     page = (open(os.path.join(HERE, "site", "fix.html")).read()
             .replace("/*HEAD*/", head(title, desc, f"{BASE}fixes/")).replace("/*HEADER*/", HEADER).replace("/*FOOTER*/", footer())

@@ -109,6 +109,7 @@ def package(m, cfg, bridges):
             plan["steps"] += p["steps"]; plan["own"] |= p["own"]; plan["named"] |= p["named"]
             b = bridges.get((kind, int(oid)), {})
             words.append({"kind": kind, "where": b.get("where", it["fix"]), "now": b.get("now", ""),
+                          "why_strict": b.get("why_strict", ""), "why_standard": b.get("why_standard", ""),
                           "strict": b.get("would_count_strict", ""), "standard": b.get("would_count_standard", "")})
         elif "cross" in it:
             a, c = it["cross"]

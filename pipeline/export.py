@@ -447,6 +447,7 @@ def main():
                                 "now": why["is"], "lts": why.get("lts", ""),
                                 "would_count_strict": " | ".join(why["need"]["strict"]) or "counts",
                                 "would_count_standard": " | ".join(why["need"]["standard"]) or "counts",
+                                "why_strict": why.get("why", {}).get("strict", ""), "why_standard": why.get("why", {}).get("standard", ""),
                                 "note": " | ".join(why.get("note", {}).values()), "assumed": " | ".join(why["assumed"])})
                 if rank < FIXES_PER_STATION:
                     bid = len(brs)

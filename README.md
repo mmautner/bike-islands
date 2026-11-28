@@ -42,7 +42,9 @@ to Caltrain. Served at
     page) or by city ("along"); scored for both rider standards, leading with experienced riders only when it does next
     to nothing for cautious riders and kids (`data/fixes/<slug>.json`, run by `run.sh`). `build_site.py` builds the
     pages from `site/fix.html`, leading with the city's own project when it covers the fix (plans-first), and with
-    each package's notes (copy that's a judgment call: the Safeway "last block", the crosswalk story).
+    each package's notes (copy that's a judgment call: the Safeway "last block", the crosswalk story). Every page
+    lives at `fixes/<slug>/`, titled "Where <the change> would take you", with the rider it counts for as a label; a
+    package's `moved_from` leaves a redirect at an old address (`peninsula/`).
   - `plan_scenarios.py`: tests the city's own routes (`data/city_plans/scenarios.csv`) against our fixes: do they
     connect the same homes? Writes `data/city_plans/scenario_results.csv`.
   - `plan_projects.py`: scores every city plan project for each station, and how much of each of our station fixes
@@ -142,7 +144,10 @@ python3 build_site.py
   protected bike lane, local-street class, daily traffic) and re-asks `lts()`, `barrier()`, `untamable()` and
   `SIGNAL_RULE` for the least change that counts under each standard, so no threshold is restated. A street fix's
   options are also checked at the crossings its routes make. Assumed inputs (default speed or lanes, no daily
-  count) are listed. This is what the map's rating would need, not an engineering recommendation.
+  count) are listed. This is what the map's rating would need, not an engineering recommendation. The same search
+  gives the plain sentence each page shows first ("Too stressful for cautious riders and kids to share the lane with
+  traffic at 25 mph, about 4,800 cars a day"; "There's a signal, but El Camino Real is 35 mph and has 4 lanes"): it
+  names only the speed, lanes and traffic the least change has to fix, so it always agrees with "It would need".
 - **Share addresses**: `data/share_paths.json` records every share page address and what it opens. A page keeps
   its address and no address is reused for a different fix or island; `build_site.py` lists pages no longer built. A link
   whose fix or island the current data no longer has opens the map with a note saying the map has been updated since

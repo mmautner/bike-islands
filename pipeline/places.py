@@ -259,6 +259,7 @@ def island_lists(ctx, places, iid, slug_of, name_of=None):
     within = collections.defaultdict(collections.Counter)
     ok = collections.defaultdict(collections.Counter)
     ride = collections.defaultdict(collections.Counter)
+    at = collections.defaultdict(dict)      # island -> place -> its street point on the island nearest the place
     for pi, pl in enumerate(places):
         if pl["cat"] not in CATS:
             continue
@@ -267,6 +268,10 @@ def island_lists(ctx, places, iid, slug_of, name_of=None):
             continue
         d_all = dj(ctx.adj_all, src_all, cutoff=RIDE_M)
         d_low = dj(ctx.adj_low, src_low, cutoff=RIDE_M * DETOUR + 50) if src_low else {}
+        for k in src_low:
+            c, i = ctx.coord[base(k)], iid(k)
+            if pi not in at[i] or dist(c, pl["p"]) < dist(at[i][pi], pl["p"]):
+                at[i][pi] = c
         for k, (h, _) in ctx.W.items():
             dd = d_all.get(base(k))
             if not h or dd is None or dd > RIDE_M:
@@ -283,12 +288,13 @@ def island_lists(ctx, places, iid, slug_of, name_of=None):
             if wn < min(NEAR_MIN, NEAR_SHARE * isl_homes[i]):
                 continue
             pl = places[pi]
-            row = (ride[i][pi] / wn, label(pl, (name_of or {}).get(pi)), slug_of.get(pi))
+            row = (ride[i][pi] / wn, label(pl, (name_of or {}).get(pi)), slug_of.get(pi), at[i].get(pi))
             (on if ok[i][pi] >= 0.5 * wn else off)[pl["cat"]].append(row)
         res = {"on": [], "out": []}
         for c in CATS:
             a, b = sorted(on.get(c, [])), sorted(off.get(c, []))
-            res["on"] += [[c, n, round(d / 1609, 1), s] for d, n, s in a[:3]]
+            # a place on the island also carries where it's reached on it, so the page can time the ride from a click
+            res["on"] += [[c, n, round(d / 1609, 1), s] + ([[round(p[0], 5), round(p[1], 5)]] if p else []) for d, n, s, p in a[:3]]
             if b and (not a or b[0][0] < a[0][0]):
                 res["out"].append([c, b[0][1], round(b[0][0] / 1609, 1), b[0][2]])
         if res["on"] or res["out"]:
@@ -475,7 +481,7 @@ def describe(ctx, key, v):
     if kind == "cross":
         n = min(v["nodes"])
         x = ctx.explain.node(n)
-        return {"kind": kind, "street": name, "where": f"the crossing of {name}", "is": x["is"],
+        return {"kind": kind, "street": name, "where": f"the crossing of {name}", "is": x["is"], "why": x["why"][ctx.tier],
                 "need": x["need"][ctx.tier][:2], "len": 0}
     L = collections.Counter()
     for a, b in v["segs"]:
@@ -498,7 +504,7 @@ def describe(ctx, key, v):
     ea, eb = at(a), at(b)
     where = (f"{name} between {ea} and {eb}" if ea and eb and ea != eb else
              f"{name} near {ea or eb}" if (ea or eb) else name)
-    return {"kind": kind, "street": name, "where": where, "is": x["is"], "need": x["need"][ctx.tier][:2],
+    return {"kind": kind, "street": name, "where": where, "is": x["is"], "why": x["why"][ctx.tier], "need": x["need"][ctx.tier][:2],
             "len": round(sum(L.values()))}
 
 
@@ -742,7 +748,7 @@ def island_fixes(ctx, cand, fix_at, names, people):
         lines = [enc_line([ctx.coord[a], ctx.coord[b]]) for a, b in sorted(segs)] + \
                 [enc_line([ctx.coord[m]]) for m in sorted(nodes)]
         plan = fx.get("plan")
-        out.append({"id": fid, "g": gi, "kind": fx["kind"], "where": fx["where"], "is": fx["is"], "need": fx["need"], "len": fx["len"],
+        out.append({"id": fid, "g": gi, "kind": fx["kind"], "where": fx["where"], "is": fx["is"], "why": fx.get("why", ""), "need": fx["need"], "len": fx["len"],
                     "people": n, "kids": kd, "places": place_list(per, names), "p": lines,
                     **({"plan": [plan[0].removeprefix("plan:") if plan[0] else None, *plan[1:]]} if plan else {})})
     return out
@@ -789,8 +795,8 @@ def report(path, tier, ats):
             continue
         L = lists.get(iid(k), {})
         print(f"\n=== {s[0]}, {s[1]} [{tier}]: island {iid(k)}, {isl_homes[iid(k)]:,} homes")
-        print("  can bike to:", "; ".join(f"{n} ({d} mi)" for _, n, d, _ in L.get("on", [])) or "none listed")
-        print("  out of reach:", "; ".join(f"{n} ({d} mi)" for _, n, d, _ in L.get("out", [])) or "none listed")
+        print("  can bike to:", "; ".join(f"{n} ({d} mi)" for _, n, d, *_ in L.get("on", [])) or "none listed")
+        print("  out of reach:", "; ".join(f"{n} ({d} mi)" for _, n, d, *_ in L.get("out", [])) or "none listed")
 
 
 if __name__ == "__main__":

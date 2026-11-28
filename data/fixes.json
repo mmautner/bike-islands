@@ -1,11 +1,10 @@
 [
  {
   "slug": "peninsula",
-  "path": "peninsula/",
+  "moved_from": "peninsula/",
   "street": "Peninsula Avenue",
   "layout": "across",
   "mode": "bare",
-  "title": "What's on the other side of Peninsula Avenue",
   "lede": "Peninsula Avenue divides Burlingame and San Mateo. Five safe crossings and a 30 mph limit would let {total} neighbors bike to parks, shops and Caltrain on the other side.",
   "items": [
    {
@@ -111,7 +110,7 @@
    }
   ],
   "sides": "east-west",
-  "lede": "Caltrans is repaving El Camino Real for the first time in decades, and it isn't adding bike lanes. So the way across at Bellevue Avenue has to come from the streets on either side: a safe route there would let {total} people bike to parks, grocery stores and Caltrain on the other side of El Camino. These counts are for cautious riders and kids.",
+  "lede": "Caltrans is repaving El Camino Real for the first time in decades, and it isn't adding bike lanes. So the way across at Bellevue Avenue has to come from the streets on either side: a safe route there would let {total} people bike to parks, grocery stores and Caltrain on the other side of El Camino.",
   "asks": [
    "<li><strong>Project 1's bike boulevard on Bellevue and Highland Avenues</strong>, with a crossing of El Camino Real at the Bellevue signal that cautious riders and kids can use. Nothing on El Camino itself changes, so it doesn't wait on Caltrans.</li>"
   ],
